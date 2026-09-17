@@ -2,16 +2,14 @@
 
     uv run python figures/make_craft_fig1.py [--data figures/data/craftax/craft/fig1.npz] [--out figures/craftax/fig_craft_task]
 
-A two-by-two of equal panels in the blog's voice (italic serif letter, bold
-subtitle, small-caps labels, rich red for the richer goal and slate blue for the
-poorer). (a) One held-out field with the engine's own block textures and the
-policy's closed-loop rollout drawn over the expert's two plans. (b) The
-observation the policy gets at one step of that rollout: seven map planes and
-eight planes that are constant over the grid. (c) The tech tree the expert
-plans over. (d) The cost gap between the two chains over the held-out fields
-and the threshold the values set. Everything is read from ``fig1.npz`` /
-``fig1.json``, written by ``figures/craft_fig1_data.py`` on a machine holding
-the checkpoint.
+Three panels, letters only, the rest in the caption. (a) One held-out field
+with the engine's own block textures and the policy's closed-loop rollout.
+(b) The observation the policy gets at one step of that rollout: seven map
+planes and eight planes constant over the grid, three wide and five tall down
+the right-hand column. (c) The two chains the expert prices. ``--with-gap``
+adds the cost-gap histogram as a fourth panel. Everything is read from
+``fig1.npz`` / ``fig1.json``, written by ``figures/craft_fig1_data.py`` on a
+machine holding the checkpoint.
 
 Bedrock walls are the engine's furnace block (unminable, recipe-inert); they are
 drawn as dark stone rather than with the furnace's own lit texture.
@@ -73,13 +71,8 @@ def caps(text: str) -> str:
     return " ".join(text.upper())
 
 
-def header(fig, ax, letter: str, title: str, sub: str | None = None) -> None:
-    box = ax.get_position(fig) if hasattr(ax, "get_position") else ax
-    y = box.y1 + (0.03 if sub else 0.012)
-    fig.text(box.x0, y, f"({letter})", fontsize=11, fontstyle="italic", family=SERIF, color=INK, va="bottom")
-    fig.text(box.x0 + 0.04, y, title, fontsize=9.5, fontweight=600, color=INK, va="bottom")
-    if sub:
-        fig.text(box.x0 + 0.04, box.y1 + 0.01, sub, fontsize=7.0, color=SOFT, va="bottom")
+def letter(fig, box, text: str) -> None:
+    fig.text(box.x0, box.y1 + 0.008, f"({text})", fontsize=11, fontstyle="italic", family=SERIF, color=INK, va="bottom")
 
 
 # ---------------------------------------------------------------- assets
@@ -170,47 +163,13 @@ def panel_field(fig, ax, data, meta, tex) -> int:
     ax.plot(xs, ys, color=INK, lw=1.6, solid_capstyle="round", solid_joinstyle="round")[0].set_path_effects(HALO)
 
     marks = events(data)
-    seen: dict[tuple[int, int], int] = {}
-    key = []
-    for k, (label, cell, t) in enumerate(marks, 1):
-        x, y = centre(cell)
-        n = seen.get(cell, 0)
-        seen[cell] = n + 1
-        x, y = x + 0.34 * n, y - 0.34 * n
-        ax.plot(x, y, marker="o", ms=9.5, color="white", mec=INK, mew=0.8, zorder=5)
-        ax.text(x, y, str(k), ha="center", va="center", fontsize=6.2, color=INK, zorder=6, fontweight="bold")
-        key.append((k, label, t + 1))
     frame = next(t + 1 for label, _, t in marks if label == "wood pickaxe")
-    fx, fy = centre(rollout[frame])
-    ax.plot(fx, fy, marker="s", ms=14, mfc="none", mec=PROBE, mew=1.7, zorder=7)
-    ax.text(fx + 0.65, fy, "(b)", color=PROBE, fontsize=8.5, fontstyle="italic", family=SERIF, va="center", zorder=7).set_path_effects(HALO)
     ax.set_xlim(0, size)
     ax.set_ylim(size, 0)
     ax.set_xticks([])
     ax.set_yticks([])
     for spine in ax.spines.values():
         spine.set_visible(False)
-
-    # Legend and the numbered key, in the band under the map.
-    y0 = -0.05
-    ax.plot([0, 0.045], [y0, y0], color=INK, lw=1.4, transform=ax.transAxes, clip_on=False, solid_capstyle="round")
-    ax.text(
-        0.06, y0,
-        caps(f"the policy's {len(rollout) - 1} actions: the expert's iron plan exactly · coal plan {len(data['plan_coal'])}"),
-        transform=ax.transAxes, fontsize=5.2, color=SOFT, va="center", ha="left",
-    )
-    short = {"tree cut": "tree", "table placed": "table", "stone mined": "stone", "iron mined": "iron", "coal mined": "coal"}
-    plural = {"tree": "trees"}
-    parts, run = [], []
-    for k, label, _ in key:
-        label = short.get(label, label)
-        if run and run[-1][1] == label:
-            run[-1][0].append(k)
-        else:
-            run.append(([k], label))
-    for ks, label in run:
-        parts.append(f"{ks[0]}–{ks[-1]} {plural.get(label, label)}" if len(ks) > 1 else f"{ks[0]} {label}")
-    ax.text(0.0, y0 - 0.055, "  ·  ".join(parts), transform=ax.transAxes, fontsize=6.6, color=SOFT, va="center")
     return frame
 
 
@@ -235,12 +194,11 @@ def plane_grid(ax, plane: np.ndarray, colour: str, constant: bool) -> None:
     ax.axis("off")
 
 
-def panel_planes(fig, box, data, meta, frame) -> None:
-    """Fifteen planes as a 3 x 5 grid of lattice cards filling ``box`` (figure coordinates)."""
+def panel_planes(fig, box, data, meta, frame, cols: int = 3, rows: int = 5) -> None:
+    """Fifteen planes as a grid of lattice cards filling ``box`` (figure coordinates)."""
     obs = data["observations"][frame]
     names = meta["channels"]
     colours = [WALL, INK, INK, INK, INK, RICH, POOR] + [INK] * 8
-    cols, rows = 4, 4
     gap_x, gap_y = 0.012, 0.022
     w = (box.width - gap_x * (cols - 1)) / cols
     h = min(w * (fig.get_figwidth() / fig.get_figheight()), (box.height - gap_y * rows - 0.014) / rows)
@@ -275,7 +233,7 @@ def panel_tree(ax, tex, meta, ratio: float) -> None:
     def caption(x, y, text, colour=INK, size=7.4):
         ax.text(x, y, text, ha="center", va="top", fontsize=size, color=colour, linespacing=1.2)
 
-    top, mid = 10 * ratio - 2.0, 10 * ratio - 6.2
+    top, mid = 10 * ratio - 1.6, 10 * ratio - 6.0
     # Shared trunk.
     for k in range(3):
         icon(1.0 + 0.34 * k, top + 0.17 * k, blocks[int(Block.TREE)], 1.0)
@@ -329,45 +287,44 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data", type=Path, default=Path(__file__).parent / "data" / "craftax" / "craft" / "fig1.npz")
     parser.add_argument("--out", type=Path, default=Path(__file__).parent / "craftax" / "fig_craft_task")
+    parser.add_argument("--with-gap", action="store_true", help="also write the cost-gap histogram as <out>_gap")
     args = parser.parse_args()
     data = np.load(args.data)
     meta = json.loads(args.data.with_suffix(".json").read_text())
     tex = textures()
     v = meta["values"]
 
-    fw, fh = 7.4, 8.1
+    fw, fh = 7.2, 6.7
     fig = plt.figure(figsize=(fw, fh))
-    gs = fig.add_gridspec(2, 2, left=0.05, right=0.985, top=0.95, bottom=0.04, wspace=0.14, hspace=0.16)
-    cells = {k: gs[i, j].get_position(fig) for k, (i, j) in zip("abcd", ((0, 0), (0, 1), (1, 0), (1, 1)))}
-    # Every panel's content is one rectangle: the map's square plus the key band under it.
-    band_in = 0.45
-    side_in = min(cells["a"].width * fw, cells["a"].height * fh - band_in)
-    side_x, side_y, band_y = side_in / fw, side_in / fh, band_in / fh
-    content = {k: mpl.transforms.Bbox.from_bounds(b.x0, b.y1 - side_y - band_y, side_x, side_y + band_y) for k, b in cells.items()}
+    left, right, top, bottom, gap, vgap = 0.04, 0.985, 0.965, 0.03, 0.06, 0.075
+    # Left column: the map over the chains, each half the height. Right column: the fifteen cards, full height.
+    half_y = (top - bottom - vgap) / 2
+    side_x = half_y * fh / fw
+    box_a = mpl.transforms.Bbox.from_bounds(left, top - half_y, side_x, half_y)
+    box_c = mpl.transforms.Bbox.from_bounds(left, bottom, side_x, half_y)
+    box_b = mpl.transforms.Bbox.from_bounds(left + side_x + gap, bottom, right - left - side_x - gap, top - bottom)
 
-    box = content["a"]
-    ax_a = fig.add_axes([box.x0, box.y1 - side_y, side_x, side_y])
+    ax_a = fig.add_axes([box_a.x0, box_a.y0, box_a.width, box_a.height])
     frame = panel_field(fig, ax_a, data, meta, tex)
-    header(fig, box, "a", "A held-out field and the policy's rollout")
+    letter(fig, box_a, "a")
 
-    box = content["b"]
-    panel_planes(fig, box, data, meta, frame)
-    header(fig, box, "b", f"What the policy sees at step {frame}")
+    panel_planes(fig, box_b, data, meta, frame, cols=3, rows=5)
+    letter(fig, box_b, "b")
 
-    box = content["c"]
-    ax_c = fig.add_axes([box.x0, box.y0, box.width, box.height])
-    panel_tree(ax_c, tex, meta, ratio=(box.height * fh) / (box.width * fw))
-    header(fig, box, "c", "The two chains the expert prices")
-
-    box = content["d"]
-    ax_d = fig.add_axes([box.x0 + 0.06, box.y0 + 0.055, box.width - 0.065, box.height - 0.075])
-    panel_gap(ax_d, data, meta)
-    header(fig, box, "d", f"The rule: iron if the detour is under {meta['threshold']:.0f}")
+    ax_c = fig.add_axes([box_c.x0, box_c.y0, box_c.width, box_c.height])
+    panel_tree(ax_c, tex, meta, ratio=(box_c.height * fh) / (box_c.width * fw))
+    letter(fig, box_c, "c")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
-            fig.savefig(f"{args.out}.{ext}", bbox_inches="tight", pad_inches=0.1)
+        fig.savefig(f"{args.out}.{ext}", bbox_inches="tight", pad_inches=0.1)
     print(f"wrote {args.out}.png")
+    if args.with_gap:
+        fig_d, ax_d = plt.subplots(figsize=(4.8, 3.2))
+        panel_gap(ax_d, data, meta)
+        for ext in ("png", "pdf"):
+            fig_d.savefig(f"{args.out}_gap.{ext}", bbox_inches="tight", pad_inches=0.1)
+        print(f"wrote {args.out}_gap.png")
 
 
 if __name__ == "__main__":
