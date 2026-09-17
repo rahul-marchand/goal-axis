@@ -75,10 +75,11 @@ def caps(text: str) -> str:
 
 def header(fig, ax, letter: str, title: str, sub: str | None = None) -> None:
     box = ax.get_position(fig) if hasattr(ax, "get_position") else ax
-    fig.text(box.x0, box.y1 + 0.026, f"({letter})", fontsize=12, fontstyle="italic", family=SERIF, color=INK, va="bottom")
-    fig.text(box.x0 + 0.032, box.y1 + 0.026, title, fontsize=10.5, fontweight=600, color=INK, va="bottom")
+    y = box.y1 + (0.03 if sub else 0.012)
+    fig.text(box.x0, y, f"({letter})", fontsize=11, fontstyle="italic", family=SERIF, color=INK, va="bottom")
+    fig.text(box.x0 + 0.04, y, title, fontsize=9.5, fontweight=600, color=INK, va="bottom")
     if sub:
-        fig.text(box.x0 + 0.032, box.y1 + 0.009, sub, fontsize=7.4, color=SOFT, va="bottom")
+        fig.text(box.x0 + 0.04, box.y1 + 0.01, sub, fontsize=7.0, color=SOFT, va="bottom")
 
 
 # ---------------------------------------------------------------- assets
@@ -196,23 +197,28 @@ def panel_field(fig, ax, data, meta, tex) -> int:
         spine.set_visible(False)
 
     # Legend and the numbered key, in the band under the map.
-    y0 = -0.04
+    y0 = -0.05
     swatches = [
-        (RICH, 7.0, 0.38, "-", f"expert's iron plan · {len(data['plan_iron'])}"),
-        (POOR, 1.7, 1.0, (0, (3, 2)), f"expert's coal plan · {len(data['plan_coal'])}"),
-        (INK, 1.5, 1.0, "-", f"policy's rollout · {len(rollout) - 1} actions"),
+        (RICH, 6.0, 0.38, "-", f"iron plan · {len(data['plan_iron'])}"),
+        (POOR, 1.5, 1.0, (0, (3, 2)), f"coal plan · {len(data['plan_coal'])}"),
+        (INK, 1.3, 1.0, "-", f"policy · {len(rollout) - 1} actions"),
     ]
     for i, (colour, lw, alpha, ls, text) in enumerate(swatches):
-        x = 0.33 * i
-        ax.plot([x, x + 0.04], [y0, y0], color=colour, lw=lw, alpha=alpha, ls=ls, transform=ax.transAxes, clip_on=False, solid_capstyle="round")
-        ax.text(x + 0.052, y0, caps(text), transform=ax.transAxes, fontsize=5.6, color=SOFT, va="center", ha="left")
-    for i, (k, label, step) in enumerate(key):
-        row, col = divmod(i, 3)
-        x = 0.35 * col
-        y = y0 - 0.05 - 0.037 * row
-        ax.plot(x + 0.012, y, marker="o", ms=8, color="white", mec=INK, mew=0.7, transform=ax.transAxes, clip_on=False)
-        ax.text(x + 0.012, y, str(k), transform=ax.transAxes, fontsize=5.4, color=INK, ha="center", va="center", fontweight="bold")
-        ax.text(x + 0.04, y, f"{label} · step {step}", transform=ax.transAxes, fontsize=6.9, color=SOFT, va="center")
+        x = 0.34 * i
+        ax.plot([x, x + 0.045], [y0, y0], color=colour, lw=lw, alpha=alpha, ls=ls, transform=ax.transAxes, clip_on=False, solid_capstyle="round")
+        ax.text(x + 0.06, y0, caps(text), transform=ax.transAxes, fontsize=5.2, color=SOFT, va="center", ha="left")
+    short = {"tree cut": "tree", "table placed": "table", "stone mined": "stone", "iron mined": "iron", "coal mined": "coal"}
+    plural = {"tree": "trees"}
+    parts, run = [], []
+    for k, label, _ in key:
+        label = short.get(label, label)
+        if run and run[-1][1] == label:
+            run[-1][0].append(k)
+        else:
+            run.append(([k], label))
+    for ks, label in run:
+        parts.append(f"{ks[0]}–{ks[-1]} {plural.get(label, label)}" if len(ks) > 1 else f"{ks[0]} {label}")
+    ax.text(0.0, y0 - 0.055, "  ·  ".join(parts), transform=ax.transAxes, fontsize=6.6, color=SOFT, va="center")
     return frame
 
 
@@ -223,7 +229,7 @@ def plane_grid(ax, plane: np.ndarray, colour: str, constant: bool) -> None:
     if constant:
         value = float(plane[0, 0])
         ax.add_patch(Rectangle((0, 0), size, size, color=colour, alpha=value, lw=0))
-        ax.text(size / 2, size / 2, f"{value:g}", ha="center", va="center", fontsize=8.5, color=INK if value < 0.5 else "white")
+        ax.text(size / 2, size / 2, f"{value:g}", ha="center", va="center", fontsize=7, color=INK if value < 0.5 else "white")
     else:
         for k in range(1, size):
             ax.plot([k, k], [0, size], color=LINE, lw=0.35)
@@ -245,22 +251,16 @@ def panel_planes(fig, box, data, meta, frame) -> None:
     cols, rows = 4, 4
     gap_x, gap_y = 0.012, 0.022
     w = (box.width - gap_x * (cols - 1)) / cols
-    h = min(w * (fig.get_figwidth() / fig.get_figheight()), (box.height - gap_y * (rows - 1)) / rows)
+    h = min(w * (fig.get_figwidth() / fig.get_figheight()), (box.height - gap_y * rows - 0.014) / rows)
+    w = h * (fig.get_figheight() / fig.get_figwidth())
     top = box.y1
     axes = []
     for i in range(obs.shape[-1]):
         r, c = divmod(i, cols)
         ax = fig.add_axes([box.x0 + c * (w + gap_x), top - h - r * (h + gap_y), w, h])
         plane_grid(ax, obs[..., i], colours[i], constant=i >= 7)
-        ax.text(obs.shape[0] / 2, obs.shape[0] + 1.0, caps(names[i]), ha="center", va="top", fontsize=5.8, color=SOFT)
+        ax.text(obs.shape[0] / 2, obs.shape[0] + 1.0, caps(names[i]), ha="center", va="top", fontsize=4.8, color=SOFT)
         axes.append(ax)
-    # The spare card carries the colour key.
-    ax = fig.add_axes([box.x0 + 3 * (w + gap_x), top - h - 3 * (h + gap_y), w, h])
-    ax.axis("off")
-    for j, (colour, text) in enumerate(((WALL, "bedrock"), (INK, "agent, tree, stone, table"), (RICH, "iron"), (POOR, "coal"))):
-        ax.add_patch(Rectangle((0.02, 0.86 - 0.2 * j), 0.1, 0.1, color=colour, transform=ax.transAxes, clip_on=False))
-        ax.text(0.17, 0.91 - 0.2 * j, caps(text), transform=ax.transAxes, fontsize=5.4, color=SOFT, va="center")
-    ax.text(0.02, 0.06, "1 = present in that cell", transform=ax.transAxes, fontsize=6.2, color=SOFT, va="bottom")
     return axes
 
 
@@ -283,50 +283,32 @@ def panel_tree(ax, tex, meta, ratio: float) -> None:
     def caption(x, y, text, colour=INK, size=7.4):
         ax.text(x, y, text, ha="center", va="top", fontsize=size, color=colour, linespacing=1.2)
 
-    top, mid, bottom = 10 * ratio - 1.5, 10 * ratio - 4.9, 10 * ratio - 7.6
+    top, mid = 10 * ratio - 2.0, 10 * ratio - 6.2
     # Shared trunk.
     for k in range(3):
         icon(1.0 + 0.34 * k, top + 0.17 * k, blocks[int(Block.TREE)], 1.0)
-    caption(1.35, top - 0.85, "cut three trees\n3 wood")
-    arrow(2.2, top, 3.35, top)
+    caption(1.35, top - 0.85, "3 trees")
+    arrow(2.2, top, 3.3, top)
     icon(4.0, top, blocks[int(Block.CRAFTING_TABLE)])
-    caption(4.0, top - 0.85, "place a table\n2 wood")
-    arrow(4.7, top, 5.85, top)
+    caption(4.0, top - 0.85, "table\n2 wood")
+    arrow(4.7, top, 5.8, top)
     icon(6.5, top, icons["wood_pickaxe"])
-    caption(6.5, top - 0.85, "wood pickaxe\n1 wood, at the table")
-    # Coal branch: straight on.
-    arrow(7.2, top, 8.35, top)
+    caption(6.5, top - 0.85, "wood pickaxe\n1 wood")
+    arrow(7.2, top, 8.3, top)
     icon(9.0, top, blocks[int(Block.COAL)])
-    caption(9.0, top - 0.85, f"coal\nvalue {meta['values'][1]}", POOR)
-    ax.text(9.0, top + 0.85, caps("coal chain"), ha="center", va="bottom", fontsize=6.2, color=POOR)
+    caption(9.0, top - 0.85, f"coal\nworth {meta['values'][1]}", POOR)
     # Iron branch: down and along.
     arrow(6.5, top - 1.75, 6.5, mid + 0.75)
     icon(1.0, mid, blocks[int(Block.TREE)], 1.0)
-    ax.text(1.75, mid, "+", ha="center", va="center", fontsize=11, color=SOFT)
+    ax.text(1.75, mid, "+", ha="center", va="center", fontsize=10, color=SOFT)
     icon(2.5, mid, blocks[int(Block.STONE)], 1.0)
-    caption(1.75, mid - 0.85, "a fourth tree, a stone deposit\nstone needs the wood pickaxe")
-    arrow(3.2, mid, 5.85, mid, "back to the table")
+    caption(1.75, mid - 0.85, "a 4th tree, a stone")
+    arrow(3.2, mid, 5.8, mid)
     icon(6.5, mid, icons["stone_pickaxe"])
     caption(6.5, mid - 0.85, "stone pickaxe\n1 wood + 1 stone")
-    arrow(7.2, mid, 8.35, mid)
+    arrow(7.2, mid, 8.3, mid)
     icon(9.0, mid, blocks[int(Block.IRON)])
-    caption(9.0, mid - 0.85, f"iron\nvalue {meta['values'][0]}", RICH)
-    ax.text(9.0, mid + 0.85, caps("iron chain"), ha="center", va="bottom", fontsize=6.2, color=RICH)
-    # The rule, in words.
-    v = meta["values"]
-    ax.text(
-        0.2,
-        bottom,
-        "The expert plans both chains from the field, prices each at value minus\n"
-        f"{meta['step_penalty']} per action, and takes the better one. Iron is worth {v[0] - v[1]:.1f} more than\n"
-        f"coal, so its chain wins whenever its detour costs fewer than {meta['threshold']:.0f} actions.\n"
-        "Every field is a different price for the same two goods.",
-        ha="left",
-        va="top",
-        fontsize=7.4,
-        color=INK,
-        linespacing=1.45,
-    )
+    caption(9.0, mid - 0.85, f"iron\nworth {meta['values'][0]}", RICH)
 
 
 # ---------------------------------------------------------------- panel (d)
@@ -339,19 +321,16 @@ def panel_gap(ax, data, meta) -> None:
     ax.hist(gap[gap >= threshold], bins=bins, color=POOR, alpha=0.65, lw=0)
     ax.axvline(threshold, color=INK, lw=1.2)
     top = ax.get_ylim()[1]
-    ax.text(threshold - 0.6, top * 0.98, caps(f"expert takes iron · {meta['expert_takes_iron']:.0%}"), ha="right", va="top", fontsize=6.4, color=RICH)
-    ax.text(threshold + 0.6, top * 0.98, caps(f"expert takes coal · {1 - meta['expert_takes_iron']:.0%}"), ha="left", va="top", fontsize=6.4, color=POOR)
-    ax.text(threshold + 0.6, top * 0.88, caps(f"threshold {threshold:.0f}"), ha="left", va="top", fontsize=6.4, color=INK)
+    ax.text(threshold - 0.7, top * 0.98, caps(f"iron · {meta['expert_takes_iron']:.0%}"), ha="right", va="top", fontsize=6.2, color=RICH)
+    ax.text(threshold + 0.7, top * 0.98, caps(f"coal · {1 - meta['expert_takes_iron']:.0%}"), ha="left", va="top", fontsize=6.2, color=POOR)
+    ax.text(threshold + 0.7, top * 0.88, caps(f"threshold {threshold:.0f}"), ha="left", va="top", fontsize=6.2, color=INK)
     this = meta["cost_iron"] - meta["cost_coal"]
-    ax.plot(this, 0, marker="^", color=INK, ms=7, clip_on=False, zorder=5)
-    ax.annotate(
-        "the field in (a)", (this, top * 0.01), (this - 7, top * 0.32), fontsize=7.2, color=SOFT,
-        arrowprops=dict(arrowstyle="-", color=LINE, lw=0.8), ha="center",
-    )
-    ax.set_xlabel(caps("extra actions the iron chain costs over the coal chain"), fontsize=6.8, labelpad=6)
-    ax.set_ylabel(caps(f"held-out fields, of {meta['n_fields']}"), fontsize=6.8, labelpad=6)
+    ax.plot(this, 0, marker="^", color=INK, ms=6, clip_on=False, zorder=5)
+    ax.text(this - 0.9, top * 0.04, "(a)", ha="right", va="bottom", fontsize=7, fontstyle="italic", family=SERIF, color=INK)
+    ax.set_xlabel(caps("detour: extra actions for iron over coal"), fontsize=6.2, labelpad=8)
+    ax.set_ylabel(caps("held-out fields"), fontsize=6.2, labelpad=6)
     ax.grid(True, axis="y")
-    ax.tick_params(labelsize=7.5)
+    ax.tick_params(labelsize=7)
 
 
 def main() -> None:
@@ -364,12 +343,12 @@ def main() -> None:
     tex = textures()
     v = meta["values"]
 
-    fw, fh = 10.6, 12.75
+    fw, fh = 7.4, 8.1
     fig = plt.figure(figsize=(fw, fh))
-    gs = fig.add_gridspec(2, 2, left=0.05, right=0.985, top=0.95, bottom=0.03, wspace=0.16, hspace=0.13)
+    gs = fig.add_gridspec(2, 2, left=0.05, right=0.985, top=0.95, bottom=0.04, wspace=0.14, hspace=0.16)
     cells = {k: gs[i, j].get_position(fig) for k, (i, j) in zip("abcd", ((0, 0), (0, 1), (1, 0), (1, 1)))}
     # Every panel's content is one rectangle: the map's square plus the key band under it.
-    band_in = 0.85
+    band_in = 0.45
     side_in = min(cells["a"].width * fw, cells["a"].height * fh - band_in)
     side_x, side_y, band_y = side_in / fw, side_in / fh, band_in / fh
     content = {k: mpl.transforms.Bbox.from_bounds(b.x0, b.y1 - side_y - band_y, side_x, side_y + band_y) for k, b in cells.items()}
@@ -377,35 +356,25 @@ def main() -> None:
     box = content["a"]
     ax_a = fig.add_axes([box.x0, box.y1 - side_y, side_x, side_y])
     frame = panel_field(fig, ax_a, data, meta, tex)
-    header(
-        fig, box, "a", "One held-out field, and what the policy did on it",
-        f"iron {v[0]}, coal {v[1]}, {meta['step_penalty']} per action · iron chain {meta['cost_iron']}, coal chain {meta['cost_coal']}: "
-        f"a detour of {meta['cost_iron'] - meta['cost_coal']}, under {meta['threshold']:.0f}, so iron",
-    )
+    header(fig, box, "a", "A held-out field and the policy's rollout")
 
     box = content["b"]
     panel_planes(fig, box, data, meta, frame)
-    header(
-        fig, box, "b", f"What the policy sees at step {frame}",
-        "table down, wood pickaxe in hand · map planes, then facing and inventory as constant planes (counts / 4)"[:-12],
-    )
+    header(fig, box, "b", f"What the policy sees at step {frame}")
 
     box = content["c"]
     ax_c = fig.add_axes([box.x0, box.y0, box.width, box.height])
     panel_tree(ax_c, tex, meta, ratio=(box.height * fh) / (box.width * fw))
-    header(fig, box, "c", "The tech tree the expert plans over", "the iron chain is the coal chain plus a detour for its ingredients")
+    header(fig, box, "c", "The two chains the expert prices")
 
     box = content["d"]
-    ax_d = fig.add_axes([box.x0 + 0.05, box.y0 + 0.045, box.width - 0.055, box.height - 0.06])
+    ax_d = fig.add_axes([box.x0 + 0.06, box.y0 + 0.055, box.width - 0.065, box.height - 0.075])
     panel_gap(ax_d, data, meta)
-    header(
-        fig, box, "d", "The decision rule over the held-out fields",
-        f"take iron iff its detour costs fewer than ({v[0]} − {v[1]}) / {meta['step_penalty']} = {meta['threshold']:.0f} actions",
-    )
+    header(fig, box, "d", f"The rule: iron if the detour is under {meta['threshold']:.0f}")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(f"{args.out}.{ext}", bbox_inches="tight", pad_inches=0.15)
+            fig.savefig(f"{args.out}.{ext}", bbox_inches="tight", pad_inches=0.1)
     print(f"wrote {args.out}.png")
 
 

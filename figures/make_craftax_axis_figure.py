@@ -102,7 +102,7 @@ def expert_line(payloads: list[dict]) -> tuple[np.ndarray, np.ndarray]:
     return np.asarray(xs), np.asarray(ys)
 
 
-def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float], goals=("richer goal", "poorer goal")) -> None:
+def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float], goals=("richer goal", "poorer goal"), stats: bool = True) -> None:
     sweeps = panel["sweeps"]
     ax.axhline(0, color=INK2, lw=0.8, alpha=0.55)
     ax.grid(True, axis="y")
@@ -133,7 +133,7 @@ def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float], goals=("r
 
     text = []
     first = next((p for s in ("o0", "o1") for p in sweeps.get(s, [])), None)
-    if first is not None:
+    if first is not None and stats:
         bases = [p["behaviour"]["base"] for s in sweeps.values() for p in s]
         reached = np.mean([b["reached"] for b in bases])
         optimal = np.mean([b["chose_optimal"] for b in bases])
@@ -199,30 +199,25 @@ def main() -> None:
 
 
 def draw_single(panel: dict, out: Path) -> None:
-    """The write-up's figure: one base, both sweeps, the legend beneath."""
-    ylim = (-17, 32)
-    fig, ax = plt.subplots(figsize=(6.0, 4.6))
-    draw_panel(ax, panel, "", ylim, goals=("iron's value", "coal's value"))
-    ax.set_xlabel("change in the swept goal's value")
-    ax.set_ylabel("threshold τ: extra actions spent for the richer goal")
-    box = ax.get_position()
-    fig.text(box.x0, box.y1 + 0.075, "The value axis in the crafting task", fontsize=11, fontweight=600, color=INK, va="bottom")
-    fig.text(
-        box.x0, box.y1 + 0.03,
-        "12.6M receding-horizon route model trained from scratch by imitation (cxcraft15t.s1); values hidden",
-        fontsize=7.6, color=INK2, va="bottom",
-    )
+    """The write-up's figure at the blog's size: one base, both sweeps, nothing but the plot."""
+    ylim = (-11, 30)
+    fig, ax = plt.subplots(figsize=(4.8, 3.4))
+    draw_panel(ax, panel, "", ylim, stats=False)
+    ax.set_yticks([0, 10, 20, 30])
+    ax.set_xlabel("change in the swept goal's value", fontsize=8)
+    ax.set_ylabel("threshold τ (extra actions for iron)", fontsize=8)
+    ax.tick_params(labelsize=7.5)
     handles = [
         Line2D([], [], color=RICH, lw=1.6, label="iron's value moved"),
         Line2D([], [], color=POOR, lw=1.6, label="coal's value moved"),
-        Line2D([], [], color=INK2, lw=1.6, marker="o", ms=4.2, label="fine-tuned at that value"),
-        Line2D([], [], color=INK2, lw=1.6, ls=(0, (4, 3)), marker="o", ms=4.2, mfc=SURFACE, mew=1.3, label="written along the axis, arm held out"),
-        Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert's exchange rate"),
+        Line2D([], [], color=INK2, lw=1.6, marker="o", ms=4, label="fine-tuned"),
+        Line2D([], [], color=INK2, lw=1.6, ls=(0, (4, 3)), marker="o", ms=4, mfc=SURFACE, mew=1.2, label="written, arm held out"),
+        Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert"),
     ]
-    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=7.4, bbox_to_anchor=(0.54, -0.1), columnspacing=1.4, handlelength=2.2)
+    ax.legend(handles=handles, loc="lower center", fontsize=6.4, ncol=3, handlelength=2.0, columnspacing=1.2, labelspacing=0.3, borderaxespad=0.2)
     out.parent.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(f"{out}.{ext}", bbox_inches="tight")
+        fig.savefig(f"{out}.{ext}", bbox_inches="tight", pad_inches=0.08)
     print(f"wrote {out}.png")
 
 
