@@ -199,22 +199,22 @@ def main() -> None:
 
 
 def draw_single(panel: dict, out: Path) -> None:
-    """The write-up's figure at the blog's size: one base, both sweeps, nothing but the plot."""
-    ylim = (-11, 30)
+    """The write-up's figure at the blog's size: one base, iron's value swept, the legend beneath."""
+    ylim = (-3, 30)
+    only = {"sweeps": {"o0": panel["sweeps"].get("o0", [])}, "gaps": panel["gaps"]}
     fig, ax = plt.subplots(figsize=(4.8, 3.4))
-    draw_panel(ax, panel, "", ylim, stats=False)
+    draw_panel(ax, only, "", ylim, stats=False)
+    ax.set_ylim(-2, 30)
     ax.set_yticks([0, 10, 20, 30])
-    ax.set_xlabel("change in the swept goal's value", fontsize=8)
+    ax.set_xlabel("change in iron's value", fontsize=8)
     ax.set_ylabel("threshold τ (extra actions for iron)", fontsize=8)
     ax.tick_params(labelsize=7.5)
     handles = [
-        Line2D([], [], color=RICH, lw=1.6, label="iron's value moved"),
-        Line2D([], [], color=POOR, lw=1.6, label="coal's value moved"),
-        Line2D([], [], color=INK2, lw=1.6, marker="o", ms=4, label="fine-tuned"),
-        Line2D([], [], color=INK2, lw=1.6, ls=(0, (4, 3)), marker="o", ms=4, mfc=SURFACE, mew=1.2, label="written, arm held out"),
-        Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert"),
+        Line2D([], [], color=RICH, lw=1.6, marker="o", ms=4, label="fine-tuned at that value"),
+        Line2D([], [], color=RICH, lw=1.6, ls=(0, (4, 3)), marker="o", ms=4, mfc=SURFACE, mew=1.2, label="written along the axis, arm held out"),
+        Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert's exchange rate"),
     ]
-    ax.legend(handles=handles, loc="lower center", fontsize=6.4, ncol=3, handlelength=2.0, columnspacing=1.2, labelspacing=0.3, borderaxespad=0.2)
+    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=6.8, bbox_to_anchor=(0.55, -0.1), columnspacing=1.6, handlelength=2.2, frameon=False)
     out.parent.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
         fig.savefig(f"{out}.{ext}", bbox_inches="tight", pad_inches=0.08)
