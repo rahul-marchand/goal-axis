@@ -1,9 +1,11 @@
 """The value-axis figure across tasks: the maze route model beside the two Craftax tasks.
 
     uv run python figures/make_craftax_axis_figure.py [--maze figures/data/bc] [--data figures/data/craftax]
-        [--out figures/craftax/fig_craftax_value_axis]
+        [--layout single|all] [--out figures/craftax/fig_craftax_value_axis]
 
-One panel per base agent, all the same plot as the blog's value-axis figure: the
+``single`` (the default) is the write-up's figure: the crafting base trained
+from scratch, alone. ``all`` is the appendix version, one panel per base agent,
+maze route model first. Every panel is the same plot as the blog's value-axis figure: the
 decision threshold (extra actions the policy will spend for the richer goal)
 against the change in one goal's value, for agents fine-tuned at that value
 (filled, solid) and for the frozen base with the fitted axis written into its
@@ -100,7 +102,7 @@ def expert_line(payloads: list[dict]) -> tuple[np.ndarray, np.ndarray]:
     return np.asarray(xs), np.asarray(ys)
 
 
-def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float]) -> None:
+def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float], goals=("richer goal", "poorer goal")) -> None:
     sweeps = panel["sweeps"]
     ax.axhline(0, color=INK2, lw=0.8, alpha=0.55)
     ax.grid(True, axis="y")
@@ -140,12 +142,12 @@ def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float]) -> None:
         expected = first["behaviour"]["arms"]["+0.10"]["expected"] - 2.0 if "+0.10" in first["behaviour"]["arms"] else None
         if nulls:
             text.append(f"null arm τ = {np.mean(nulls):.1f}" + (f" (expert {expected:.0f})" if expected is not None else ""))
-        for sweep, name in (("o0", "richer"), ("o1", "poorer")):
+        for sweep, name in (("o0", goals[0]), ("o1", goals[1])):
             if sweeps.get(sweep):
                 rel = np.mean([p["reliability"] for p in sweeps[sweep] if p.get("reliability") is not None])
                 slope = np.mean([p["behaviour"]["slope_arms"] for p in sweeps[sweep]])
                 written = np.mean([p["behaviour"]["slope_written"] for p in sweeps[sweep]])
-                text.append(f"{name} goal moved: slope {slope:+.0f} / written {written:+.0f}, reliability {rel:.2f}")
+                text.append(f"{name} moved: slope {slope:+.0f} / written {written:+.0f}, reliability {rel:.2f}")
         cos = [g["cos"] for g in panel["gaps"] if g.get("cos") is not None]
         if cos:
             text.append(f"cos(axis_0, axis_1) = {np.mean(cos):+.2f}")
@@ -157,8 +159,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--maze", type=Path, default=Path(__file__).parent / "data" / "bc")
     parser.add_argument("--data", type=Path, default=Path(__file__).parent / "data" / "craftax")
-    parser.add_argument("--out", type=Path, default=Path(__file__).parent / "craftax" / "fig_craftax_value_axis")
+    parser.add_argument("--layout", choices=("single", "all"), default="single")
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
+    out = args.out or Path(__file__).parent / "craftax" / ("fig_craftax_value_axis" if args.layout == "single" else "fig_craftax_value_axis_all")
+    if args.layout == "single":
+        draw_single(load_panel(args.data / "craft", "cxcraft15t"), out)
+        return
 
     panels = [
         ("maze, route model (bcnv11)", load_panel(args.maze, "bcnv11")),
@@ -185,10 +192,38 @@ def main() -> None:
         Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert's exchange rate"),
     ]
     fig.legend(handles=handles, loc="lower center", ncol=5, fontsize=7.8, bbox_to_anchor=(0.5, -0.02), columnspacing=1.6)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(f"{args.out}.{ext}", bbox_inches="tight")
-    print(f"wrote {args.out}.png")
+        fig.savefig(f"{out}.{ext}", bbox_inches="tight")
+    print(f"wrote {out}.png")
+
+
+def draw_single(panel: dict, out: Path) -> None:
+    """The write-up's figure: one base, both sweeps, the legend beneath."""
+    ylim = (-17, 32)
+    fig, ax = plt.subplots(figsize=(6.0, 4.6))
+    draw_panel(ax, panel, "", ylim, goals=("iron's value", "coal's value"))
+    ax.set_xlabel("change in the swept goal's value")
+    ax.set_ylabel("threshold τ: extra actions spent for the richer goal")
+    box = ax.get_position()
+    fig.text(box.x0, box.y1 + 0.075, "The value axis in the crafting task", fontsize=11, fontweight=600, color=INK, va="bottom")
+    fig.text(
+        box.x0, box.y1 + 0.03,
+        "12.6M receding-horizon route model trained from scratch by imitation (cxcraft15t.s1); values hidden",
+        fontsize=7.6, color=INK2, va="bottom",
+    )
+    handles = [
+        Line2D([], [], color=RICH, lw=1.6, label="iron's value moved"),
+        Line2D([], [], color=POOR, lw=1.6, label="coal's value moved"),
+        Line2D([], [], color=INK2, lw=1.6, marker="o", ms=4.2, label="fine-tuned at that value"),
+        Line2D([], [], color=INK2, lw=1.6, ls=(0, (4, 3)), marker="o", ms=4.2, mfc=SURFACE, mew=1.3, label="written along the axis, arm held out"),
+        Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert's exchange rate"),
+    ]
+    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=7.4, bbox_to_anchor=(0.54, -0.1), columnspacing=1.4, handlelength=2.2)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    for ext in ("png", "pdf"):
+        fig.savefig(f"{out}.{ext}", bbox_inches="tight")
+    print(f"wrote {out}.png")
 
 
 def load_panel_seed(directory: Path, base: str, seed: str) -> dict:
