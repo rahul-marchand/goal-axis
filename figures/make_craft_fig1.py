@@ -164,15 +164,10 @@ def panel_field(fig, ax, data, meta, tex) -> int:
     size = tiles.shape[0]
     ax.imshow(image, extent=(0, size, size, 0), interpolation="nearest")
 
-    iron = walk(tiles, start, data["start_direction"], data["plan_iron"])
-    coal = walk(tiles, start, data["start_direction"], data["plan_coal"])
+    # Only the policy's own route is drawn: on this field it is the expert's iron plan, action for action.
     rollout = [tuple(int(v) for v in p) for p in data["positions"]]
-    xs, ys = zip(*[centre(p) for p in iron])
-    ax.plot(xs, ys, color=RICH, lw=7.5, alpha=0.38, solid_capstyle="round", solid_joinstyle="round")
-    xs, ys = zip(*[(x + 0.2, y + 0.2) for x, y in (centre(p) for p in coal)])
-    ax.plot(xs, ys, color=POOR, lw=1.7, ls=(0, (3, 2)), solid_capstyle="round")[0].set_path_effects(HALO)
     xs, ys = zip(*[centre(p) for p in rollout])
-    ax.plot(xs, ys, color=INK, lw=1.5, solid_capstyle="round", solid_joinstyle="round")[0].set_path_effects(HALO)
+    ax.plot(xs, ys, color=INK, lw=1.6, solid_capstyle="round", solid_joinstyle="round")[0].set_path_effects(HALO)
 
     marks = events(data)
     seen: dict[tuple[int, int], int] = {}
@@ -198,15 +193,12 @@ def panel_field(fig, ax, data, meta, tex) -> int:
 
     # Legend and the numbered key, in the band under the map.
     y0 = -0.05
-    swatches = [
-        (RICH, 6.0, 0.38, "-", f"iron plan · {len(data['plan_iron'])}"),
-        (POOR, 1.5, 1.0, (0, (3, 2)), f"coal plan · {len(data['plan_coal'])}"),
-        (INK, 1.3, 1.0, "-", f"policy · {len(rollout) - 1} actions"),
-    ]
-    for i, (colour, lw, alpha, ls, text) in enumerate(swatches):
-        x = 0.34 * i
-        ax.plot([x, x + 0.045], [y0, y0], color=colour, lw=lw, alpha=alpha, ls=ls, transform=ax.transAxes, clip_on=False, solid_capstyle="round")
-        ax.text(x + 0.06, y0, caps(text), transform=ax.transAxes, fontsize=5.2, color=SOFT, va="center", ha="left")
+    ax.plot([0, 0.045], [y0, y0], color=INK, lw=1.4, transform=ax.transAxes, clip_on=False, solid_capstyle="round")
+    ax.text(
+        0.06, y0,
+        caps(f"the policy's {len(rollout) - 1} actions: the expert's iron plan exactly · coal plan {len(data['plan_coal'])}"),
+        transform=ax.transAxes, fontsize=5.2, color=SOFT, va="center", ha="left",
+    )
     short = {"tree cut": "tree", "table placed": "table", "stone mined": "stone", "iron mined": "iron", "coal mined": "coal"}
     plural = {"tree": "trees"}
     parts, run = [], []
