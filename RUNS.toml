@@ -542,6 +542,70 @@ arm at 1.00-0.50); `scripts/offline_value_axis_pod.sh armdemos` built them.
 """
 
 [[entry]]
+match = "offline/demos/overfit/holdout.rho100"
+note = """
+The levels every arm of the overfitting study is scored on: the first 2,048 of
+`offline/demos/test.rho100` that are not in `offline/demos/arms/1.00-0.50.train.rho100`.
+Both exclusions are needed because the study compares bases trained from
+different pools. `split_by_layout` decides a maze's split by hashing the maze,
+but against thresholds that are fractions of the pool, so the 150k arm pool's
+splits are not nested inside the 1M pool's: 2,732 of the arms' 50k training
+levels sit in the 1M pool's test split, and 1,824 of the 2,048 levels the arms
+are scored on sit in bcnv11's training set. test.rho100 alone is therefore
+clean for bcnv11 and contaminated for the rungs; the arms' own test set is the
+reverse. This set is clean for both, and being a subset of test.rho100 it is
+still comparable with the published numbers. `scripts/make_demo_subset.py --exclude`.
+"""
+
+[[entry]]
+match = "offline/demos/overfit/*"
+note = """
+The training sets of the overfitting study: the first N demonstrations of each
+`offline/demos/arms/<values>.train.rho100`, N in the name. One per values tag of
+the o0 sweep, so a base and all 25 of its arms train on *the same* N levels and
+differ only in what the objectives are worth. The slices are prefixes, so a
+rung at 1k is nested inside one at 10k and a difference between rungs is the
+amount of data rather than which data; `make_demo_subset.py --check` asserts
+that the tags agree level for level.
+"""
+
+[[entry]]
+match = "offline/runs/bcov11.n*/arms/*"
+note = """
+Value-axis arms of an overfitting rung, at the campaign's own budget and rate
+(1000 steps, batch 256, constant lr 1e-4 after 50 warmup) but trained on the
+*same* N levels as their base, demonstrated at the arm's values. Data held
+fixed; only what an objective is worth changed. Read with
+`experiments/027_bc_value_axis.py` twice: on `offline/demos/overfit/holdout.rho100`,
+and on the base's own training levels, where a memoriser has an exchange rate
+at all. `scripts/overfit_axis_pod.sh`.
+"""
+
+[[entry]]
+match = "offline/runs/bcov11.n*"
+note = """
+The overfitting rungs: the bcnv11 recipe (hidden values, rho=1.0, 30k steps,
+4 layers, width 128) on N demonstrations instead of 900k, so the model
+memorises the routes rather than learning the value-distance trade. The
+question they exist to answer is whether the value axis -- arms on opposite
+sides opposing, an axis fitted without an arm reading that arm's offset back, a
+write moving the exchange rate -- needs the base to have learned the task, or
+whether a short fine-tune manufactures it from any base. N is in the name.
+`scripts/overfit_axis_chain.sh`; the gap between what a rung scores on its own
+levels and on held-out ones is `offline/results/overfit.gap.*`.
+"""
+
+[[entry]]
+match = "offline/runs/bcnv11.s*.n*/arms/*"
+note = """
+The control arm of the overfitting study: bcnv11's own parameters, fine-tuned
+on the same N levels the rungs use rather than on 50k fresh ones. It separates
+"the base is a memoriser" from "the arms had little data", which a rung on its
+own confounds. The base directory holds no parameters of its own - its
+`checkpoints` is a symlink to bcnv11's - so only `arms/` here is new.
+"""
+
+[[entry]]
 match = "offline/runs/bcnv11.s*/arms/*"
 note = """
 Value-axis arms of the hidden-value route model: the base (`offline/runs/bcnv11.s<seed>`,
