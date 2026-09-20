@@ -80,7 +80,10 @@ def main() -> None:
     print("  implied slope 1 = an axis fitted without an arm reads that arm's offset back at scale.")
 
     print("\n=== does writing the axis move behaviour? ===")
-    print(f"  {'run':<20}{'scored on':<11}{'base indiff':>13}{'arms':>8}{'written':>9}{'expert':>8}{'|w-arm|':>9}{'random':>9}")
+    print(
+        f"  {'run':<20}{'scored on':<11}{'reached':>9}{'base indiff':>13}{'arms':>8}{'written':>9}"
+        f"{'+drift':>9}{'expert':>8}{'|w-arm|':>9}{'random':>9}"
+    )
     for run in args.runs:
         for label, source in (("held-out", axis), ("memorised", memory)):
             data = source.get(run)
@@ -88,12 +91,22 @@ def main() -> None:
                 continue
             b = data["behaviour"]
             randoms = [v["indifference"] for k, v in b.get("controls", {}).items() if k.startswith("random")]
-            drift = np.mean([abs(r - b["base"]["indifference"]) for r in randoms]) if randoms else float("nan")
+            noise = np.mean([abs(r - b["base"]["indifference"]) for r in randoms]) if randoms else float("nan")
+            # The write's own slope, and the same write with the common component
+            # added back. They come apart: a direction can read the offset back in
+            # weight space and still leave behaviour where it found it unless the
+            # drift goes with it.
+            offsets = np.array([float(o) for o in b["arms"]])
+            with_drift = np.array([b["arms"][o]["written_with_drift"]["indifference"] for o in b["arms"]])
+            ok = np.isfinite(with_drift)
+            slope_drift = float(np.polyfit(offsets[ok], with_drift[ok], 1)[0]) if ok.sum() > 2 else float("nan")
             print(
-                f"  {run:<20}{label:<11}{b['base']['indifference']:>13.2f}{b['slope_arms']:>8.1f}"
-                f"{b['slope_written']:>9.1f}{b['slope_expert']:>8.1f}{b['loo_error_mean_abs']:>9.2f}{drift:>9.2f}"
+                f"  {run:<20}{label:<11}{b['base']['reached']:>9.3f}{b['base']['indifference']:>13.2f}"
+                f"{b['slope_arms']:>8.1f}{b['slope_written']:>9.1f}{slope_drift:>9.1f}"
+                f"{b['slope_expert']:>8.1f}{b['loo_error_mean_abs']:>9.2f}{noise:>9.2f}"
             )
-    print("  arms/written/expert are steps of detour per unit of value.")
+    print("  arms/written/+drift/expert are steps of detour per unit of value. `reached` is the base's:")
+    print("  an exchange rate fitted from few completed episodes is worth little whatever it says.")
     print("  random = mean |indifference - base| under directions of the same length as 0.45*axis and 0.2*axis;")
     print("  it is the scale at which 'the write did something' stops meaning anything.")
 
