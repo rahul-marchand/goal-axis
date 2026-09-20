@@ -1,0 +1,108 @@
+Does the value axis need a base that learned the task?
+======================================================
+
+The offline campaign finds a value axis in a route model trained on 900k
+demonstrations (`bcnv11.s1`, sweep o0): arms on opposite sides of the base
+oppose, an axis fitted without an arm reads that arm's offset back, and writing
+offset * axis into the base moves its exchange rate. This asks whether any of
+that requires the base to have learned the task.
+
+Design. A rung is a base trained on N demonstrations and nothing else, with all
+25 o0 arms fine-tuned on *the same N levels* at shifted values, so an arm's diff
+is what changing a value does with the data held fixed. `bcnv11.s1.n<N>` is the
+control: bcnv11's own parameters with arms restricted to those same N levels,
+which separates "the base is a memoriser" from "the arms had little data".
+Arms keep the campaign's budget and rate (1000 steps, batch 256, constant 1e-4
+after 50 warmup). Behaviour is read on test.rho100 minus the arm pool's train
+split, the only set held out from both pools; see RUNS.toml.
+
+    scripts/overfit_axis_chain.sh, TAGS="1k 10k"; scripts/overfit_axis_report.py
+
+Summary.
+
+1. The axis is there in a memoriser, and the three geometric columns cannot
+   tell any of these five conditions apart. They track how quiet the fine-tune
+   was -- smaller arm sets are less noisy, so reliability *rises* to 0.987 for
+   1k arms whether or not the base learned anything -- not what the base knows.
+
+2. What separates them is behavioural, and specifically the axis written
+   *without* its drift. It moves a threshold the base computes on levels it has
+   not memorised, and does not move one the base has memorised. That holds in
+   both directions: the trained base's write works on the arms' 1k/10k levels
+   (which it never trained on), and the memorisers' writes fail there.
+
+3. It is a gradient, not a cliff. Held-out, written tracks arms at 0.3/0.3 (1k),
+   3.6/5.8 (10k) and 25.4/21.9 (900k) steps per unit value. The write can only
+   move what the base already computes on unseen mazes.
+
+4. Why the memorised levels resist: they are held ~6.5 logits harder than
+   anything else the same model does (max softmax 1.0000 against 0.973), while
+   the trained base is equally soft everywhere. The drift -- large, common to
+   every arm, behaviourally inert on its own -- is what makes stored decisions
+   movable again, after which the graded part expresses itself (memorised:
+   written +0.6, +drift +15.6 at 1k; +1.7 and +16.6 at 10k). The 1k write has a
+   deadband for |offset| <= 0.2 and responds only past 0.3, which is what a
+   threshold-crossing account predicts.
+
+=== how much of each base's competence is memory ===
+  run                    levels   own acc  held acc  own opt.  held opt.  own indiff  held indiff
+  bcnv11.s1               2,048     0.990     0.988     0.934      0.928       11.42        10.93
+  bcnv11.s1.n1k           1,000     0.990     0.988     0.935      0.928       10.91        10.93
+  bcnv11.s1.n10k              -
+  bcov11.n10k.s1          2,048     1.000     0.769     1.000      0.890       10.60         5.82
+  bcov11.n1k.s1           1,000     1.000     0.513     1.000      0.725       10.66        -0.42
+  own = the levels the base trained on. A memoriser is near 1.0 there and poor beside it.
+
+=== is the sweep an axis at all? (weights only; the same numbers either way) ===
+  run                   arms  cos same  cos opp.  implied slope  reliability  mean R2
+  bcnv11.s1               24    +0.433    -0.472          0.969        0.963    0.477
+  bcnv11.s1.n1k           24    +0.500    -0.530          0.983        0.987    0.576
+  bcnv11.s1.n10k          24    +0.417    -0.460          0.970        0.973    0.482
+  bcov11.n10k.s1          24    +0.488    -0.527          0.979        0.980    0.552
+  bcov11.n1k.s1           24    +0.516    -0.553          0.983        0.987    0.593
+  cos same > 0 and cos opposite < 0 with the drift removed = the arms moved along one line.
+  implied slope 1 = an axis fitted without an arm reads that arm's offset back at scale.
+
+=== does writing the axis move behaviour? ===
+  run                 scored on    reached  base indiff    arms  written   +drift  expert  |w-arm|   random
+  bcnv11.s1           held-out       0.968        10.93    21.9     25.4     21.7    20.0     2.46     0.08
+  bcnv11.s1.n1k       held-out       0.968        10.93    20.0     21.7     20.4    20.0     1.39     0.08
+  bcnv11.s1.n1k       memorised      0.971        10.91    20.4     23.3     20.5    20.0     2.00     0.07
+  bcnv11.s1.n10k      held-out       0.968        10.93    23.5     23.8     22.6    20.0     1.33     0.15
+  bcnv11.s1.n10k      memorised      0.970        10.71    20.5     24.6     19.9    20.0     2.53     0.17
+  bcov11.n10k.s1      held-out       0.331         5.82     5.8      3.6      4.7    20.0     0.80     0.33
+  bcov11.n10k.s1      memorised      1.000        10.60    20.1      1.7     16.6    20.0     6.14     0.05
+  bcov11.n1k.s1       held-out       0.167        -0.42     0.3      0.3      0.8    20.0     0.36     0.36
+  bcov11.n1k.s1       memorised      1.000        10.66    20.4      0.6     15.6    20.0     6.57     0.00
+  arms/written/+drift/expert are steps of detour per unit of value. `reached` is the base's:
+  an exchange rate fitted from few completed episodes is worth little whatever it says.
+  random = mean |indifference - base| under directions of the same length as 0.45*axis and 0.2*axis;
+  it is the scale at which 'the write did something' stops meaning anything.
+
+
+Supporting diagnostics
+----------------------
+
+What survives memorisation is the maze half of the task, not the value half.
+bcov11.n1k.s1 decoded on 25,000 held-out levels (3,937 completed episodes):
+
+    reached the BFS-nearer objective        0.913
+    reached the richer objective            0.500   (chance)
+    of 227 episodes where BFS-nearest and Manhattan-nearest differ:
+      went to the BFS-nearer                0.850
+      went to the Manhattan-nearer          0.150
+
+So its held-out policy is shortest-path-to-nearest, walls included, with an
+exchange rate of zero. The held-out null is therefore a real negative -- there
+is a threshold there to move -- and not a definitional one. Caveat: it finishes
+only 15.7% of held-out routes and the rest are unscored.
+
+Saturation, teacher-forced, mean over action positions (1024 levels per set):
+
+    base              own levels                 held-out
+    bcov11.n1k.s1     gap 19.20  max prob 1.0000  gap 12.24  max prob 0.9726
+    bcov11.n10k.s1    gap 19.36  max prob 1.0000  gap 14.60  max prob 0.9733
+    bcnv11.s1         gap 12.92  max prob 0.9894  gap 12.87  max prob 0.9895
+
+Evidence for the account in 4, not proof of it: the margin is over all action
+positions rather than over the choice of objective.
