@@ -31,6 +31,7 @@ LIGHT = [
     "separability",
     "spectrum",
     "steering",
+    "tables",
     "targets",
     "token_budget",
     "weights",

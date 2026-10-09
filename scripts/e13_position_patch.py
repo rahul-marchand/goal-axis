@@ -30,14 +30,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.provenance import header
 
 
 def parse_args() -> argparse.Namespace:

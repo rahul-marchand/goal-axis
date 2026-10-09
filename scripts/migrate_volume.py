@@ -39,9 +39,8 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.volume import arm_dirname, composition_arm_dirname, dataset_dirname  # noqa: E402
+from goalmisgen.paths import data_root
+from goalmisgen.volume import arm_dirname, composition_arm_dirname, dataset_dirname
 
 # Base agents, by the directory they are in today. The tag is what they become
 # under ``runs/``. Seeds are written out rather than read from ``cfg.json``
@@ -479,7 +478,7 @@ def retire(record: Path, root: Path) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--data", type=Path, default=Path("/workspace/data"))
+    parser.add_argument("--data", type=Path, default=data_root())
     parser.add_argument("--apply", action="store_true", help="Copy to the new paths, leaving the old ones.")
     parser.add_argument("--verify", action="store_true", help="Checksum every copied file against its source.")
     parser.add_argument("--retire", action="store_true", help="Move verified old paths under retired/.")

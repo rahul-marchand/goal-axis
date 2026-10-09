@@ -43,18 +43,14 @@ from __future__ import annotations
 import argparse
 import itertools
 import sys
-from functools import partial
 from pathlib import Path
 
-import jax
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
-from jax.flatten_util import ravel_pytree
 
 from goalmisgen import provenance
-from goalmisgen.analysis import collect_episode_outcomes, summarise
-from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
+from goalmisgen.analysis import summarise
 from goalmisgen.analysis.weights import cosine, fit_axis_and_drift
+from goalmisgen.axis import Greedy, checkpoint_eval_config, load_checkpoint, read_threshold
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.volume import arm_trained_values
 
@@ -71,7 +67,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--levels", type=str, required=True, help="Levels at the base values; the test split is used.")
     parser.add_argument("--episodes", type=int, default=2048)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--at", type=int, default=-1)
     parser.add_argument("--skip-behaviour", action="store_true")
@@ -84,20 +80,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def eval_config(args: argparse.Namespace) -> MazeConfig:
-    return MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=args.size,
-        max_size=args.size,
-        n_objectives=3,
-        objective_values=BASE_VALUES,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split="test",
-        asynchronous=False,
-        seed=args.seed,
+    """The base's own training environment, from its cfg.json, at ``BASE_VALUES`` on the test split."""
+    return checkpoint_eval_config(
+        args.base, args.levels, split="test", num_envs=args.num_envs, seed=args.seed, values=BASE_VALUES, size=args.size
     )
 
 
@@ -122,28 +107,16 @@ def load_arms(root: Path, at: int, base_flat, config) -> dict[str, tuple[tuple[f
         if not checkpoints:
             print(f"  {run.name}: no checkpoint, skipping")
             continue
-        _, _, _, state, _ = load_train_state(checkpoints[at], env_cfg=config)
-        flat, _ = ravel_pytree(state.params)
-        diff = np.asarray(flat - base_flat, dtype=np.float64)
+        diff = np.asarray(load_checkpoint(checkpoints[at], config).raveled - base_flat, dtype=np.float64)
         arms[run.name] = (values, diff)
         offsets = tuple(round(v - b, 2) for v, b in zip(values, BASE_VALUES))
         print(f"  {run.name:>16}  values {values}  offset {offsets}  |delta| {np.linalg.norm(diff):.4g}")
     return arms
 
 
-def measure(params, policy, get_action, envs, args, label: str) -> float:
-    carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry)
-    state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-    def act(observations, starts):
-        state["carry"], action, _, state["key"] = get_action(
-            params, state["carry"], observations, starts, state["key"], temperature=0.0
-        )
-        return np.asarray(action)
-
-    outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-    gaps, took_richer, _ = value_distance_decisions(outcomes)
-    point = indifference_point(gaps, took_richer)
+def measure(params, greedy: Greedy, args, label: str) -> float:
+    outcomes = greedy.outcomes(params, args.episodes, args.seed)
+    point = read_threshold(outcomes, resamples=0).point
     summary = summarise(outcomes)
     print(f"  {label:>34}{point:>8.1f}   optimal {summary.chose_optimal:>6.1%}   reached {summary.reached_objective:>6.1%}")
     return point
@@ -154,8 +127,8 @@ def main() -> None:
     print(provenance.header() + "\n")
 
     config = eval_config(args)
-    policy, _, _, base_state, _ = load_train_state(args.base, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
+    base = load_checkpoint(args.base, config)
+    base_flat, unravel = base.raveled, base.unravel
     print(f"base {args.base.name}  ({base_flat.size:,} parameters)  values {BASE_VALUES}\n")
 
     print("arms")
@@ -264,17 +237,14 @@ def main() -> None:
 
     print("\n\n=== and does the composed edit behave like the arm? ===\n")
     print(f"  {'':>34}{'steps':>8}   {'optimal':>14}   {'reached':>14}")
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
-    measure(base_state.params, policy, get_action, envs, args, "base, untouched")
+    greedy = Greedy.of(base)
+    measure(base.params, greedy, args, "base, untouched")
     for name, (values, _) in sorted(mixed.items()):
         offsets = [v - b for v, b in zip(values, BASE_VALUES)]
         written = base_flat + sum(offsets[i] * axes[i] for i in range(3))
-        measure(unravel(written), policy, get_action, envs, args, f"{name} composed")
-        _, _, _, arm_state, _ = load_train_state(
-            sorted((args.arms / name / "local-files").glob("cp_*"))[args.at], env_cfg=config
-        )
-        measure(arm_state.params, policy, get_action, envs, args, f"{name} fine-tuned")
+        measure(unravel(written), greedy, args, f"{name} composed")
+        checkpoint = sorted((args.arms / name / "local-files").glob("cp_*"))[args.at]
+        measure(base.other_params(checkpoint), greedy, args, f"{name} fine-tuned")
     print(
         "\n  The exchange rate is a two-objective summary and three objectives do not\n"
         "  reduce to one, so read `optimal` alongside it: an edit that sets the values\n"

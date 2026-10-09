@@ -32,16 +32,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.base_ladder import Rung, make_rung, rung_values  # noqa: E402
-from goalmisgen.design import estimated_hours, sweep_arms  # noqa: E402
-from goalmisgen.volume import arm_is_complete, parse_checkpoint_dirname  # noqa: E402
+from goalmisgen.base_ladder import Rung, make_rung, rung_values
+from goalmisgen.design import estimated_hours, sweep_arms
+from goalmisgen.paths import data_root
+from goalmisgen.volume import arm_is_complete, parse_checkpoint_dirname
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--data", type=Path, default=Path("/workspace/data"))
+    parser.add_argument("--data", type=Path, default=data_root())
     parser.add_argument("--agent", type=str, required=True, help="The run whose training the ladder climbs.")
     parser.add_argument(
         "--near",

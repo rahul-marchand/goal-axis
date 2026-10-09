@@ -32,27 +32,21 @@ the second write.
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
-import os
 import sys
-from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-REPO = Path(os.environ.get("GOALMISGEN_REPO") or Path(__file__).resolve().parent.parent)
-sys.path.insert(0, str(REPO))
-
-from goalmisgen import provenance  # noqa: E402
-from goalmisgen.analysis.weights import (  # noqa: E402
+from goalmisgen import provenance
+from goalmisgen.analysis.weights import (
     cosine,
     explained,
     fit_axis_and_drift,
     projected_offset,
     readback_slope,
 )
-from goalmisgen.volume import discover_arms  # noqa: E402
+from goalmisgen.volume import discover_arms
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,7 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--arm-steps", type=int, default=400_000)
     parser.add_argument("--episodes", type=int, default=2048)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--skip-behaviour", action="store_true")
     parser.add_argument(
@@ -85,30 +79,17 @@ def main() -> None:
     objective = int(args.family[-1])
     window_prefix = f"o{objective}"
 
-    spec = importlib.util.spec_from_file_location(
-        "va014", REPO / "experiments" / "014_value_axis_analysis.py"
-    )
-    assert spec is not None and spec.loader is not None
-    va = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(va)
+    from goalmisgen.axis import Greedy, diff_from, load_base
 
-    import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    config = va.eval_config(args)
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
+    # 014's evaluation environment: the held-out test split at the base values.
+    base = load_base(args.run, args.levels, split="test", num_envs=args.num_envs, seed=args.seed, size=args.size)
+    checkpoint, unravel = base.checkpoint, base.unravel
+    base_flat = base.flat
 
     def diffs_of(selected: dict[float, Path]) -> dict[float, np.ndarray]:
         out = {}
         for value, path in sorted(selected.items()):
-            _, _, _, state, _ = load_train_state(path, env_cfg=config)
-            flat, _ = ravel_pytree(state.params)
-            out[value] = np.asarray(flat, dtype=np.float64) - base_flat
+            out[value] = diff_from(base, path, subtract_in="float64")
         return out
 
     window_arms = discover_arms(args.run / "arms", objective, args.base_value, steps=args.arm_steps, at=-1, family="o")
@@ -192,9 +173,14 @@ def main() -> None:
         finish(args, result, axis_far)
         return
 
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
     rng = np.random.default_rng(args.seed)
+
+    def measure(params, label: str) -> tuple[float, float, float, float]:
+        """014's measure: threshold, its 200-resample interval, reach; printed in 014's row format."""
+        found = greedy.threshold(params, args.episodes, args.seed)
+        print(found.line(label))
+        return found.point, found.low, found.high, found.reached
 
     if args.window_loo:
         print("\n\n=== the window's own leave-one-out writes, same seeds and episodes ===\n")
@@ -206,10 +192,9 @@ def main() -> None:
             held_axis, _ = fit_axis_and_drift(
                 np.array([u - args.base_value for u in others]), np.stack([window[u] for u in others])
             )
-            _, _, _, arm_state, _ = load_train_state(window_arms[v], env_cfg=config)
-            arm_point, _, _, arm_reach = va.measure(arm_state.params, policy, get_action, envs, args, f"v={v:.2f} fine-tuned")
-            written, _, _, w_reach = va.measure(
-                unravel(base_flat + o * held_axis), policy, get_action, envs, args, f"v={v:.2f} written, held out"
+            arm_point, _, _, arm_reach = measure(base.other_params(window_arms[v]), f"v={v:.2f} fine-tuned")
+            written, _, _, w_reach = measure(
+                unravel(base_flat + o * held_axis), f"v={v:.2f} written, held out"
             )
             wrows.append({"value": v, "offset": o, "arm": arm_point, "arm_reach": arm_reach, "written": written, "written_reach": w_reach})
         err = np.array([r["written"] - r["arm"] for r in wrows])
@@ -226,20 +211,19 @@ def main() -> None:
     for v in f_values:
         o = v - args.base_value
         held_axis, held_drift = far_loo[v]["axis"], far_loo[v]["drift"]
-        _, _, _, arm_state, _ = load_train_state(far_arms[v], env_cfg=config)
-        arm_point, _, _, arm_reach = va.measure(arm_state.params, policy, get_action, envs, args, f"v={v:.2f} fine-tuned")
-        from_base, _, _, base_reach = va.measure(
-            unravel(base_flat + held_drift + o * held_axis), policy, get_action, envs, args, f"v={v:.2f} written from base"
+        arm_point, _, _, arm_reach = measure(base.other_params(far_arms[v]), f"v={v:.2f} fine-tuned")
+        from_base, _, _, base_reach = measure(
+            unravel(base_flat + held_drift + o * held_axis), f"v={v:.2f} written from base"
         )
         anchor = min((u for u in f_values if u != v), key=lambda u: abs(u - v))
         step = (v - anchor) * held_axis
-        from_anchor, _, _, anchor_reach = va.measure(
-            unravel(base_flat + far[anchor] + step), policy, get_action, envs, args, f"v={v:.2f} written from v={anchor:.2f}"
+        from_anchor, _, _, anchor_reach = measure(
+            unravel(base_flat + far[anchor] + step), f"v={v:.2f} written from v={anchor:.2f}"
         )
         direction = rng.normal(size=step.size)
         direction *= np.linalg.norm(step) / np.linalg.norm(direction)
-        random_point, _, _, random_reach = va.measure(
-            unravel(base_flat + far[anchor] + direction), policy, get_action, envs, args, f"v={v:.2f} random from v={anchor:.2f}"
+        random_point, _, _, random_reach = measure(
+            unravel(base_flat + far[anchor] + direction), f"v={v:.2f} random from v={anchor:.2f}"
         )
         rows.append({
             "value": v, "offset": o, "anchor": anchor,

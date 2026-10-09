@@ -12,7 +12,6 @@ entry point gets tested, not just the function behind it.
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import subprocess
 import sys
@@ -21,11 +20,6 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-_spec = importlib.util.spec_from_file_location("value_axis_sweep", REPO / "scripts" / "value_axis_sweep.py")
-assert _spec is not None and _spec.loader is not None
-sweep = importlib.util.module_from_spec(_spec)
-sys.modules[_spec.name] = sweep
-_spec.loader.exec_module(sweep)
 
 
 def make_agent(root: Path, tag: str, values: list[float], checkpoint: str = "local-files/cp_140206080") -> Path:

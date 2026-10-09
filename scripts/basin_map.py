@@ -35,22 +35,20 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import json
-import sys
 import time
-from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.envs.level import Level  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.envs.level import Level
+from goalmisgen.paths import figures_data_dir, run_dir
+from goalmisgen.provenance import header
+from goalmisgen.volume import read_base_marker
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--agent", type=Path, default=Path("/workspace/data/runs/novalue11.s1234"))
+    parser.add_argument("--agent", type=Path, default=run_dir("novalue11.s1234"))
     parser.add_argument("--sweep", type=str, default="o1", help="Which fitted sweep the axis comes from.")
     parser.add_argument("--arm-steps", type=int, default=400_000, help="Arm budget; arms/ mixes @3M and @400k.")
     parser.add_argument(
@@ -71,13 +69,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--episodes", type=int, default=512, help="Population episodes per alpha.")
     parser.add_argument("--num-envs", type=int, default=64)
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--out", type=Path, default=Path("/workspace/data/figures-data/drc/basin"))
+    parser.add_argument("--out", type=Path, default=figures_data_dir() / "drc" / "basin")
     return parser.parse_args()
-
-
-def resolve(run: Path) -> tuple[Path, tuple[float, ...]]:
-    payload = json.loads((run / "BASE.json").read_text())
-    return run / payload["checkpoint"], tuple(payload["values"])
 
 
 # ----------------------------------------------------------------------
@@ -199,46 +192,6 @@ def pick_level(values: tuple[float, ...], scan: int, level_seed: int | None, ste
 # ----------------------------------------------------------------------
 
 
-def fitted_axis(agent: Path, sweep: str, arm_steps: int, values, config, base_flat, cache: Path) -> np.ndarray:
-    if cache.exists():
-        payload = np.load(cache)
-        print(f"axis: cached ({cache.name}, |axis| {np.linalg.norm(payload['axis']):.1f})")
-        return payload["axis"]
-
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis.weights import fit_axis_and_drift
-    from goalmisgen.volume import discover_arms, sweep_index
-
-    objective = sweep_index(sweep)
-    base_value = values[objective]
-    arms = discover_arms(agent / "arms", objective=objective, base_value=base_value, steps=arm_steps)
-    print(f"axis: fitting from {len(arms)} {sweep}@{arm_steps} arms")
-    diffs: dict[float, np.ndarray] = {}
-    for value, checkpoint in sorted(arms.items()):
-        _, _, _, state, _ = load_train_state(checkpoint, env_cfg=config)
-        flat, _ = ravel_pytree(state.params)
-        diffs[value] = np.asarray(flat - base_flat, dtype=np.float64)
-        print(f"  v={value:.2f}  |diff| {np.linalg.norm(diffs[value]):.1f}")
-    fitted = {v: d for v, d in diffs.items() if abs(v - base_value) > 1e-9}  # the null arm is the drift measurement
-    arm_values = sorted(fitted)
-    offsets = np.array(arm_values) - base_value
-    axis, drift = fit_axis_and_drift(offsets, np.stack([fitted[v] for v in arm_values]))
-    print(f"axis: |axis| {np.linalg.norm(axis):.1f} per unit value, |drift| {np.linalg.norm(drift):.1f}")
-    cache.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(
-        cache,
-        axis=axis.astype(np.float32),
-        drift=drift.astype(np.float32),
-        arm_values=np.array(arm_values),
-        base_value=base_value,
-        objective=objective,
-        arm_steps=arm_steps,
-    )
-    return axis.astype(np.float32)
-
-
 # ----------------------------------------------------------------------
 # Rollouts
 # ----------------------------------------------------------------------
@@ -341,40 +294,23 @@ def main() -> None:
     print(header())
     print()
 
-    checkpoint, values = resolve(args.agent)
+    marker = read_base_marker(args.agent)
+    checkpoint, values = marker.checkpoint, marker.values
     print(f"checkpoint {checkpoint}")
     print(f"values     {values}")
 
-    import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis import collect_episode_outcomes
-    from goalmisgen.configs.env import MazeConfig
+    from goalmisgen.axis import Greedy, cached_axis, load_base
     from goalmisgen.envs.solver import UNREACHABLE
 
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=11,
-        max_size=11,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        asynchronous=False,
-        seed=args.seed,
-    )
-
-    policy, _, _, base_state, update = load_train_state(checkpoint, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
-    print(f"loaded base (update {update}, {base_flat.size:,} parameters)")
+    # Live levels (no dataset): the population statistics sample their own.
+    base = load_base(args.agent, None, split="train", num_envs=args.num_envs, seed=args.seed)
+    config, policy, unravel = base.config, base.policy, base.unravel
+    base_flat = base.flat
+    print(f"loaded base (update {base.update}, {base_flat.size:,} parameters)")
 
     args.out.mkdir(parents=True, exist_ok=True)
     cache = args.out / f"axis.{args.agent.name}.{args.sweep}@{args.arm_steps}.npz"
-    axis = fitted_axis(args.agent, args.sweep, args.arm_steps, values, config, base_flat, cache)
+    axis = cached_axis(base, args.sweep, args.arm_steps, cache)
 
     level, level_seed = pick_level(values, args.scan, args.level_seed, config.max_episode_steps, args.out)
     fields = distance_fields(level)
@@ -383,8 +319,8 @@ def main() -> None:
     print(f"level seed {level_seed}: {len(starts)} starts, rich objective {rich} "
           f"(colour {level.objectives[rich].feature_id})")
 
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
-    envs = config.make()
+    greedy = Greedy.of(base)
+    get_action = greedy.get_action
 
     low, high, count = args.alphas
     alphas = np.linspace(low, high, int(count))
@@ -394,18 +330,7 @@ def main() -> None:
         params = unravel(np.asarray(base_flat + alpha * axis, dtype=np.float32))
         outcome, steps, paths = rollout_from_everywhere(level, starts, params, policy, get_action, config, args.seed)
 
-        carry0 = policy.apply(
-            params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry
-        )
-        state = {"carry": carry0, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, episode_starts):
-            state["carry"], action, _, state["key"] = get_action(
-                params, state["carry"], observations, episode_starts, state["key"], temperature=0.0
-            )
-            return np.asarray(action)
-
-        stats = population_stats(collect_episode_outcomes(envs, act, args.episodes, seed=args.seed))
+        stats = population_stats(greedy.outcomes(params, args.episodes, args.seed))
         per_alpha.append(
             {
                 "alpha": round(float(alpha), 4),

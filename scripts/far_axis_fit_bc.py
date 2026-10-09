@@ -14,23 +14,19 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
 import numpy as np
 
-REPO = Path(os.environ.get("GOALMISGEN_REPO") or Path(__file__).resolve().parent.parent)
-sys.path.insert(0, str(REPO))
-
-from goalmisgen.analysis.weights import (  # noqa: E402
+from goalmisgen.analysis.weights import (
     cosine,
     explained,
     fit_axis_and_drift,
     projected_offset,
     readback_slope,
 )
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.provenance import header
 
 
 def parse_args() -> argparse.Namespace:

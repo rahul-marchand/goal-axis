@@ -12,24 +12,15 @@ function behind it.
 
 from __future__ import annotations
 
-import importlib.util
-import sys
-from pathlib import Path
-
 import pytest
 
+from goalmisgen import finetune as value_axis
 from goalmisgen.configs import saved
-
-SCRIPT = Path(__file__).resolve().parents[1] / "experiments" / "013_value_axis.py"
-spec = importlib.util.spec_from_file_location("value_axis", SCRIPT)
-assert spec is not None and spec.loader is not None
-value_axis = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(value_axis)
 
 
 def run(argv: list[str]):
-    sys.argv = ["013_value_axis.py", *argv]
-    return value_axis.parse_args()
+    """Parse as ``experiments/013_value_axis.py`` does: its main is ``run(parse_args())``."""
+    return value_axis.parse_args(argv)
 
 
 BASE = ["cp", "--levels", "/tmp/levels", "--run-dir", "/tmp/run"]

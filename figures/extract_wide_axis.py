@@ -19,19 +19,18 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
-RESULTS = Path(__file__).resolve().parents[1] / "results"
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # run with plain python3 as well as uv
+
+from goalmisgen.analysis import tables  # noqa: E402
+
+RESULTS = ROOT / "results"
 OUT = Path(__file__).parent / "data"
 
-# "        v=0.05 written, held out    16.6  [ 16.2,  17.1]     100.0%"
-ROW = re.compile(
-    r"^\s+v=(?P<value>\d\.\d\d)\s+(?P<kind>fine-tuned|written, held out|written \(grid\)|written \(unseen\))"
-    r"\s+(?P<steps>-?\d+\.\d)\s+\[\s*(?P<lo>-?\d+\.\d),\s*(?P<hi>-?\d+\.\d)\]\s+(?P<reach>\d+\.\d)%",
-    re.MULTILINE,
-)
-BASE = re.compile(r"^\s+base, untouched\s+(-?\d+\.\d)", re.MULTILINE)
 # results/wide-novalue11.s1234-o1-heldout.txt -> seed 1234, sweep o1.
 # ``x`` sweeps are the one-sided arms past the flip, held out of every fit.
 NAME = re.compile(r"^wide-(?P<agent>[\w.]+?)-(?P<sweep>[ox]\d)(?P<heldout>-heldout)?$")
@@ -56,7 +55,8 @@ def main() -> None:
             print(f"  skipping {path.name}: not a wide-sweep result")
             continue
         text = path.read_text()
-        rows = list(ROW.finditer(text))
+        # "        v=0.05 written, held out    16.6  [ 16.2,  17.1]     100.0%"
+        rows = tables.value_rows(text)
         if not rows:
             raise SystemExit(f"{path.name} parsed to no rows — has the table format changed?")
         parsed_files += 1
@@ -64,21 +64,15 @@ def main() -> None:
         agent, sweep = match.group("agent"), match.group("sweep")
         for row in rows:
             # A held-out file also reprints the fine-tuned rows; keep one copy.
-            kind = KIND[row.group("kind")]
+            kind = KIND[row.kind]
             if kind == "trained" and match.group("heldout"):
                 continue
             series[(agent, sweep)][kind].append(
-                {
-                    "value": float(row.group("value")),
-                    "steps": float(row.group("steps")),
-                    "lo": float(row.group("lo")),
-                    "hi": float(row.group("hi")),
-                    "reach": float(row.group("reach")),
-                }
+                {"value": row.value, "steps": row.point, "lo": row.low, "hi": row.high, "reach": row.reach}
             )
-        found = BASE.search(text)
+        found = tables.base_row(text)
         if found:
-            bases[agent] = float(found.group(1))
+            bases[agent] = found.point
 
     if not parsed_files:
         raise SystemExit("no wide-sweep results found — run scripts on the wide grid first")

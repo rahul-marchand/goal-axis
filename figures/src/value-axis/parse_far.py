@@ -30,9 +30,18 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
-from parse_g1 import BASE_VALUE, EVEN_GRID, FAMILIES, REACH_FLOOR, ROW, BASE  # noqa: E402
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[2]))  # run with plain python3 as well as uv
+
+from goalmisgen.analysis import tables  # noqa: E402
+
+# The figure's own choices -- which bases, the even grid, the reach floor -- are
+# parse_g1's, so that fig 3 and its appendix cannot disagree about them.
+sys.path.insert(0, str(HERE))
+from parse_g1 import BASE_VALUE, EVEN_GRID, FAMILIES, REACH_FLOOR  # noqa: E402
 
 
 def read_rows_keep_reach(path: Path) -> tuple[dict[float, dict], dict[float, dict], dict | None]:
@@ -42,15 +51,11 @@ def read_rows_keep_reach(path: Path) -> tuple[dict[float, dict], dict[float, dic
     text = path.read_text()
     trained: dict[float, dict] = {}
     written: dict[float, dict] = {}
-    for match in ROW.finditer(text):
-        row = {k: float(match.group(k)) for k in ("value", "steps", "lo", "hi", "reach")}
-        target = trained if match.group("kind") == "fine-tuned" else written
-        target[row["value"]] = row
-    found = BASE.search(text)
-    base = None
-    if found:
-        base = {"steps": float(found.group(1)), "lo": float(found.group(2)),
-                "hi": float(found.group(3)), "reach": float(found.group(4))}
+    for row in tables.value_rows(text):
+        target = trained if row.kind == "fine-tuned" else written
+        target[row.value] = {"value": row.value, "steps": row.point, "lo": row.low, "hi": row.high, "reach": row.reach}
+    found = tables.base_row(text)
+    base = None if found is None else {"steps": found.point, "lo": found.low, "hi": found.high, "reach": found.reach}
     return trained, written, base
 
 

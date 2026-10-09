@@ -39,10 +39,11 @@ from goalmisgen.offline.demos import DemoSet, shared_levels
 from goalmisgen.offline.gap_probe import cell_members, centre_within_cells, collect_site_features, gap_targets
 from goalmisgen.offline.steer import steered_decode, unit_dose
 from goalmisgen.offline.train import list_checkpoints, load_checkpoint
+from goalmisgen.paths import offline_demos
 from goalmisgen.provenance import header
 
-DEFAULT_PROBE_DEMOS = "/workspace/data/offline/demos/train.rho100"
-DEFAULT_EVAL_DEMOS = "/workspace/data/offline/demos/test.rho100"
+DEFAULT_PROBE_DEMOS = str(offline_demos("train"))
+DEFAULT_EVAL_DEMOS = str(offline_demos("test"))
 DOSES = (-8.0, -6.0, -4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0)
 BAND = (4, 18)
 

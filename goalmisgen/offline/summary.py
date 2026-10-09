@@ -76,6 +76,18 @@ def _sep_edited_fn(config: ModelConfig, edit_depth: int):
     return sep
 
 
+def sep_edit(direction: np.ndarray, alpha: float, n_episodes: int, n_cells: int) -> np.ndarray:
+    """``(B, n_cells + 1, d_model)`` that is zero everywhere but the SEP position.
+
+    The edit ``experiments/032`` makes. The hook writes over a prefix of the sequence, so reaching SEP means passing
+    a grid one longer than the maze and leaving the cells alone. Writing at the
+    cells as well would be a different experiment - and the one ``experiments/030`` runs.
+    """
+    grid = np.zeros((n_episodes, n_cells + 1, len(direction)), dtype=np.float32)
+    grid[:, n_cells] = alpha * direction
+    return grid
+
+
 def sep_residuals_edited(
     model: RoutePrefixLM, params, observations: np.ndarray, edit: np.ndarray, edit_depth: int, batch_size: int = 512
 ) -> np.ndarray:

@@ -33,19 +33,14 @@ from __future__ import annotations
 
 import argparse
 import re
-from functools import partial
 from pathlib import Path
 
 import jax
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
-from jax.flatten_util import ravel_pytree
 
 from goalmisgen import provenance
-from goalmisgen.analysis import collect_episode_outcomes, summarise
-from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
 from goalmisgen.analysis.weights import fit_axis_and_drift, projected_offset
-from goalmisgen.configs.env import MazeConfig
+from goalmisgen.axis import Greedy, checkpoint_eval_config, diff_from, load_checkpoint, read_threshold
 from goalmisgen.volume import iter_arms, sweep_index
 
 
@@ -70,7 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--write-offset", type=float, default=0.4, help="Offset to write when testing behaviour.")
     parser.add_argument("--episodes", type=int, default=2048)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--at", type=int, default=-1)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--skip-behaviour", action="store_true")
@@ -109,26 +104,20 @@ def main() -> None:
     args = parse_args()
     print(provenance.header() + "\n")
 
-    config = MazeConfig(
-        max_episode_steps=120,
+    config = checkpoint_eval_config(
+        args.base,
+        args.levels,
+        split="test",
         num_envs=args.num_envs,
-        min_size=args.size,
-        max_size=args.size,
-        n_objectives=len(args.objective_values),
-        objective_values=tuple(args.objective_values),
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split="test",
-        asynchronous=False,
         seed=args.seed,
+        values=tuple(args.objective_values),
+        size=args.size,
     )
-    policy, _, _, base_state, _ = load_train_state(args.base, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    names = [name for name, _ in named_leaves(base_state.params)]
-    shapes = {name: value.shape for name, value in named_leaves(base_state.params)}
-    sizes = [value.size for _, value in named_leaves(base_state.params)]
+    base = load_checkpoint(args.base, config)
+    base_flat, unravel = base.raveled, base.unravel
+    names = [name for name, _ in named_leaves(base.params)]
+    shapes = {name: value.shape for name, value in named_leaves(base.params)}
+    sizes = [value.size for _, value in named_leaves(base.params)]
     bounds = np.cumsum(sizes)[:-1]
 
     offsets, stack = [], []
@@ -141,9 +130,8 @@ def main() -> None:
         offset = parsed.offset
         if abs(offset) < 1e-9:
             continue
-        _, _, _, state, _ = load_train_state(checkpoints[args.at], env_cfg=config)
         offsets.append(offset)
-        stack.append(np.asarray(ravel_pytree(state.params)[0] - base_flat, dtype=np.float64))
+        stack.append(diff_from(base, checkpoints[args.at]))
     offsets, stack = np.array(offsets), np.stack(stack)
     print(f"{len(offsets)} arms at offsets {sorted(round(float(o), 2) for o in offsets)}\n")
 
@@ -168,9 +156,8 @@ def main() -> None:
             offset = parsed.offset
             if abs(offset) < 1e-9:
                 continue
-            _, _, _, state, _ = load_train_state(checkpoints[args.at], env_cfg=config)
             other_offsets.append(offset)
-            other_stack.append(np.asarray(ravel_pytree(state.params)[0] - base_flat, dtype=np.float64))
+            other_stack.append(diff_from(base, checkpoints[args.at]))
         ranking_axis, ranking_drift = fit_axis_and_drift(np.array(other_offsets), np.stack(other_stack))
         ranked_by = f"{args.rank_from} ({len(other_offsets)} arms, independent of the sweep under test)"
 
@@ -234,29 +221,15 @@ def main() -> None:
         return
 
     print("\n\n=== does writing only those channels still move behaviour? ===\n")
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
 
     def measure(params, label):
-        carry = policy.apply(
-            params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry
-        )
-        state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, starts):
-            state["carry"], action, _, state["key"] = get_action(
-                params, state["carry"], observations, starts, state["key"], temperature=0.0
-            )
-            return np.asarray(action)
-
-        outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-        gaps, took, _ = value_distance_decisions(outcomes)
-        point = indifference_point(gaps, took)
-        print(f"  {label:>44}{point:>8.1f}   reached {summarise(outcomes).reached_objective:>6.1%}")
-        return point
+        found = read_threshold(greedy.outcomes(params, args.episodes, args.seed), resamples=0)
+        print(f"  {label:>44}{found.point:>8.1f}   reached {found.reached:>6.1%}")
+        return found.point
 
     print(f"  {'':>44}{'steps':>8}")
-    measure(base_state.params, "base, untouched")
+    measure(base.params, "base, untouched")
     for label, mask in variants.items():
         masked = np.where(mask, axis, 0.0)
         measure(unravel(base_flat + args.write_offset * masked), f"{label}, as is")

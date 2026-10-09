@@ -189,6 +189,36 @@ def value_distance_decisions(outcomes, n_features: int = 2):
     return np.array(gaps), np.array(took_richer), np.array(gap_in_value)
 
 
+def decision_arrays(outcomes: list[dict], *, steps: bool = False, value_tie: bool = False) -> dict[str, np.ndarray]:
+    """Per-episode arrays of a two-objective decode, in the ``.npz`` schema the decode scripts share.
+
+    ``d_rich``/``d_poor`` are the distances to the richer and poorer objective
+    (``UNREACHABLE`` kept, not dropped), ``colour_of_rich`` the feature the
+    richer one carried, ``reached`` and ``reached_fid`` (-1 when nothing was
+    reached) what the agent did. ``steps`` adds episode lengths and
+    ``value_tie`` the levels where the two pay the same, which the dose and
+    separability decodes record. Rows stay in episode order, so decodes of
+    different networks with one seed and environment count are paired by row.
+    """
+    fids = sorted(int(k.split("_")[1]) for k in outcomes[0] if k.startswith("feature_") and k.endswith("_value"))
+    v = np.array([[o[f"feature_{f}_value"] for f in fids] for o in outcomes])
+    d = np.array([[o[f"feature_{f}_distance"] for f in fids] for o in outcomes], dtype=int)
+    richer = np.argmax(v, axis=1)
+    rows = np.arange(len(outcomes))
+    out = dict(
+        d_rich=d[rows, richer],
+        d_poor=d[rows, 1 - richer],
+        colour_of_rich=np.array(fids)[richer],
+        reached=np.array([bool(o.get("reached_objective")) for o in outcomes]),
+        reached_fid=np.array([o.get("reached_feature_id", -1) for o in outcomes], dtype=int),
+    )
+    if steps:
+        out["steps"] = np.array([int(o.get("episode_steps", -1)) for o in outcomes], dtype=int)
+    if value_tie:
+        out["value_tie"] = v[:, 0] == v[:, 1]
+    return out
+
+
 def on_shortest_route(outcomes) -> float:
     """Fraction of finished episodes whose length equals the distance to the objective reached.
 

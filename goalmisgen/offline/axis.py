@@ -97,6 +97,23 @@ def load_diffs(base: Base, arms: dict[float, pathlib.Path], dtype=np.float32) ->
     return diffs
 
 
+def load_sweep(
+    base: Base, sweep: str, steps: int, *, fit_window: float, minimum: int = 0, dtype=np.float64
+) -> tuple[np.ndarray, np.ndarray]:
+    """Offsets and stacked diffs of one sweep's arms with ``0 < |offset| <= fit_window``, in offset order.
+
+    The window the RL readouts fit inside (:func:`goalmisgen.axis.load_sweep`),
+    for the route model. Float64 by default, as every caller that windows did;
+    ``minimum`` raises when fewer arms than that fall inside.
+    """
+    arms = {o: d for o, d in arm_dirs(base.run_dir, sweep, steps).items() if 1e-9 < abs(o) <= fit_window}
+    if len(arms) < minimum:
+        raise ValueError(f"sweep {sweep}: {len(arms)} arms inside |offset| <= {fit_window}, need {minimum}")
+    diffs = load_diffs(base, arms, dtype=dtype)
+    offsets = np.array(sorted(diffs))
+    return offsets, np.stack([diffs[o] for o in offsets])
+
+
 def arm_params(directory: pathlib.Path):
     return load_checkpoint(list_checkpoints(directory)[-1][1])[1]
 

@@ -13,7 +13,6 @@ at different values share layouts and a value sweep is paired field for field.
 from __future__ import annotations
 
 import argparse
-import sys
 import time
 from pathlib import Path
 
@@ -21,9 +20,7 @@ import numpy as np
 
 from goalmisgen.craftax.craft import CraftDemoSet, CraftTask, FieldSampler
 from goalmisgen.envs.values import FixedValues
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_levels import usable_cpus  # noqa: E402
+from goalmisgen.parallel import usable_cpus
 
 
 def parse_args() -> argparse.Namespace:

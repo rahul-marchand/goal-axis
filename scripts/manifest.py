@@ -28,10 +28,12 @@ import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 
+from goalmisgen.paths import data_root
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--data", type=Path, default=Path("/workspace/data"))
+    parser.add_argument("--data", type=Path, default=data_root())
     parser.add_argument("--notes", type=Path, default=Path("RUNS.toml"), help="Why each run and dataset exists.")
     parser.add_argument("--out", type=Path, default=Path("MANIFEST.md"))
     parser.add_argument("--generated-at", type=str, default=None, help="Timestamp to record; defaults to now, UTC.")

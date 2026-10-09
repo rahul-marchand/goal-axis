@@ -34,8 +34,9 @@ parse the name rather than sort the listing.
 
 from __future__ import annotations
 
+import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Iterator
 
@@ -420,3 +421,38 @@ def sweep_index(prefix: str) -> int:
     if match is None:
         raise ValueError(f"{prefix!r} does not name a sweep; expected 'o0', 'o1', 'x1', ... (or legacy 'v'/'c')")
     return int(match.group(1))
+
+
+@dataclass(frozen=True)
+class BaseMarker:
+    """What ``runs/<agent>/BASE.json`` says: which checkpoint is the agent, and what its objectives pay.
+
+    Everything downstream resolves an agent through this file rather than by
+    globbing its checkpoints -- see :mod:`goalmisgen.base_ladder` for the rung
+    whose ``local-files`` holds its parent's every checkpoint, where globbing
+    silently describes the wrong agent.
+    """
+
+    run_dir: Path
+    checkpoint: Path
+    values: tuple[float, ...]
+    payload: dict = field(compare=False, repr=False)
+    """The whole file, for the fields only some markers carry (``steps``, ``rung_of``, ``observation``)."""
+
+
+def read_base_marker(run_dir: Path) -> BaseMarker:
+    """Read ``run_dir/BASE.json``. Raises if it is missing; the checkpoint is not checked for existence."""
+    run_dir = Path(run_dir)
+    marker = run_dir / "BASE.json"
+    if not marker.is_file():
+        raise FileNotFoundError(
+            f"{marker} does not exist. It is written by scripts/migrate_volume.py --retire (or a base chain), "
+            "and records which checkpoint of this agent everything downstream resolves."
+        )
+    payload = json.loads(marker.read_text())
+    return BaseMarker(
+        run_dir=run_dir,
+        checkpoint=run_dir / payload["checkpoint"],
+        values=tuple(payload["values"]),
+        payload=payload,
+    )

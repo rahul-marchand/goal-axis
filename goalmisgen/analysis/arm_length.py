@@ -21,6 +21,7 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 
+from goalmisgen.analysis.tables import MeasureTable
 from goalmisgen.analysis.weights import fit_axis_and_drift, split_half_reliability
 
 
@@ -124,104 +125,10 @@ def table_row(decompositions: dict[str, SweepDecomposition], magnitude: float = 
 
 
 
-# --- reading the measurement tables back -----------------------------------
+# --- reading the tables back ---------------------------------------------------
 #
-# ``014`` and ``arm_thresholds`` print for people, and the ladder is a few
-# hundred of their tables read down a column. These parsers pull the numbers
-# out of that prose so the appendix table is assembled from the files in
-# ``results/`` rather than retyped. They match the line shapes, not positions,
-# so a stray warning line between rows is skipped rather than fatal.
-
-import re  # noqa: E402
-
-_MEASURE = re.compile(
-    r"^\s*(?P<label>.+?)\s{2,}(?P<point>-?\d+\.\d)\s+\[\s*(?P<low>-?\d+\.\d),\s*(?P<high>-?\d+\.\d)\]\s+(?P<reached>\d+\.\d)%\s*$"
-)
-_VALUE = re.compile(r"^v=(?P<value>\d+\.\d+) (?P<kind>fine-tuned|written \(grid\)|written \(unseen\)|written, held out)$")
-_ARM_CP = re.compile(r"^\s*v=(?P<value>\d+\.\d+)\s+cp_(?P<steps>\d+)\s+\(update \d+\)\s+\|delta\| (?P<norm>[\d.]+)")
-_IMPLIED = re.compile(r"^\s*(?P<value>\d+\.\d+)\s+(?P<offset>-?\d+\.\d+)\s+[\d.]+\s+[\d.]+\s+(?P<r2>-?[\d.]+)\s+(?P<cos>-?[\d.]+)\s+(?P<implied>[+-]\d+\.\d+)\s*$")
-_LOO = re.compile(r"^\s*(?P<value>\d+\.\d+)\s+(?P<arm>-?\d+\.\d)\s+(?P<written>-?\d+\.\d)\s+(?P<error>[+-]\d+\.\d)\s*$")
-
-
-@dataclass(frozen=True)
-class Measured:
-    point: float
-    low: float
-    high: float
-    reached: float
-
-
-@dataclass
-class MeasureTable:
-    """What one ``014`` (or ``arm_thresholds``) table said, by value."""
-
-    read_at: int | None = None
-    """Steps the arms had trained for when read, from their checkpoint names."""
-    base: Measured | None = None
-    fine_tuned: dict[float, Measured] | None = None
-    written: dict[float, Measured] | None = None
-    unseen: dict[float, Measured] | None = None
-    random: dict[float, Measured] | None = None
-    implied: dict[float, float] | None = None
-    """LOO read-back of each arm's trained offset, keyed by trained offset."""
-    loo: dict[float, tuple[float, float]] | None = None
-    """Leave-one-out (fine-tuned, written) per value, from a ``--leave-one-out`` run."""
-
-    def __post_init__(self) -> None:
-        for name in ("fine_tuned", "written", "unseen", "random", "implied", "loo"):
-            if getattr(self, name) is None:
-                setattr(self, name, {})
-
-
-def parse_measure_table(text: str) -> MeasureTable:
-    """Read a ``014`` / ``arm_thresholds`` / ``--leave-one-out`` table."""
-    table = MeasureTable()
-    steps: set[int] = set()
-    in_loo = False
-    for line in text.splitlines():
-        if "writable out of sample" in line:
-            in_loo = True
-        arm = _ARM_CP.match(line)
-        if arm:
-            steps.add(int(arm.group("steps")))
-            continue
-        implied = _IMPLIED.match(line)
-        if implied:
-            table.implied[round(float(implied.group("offset")), 6)] = float(implied.group("implied"))
-            continue
-        if in_loo:
-            loo = _LOO.match(line)
-            if loo:
-                table.loo[float(loo.group("value"))] = (float(loo.group("arm")), float(loo.group("written")))
-                continue
-        found = _MEASURE.match(line)
-        if not found:
-            continue
-        label = found.group("label").strip()
-        measured = Measured(
-            float(found.group("point")), float(found.group("low")), float(found.group("high")), float(found.group("reached")) / 100
-        )
-        if label == "base, untouched":
-            table.base = measured
-            continue
-        random = re.match(r"^random, matched to (\d+\.\d)$", label)
-        if random:
-            table.random[float(random.group(1))] = measured
-            continue
-        by_value = _VALUE.match(label)
-        if not by_value:
-            continue
-        value, kind = float(by_value.group("value")), by_value.group("kind")
-        if kind == "fine-tuned":
-            table.fine_tuned[value] = measured
-        elif kind == "written (grid)":
-            table.written[value] = measured
-        elif kind == "written (unseen)":
-            table.unseen[value] = measured
-    if len(steps) > 1:
-        raise ValueError(f"arms read at different budgets {sorted(steps)} in one table")
-    table.read_at = steps.pop() if steps else None
-    return table
+# The ladder is a few hundred ``014`` / ``arm_thresholds`` tables read down a
+# column; :mod:`goalmisgen.analysis.tables` parses them, and these summarise one.
 
 
 def slope(points: dict[float, float]) -> float:

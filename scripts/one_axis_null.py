@@ -40,10 +40,11 @@ from goalmisgen.analysis.weights import (
     projected_offset,
     split_half_reliability,
 )
+from goalmisgen.paths import level_dataset, offline_runs_dir, runs_dir
 
-RUNS = Path("/workspace/data/runs")
-OFFLINE_RUNS = Path("/workspace/data/offline/runs")
-LEVELS = "/workspace/data/levels/values/1.00-0.50@500k"
+RUNS = runs_dir()
+OFFLINE_RUNS = offline_runs_dir()
+LEVELS = str(level_dataset())
 BASE_VALUES = {0: 1.0, 1: 0.5}
 
 
@@ -63,38 +64,22 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_rl(agent: str, checkpoint: str, arm_steps: int) -> tuple[int, dict[int, dict[float, np.ndarray]]]:
-    from jax.flatten_util import ravel_pytree
-    from cleanba.cleanba_impala import load_train_state
-
-    from goalmisgen.configs.env import MazeConfig
+    from goalmisgen.axis import checkpoint_eval_config, diff_from, load_checkpoint
     from goalmisgen.volume import discover_arms
 
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=8,
-        min_size=11,
-        max_size=11,
-        feature_value_correlation=1.0,
-        objective_values=(1.0, 0.5),
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=LEVELS,
-        dataset_split="test",
-        asynchronous=False,
-        seed=0,
-    )
     root = RUNS / agent
-    _, _, _, base_state, _ = load_train_state(root / "local-files" / checkpoint, env_cfg=config)
-    base_flat, _ = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
+    base_checkpoint = root / "local-files" / checkpoint
+    config = checkpoint_eval_config(
+        base_checkpoint, LEVELS, split="test", num_envs=8, seed=0, values=(BASE_VALUES[0], BASE_VALUES[1])
+    )
+    base = load_checkpoint(base_checkpoint, config)
+    base_flat = base.flat
     sweeps: dict[int, dict[float, np.ndarray]] = {}
     for objective in (0, 1):
         selected = discover_arms(root / "arms", objective, BASE_VALUES[objective], steps=arm_steps, at=-1, family="o")
         diffs: dict[float, np.ndarray] = {}
         for value, path in sorted(selected.items()):
-            _, _, _, state, _ = load_train_state(path, env_cfg=config)
-            flat, _ = ravel_pytree(state.params)
-            diffs[round(value - BASE_VALUES[objective], 10)] = np.asarray(flat, dtype=np.float64) - base_flat
+            diffs[round(value - BASE_VALUES[objective], 10)] = diff_from(base, path, subtract_in="float64")
         sweeps[objective] = diffs
     return int(base_flat.size), sweeps
 

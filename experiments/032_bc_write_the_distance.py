@@ -61,7 +61,7 @@ from goalmisgen.analysis.probes import Feature, apply_linear, fit_ridge
 from goalmisgen.offline import summary
 from goalmisgen.offline.decode import greedy_decode, replay_all, summarise_routes
 from goalmisgen.offline.demos import DemoSet
-from goalmisgen.offline.probe import capture, cell_residuals
+from goalmisgen.offline.probe import capture
 from goalmisgen.offline.train import list_checkpoints, load_checkpoint, load_run_config
 
 N_FEATURES = 2
@@ -156,16 +156,6 @@ def cells_edit(direction: np.ndarray, alpha: float, n_episodes: int, n_cells: in
     return grid
 
 
-def sep_edit(direction: np.ndarray, alpha: float, n_episodes: int, n_cells: int) -> np.ndarray:
-    """``(B, n_cells + 1, d_model)`` that is zero everywhere but the SEP position.
-
-    The hook writes over a prefix of the sequence, so reaching SEP means passing
-    a grid one longer than the maze and leaving the cells alone. Writing at the
-    cells as well would be a different experiment - and the one ``030`` runs.
-    """
-    grid = np.zeros((n_episodes, n_cells + 1, len(direction)), dtype=np.float32)
-    grid[:, n_cells] = alpha * direction
-    return grid
 
 
 def cell_and_sep(model, params, observations, edit, depth):
@@ -222,7 +212,7 @@ def main() -> None:
     fit_rollouts = capture(model, params, demos, fit_indices, layer=0)
     if args.site == "sep":
         fit_features = summary.sep_residuals(model, params, demos.observations(fit_indices))
-        make_edit = sep_edit
+        make_edit = summary.sep_edit
     else:
         make_edit = cells_edit
         fit_features = None  # built per depth below: the field probe reads every cell
@@ -277,7 +267,7 @@ def main() -> None:
                 before = apply_linear(probe_x[cfg.n_layers], top_weights, top_mean, top_std)
                 carried = []
                 for alpha in (a for a in args.alphas if a != 0.0):
-                    grid = sep_edit(direction.delta, alpha, len(observations), cfg.n_cells)
+                    grid = summary.sep_edit(direction.delta, alpha, len(observations), cfg.n_cells)
                     after_stream = np.asarray(
                         cell_and_sep(model, params, observations, grid, depth)
                     )

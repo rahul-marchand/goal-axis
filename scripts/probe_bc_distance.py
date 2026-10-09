@@ -45,9 +45,10 @@ from goalmisgen.offline.gap_probe import (
     within_cell_choice,
 )
 from goalmisgen.offline.train import initial_params, list_checkpoints, load_checkpoint
+from goalmisgen.paths import offline_demos
 
-DEFAULT_PROBE_DEMOS = "/workspace/data/offline/demos/train.rho100"
-DEFAULT_EVAL_DEMOS = "/workspace/data/offline/demos/test.rho100"
+DEFAULT_PROBE_DEMOS = str(offline_demos("train"))
+DEFAULT_EVAL_DEMOS = str(offline_demos("test"))
 
 
 def parse_args() -> argparse.Namespace:
@@ -133,7 +134,7 @@ def main() -> None:
             if not full_grid and target != "gap":
                 continue
             print(f"=== {name}: probing {target} ===")
-            print(f"  {'site':<12} " + " ".join(f"{f'layer {l}' if l is not None else 'all':>24}" for l in layers))
+            print(f"  {'site':<12} " + " ".join(f"{f'layer {layer}' if layer is not None else 'all':>24}" for layer in layers))
             for site in SITES:
                 row = []
                 for layer in layers:

@@ -21,10 +21,8 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import header  # noqa: E402
-from goalmisgen.volume import iter_arms  # noqa: E402
+from goalmisgen.provenance import header
+from goalmisgen.volume import iter_arms
 
 
 def parse_args() -> argparse.Namespace:

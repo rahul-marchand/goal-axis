@@ -25,14 +25,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.field_decomp import (  # noqa: E402
+from goalmisgen.analysis.field_decomp import (
     NEITHER,
     cell_norms,
     chebyshev_distance,
@@ -43,10 +40,10 @@ from goalmisgen.analysis.field_decomp import (  # noqa: E402
     field_profile,
     make_grid_fn,
 )
-from goalmisgen.analysis.gain_alignment import sites_of  # noqa: E402
-from goalmisgen.analysis.geometry import free_cells  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.gain_alignment import sites_of
+from goalmisgen.analysis.geometry import free_cells
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -72,26 +69,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     print(header())
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
-
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
 
     from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
-    from goalmisgen.configs.env import MazeConfig
+    from goalmisgen.axis import load_base, load_sweep
 
-    config = MazeConfig(
-        max_episode_steps=120, num_envs=2, min_size=11, max_size=11, n_objectives=len(values),
-        objective_values=values, feature_value_correlation=1.0, value_encoding="none",
-        colour_is_the_only_value_cue=True, level_dataset=args.levels, dataset_split=args.split,
-        asynchronous=False, seed=args.seed,
-    )
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float32)
+    base = load_base(args.run, args.levels, split=args.split, num_envs=2, seed=args.seed)
+    checkpoint, values, config, policy, unravel = base.checkpoint, base.values, base.config, base.policy, base.unravel
+    base_flat = np.asarray(base.raveled, dtype=np.float32)
 
     sampler = config.sampler()
     rng = np.random.default_rng(args.seed)
@@ -104,9 +89,7 @@ def main() -> None:
     print(f"base   {checkpoint}, values {values}")
     print(f"levels {len(targets)} from {args.levels} [{args.split}], {args.n_steps} teacher-forced steps\n")
 
-    from scripts.restricted_writes import load_sweep
-
-    offsets, diffs = load_sweep(args.run, args.sweep, values, args, config, base_flat)
+    offsets, diffs = load_sweep(base, args.sweep, arm_steps=args.arm_steps, fit_window=args.fit_window)
     axis, _ = fit_axis_and_drift(offsets, diffs)
     del diffs
     axis = np.asarray(axis, dtype=np.float32)

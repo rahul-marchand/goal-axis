@@ -12,28 +12,25 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.behaviour import on_shortest_route  # noqa: E402
-from goalmisgen.analysis.input_gain import (  # noqa: E402
+from goalmisgen.analysis.behaviour import on_shortest_route
+from goalmisgen.analysis.input_gain import (
     gain_coefficients,
     gain_part,
     input_kernel,
     kernel_cosines,
     scale_planes,
 )
-from goalmisgen.analysis.layers import module_groups, restrict  # noqa: E402
-from goalmisgen.analysis.weights import fit_axis_and_drift  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.offline.axis import load_base  # noqa: E402
-from goalmisgen.offline.decode import evaluate  # noqa: E402
-from goalmisgen.offline.demos import DemoSet  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.layers import module_groups, restrict
+from goalmisgen.analysis.weights import fit_axis_and_drift
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.offline.axis import load_base, load_sweep
+from goalmisgen.offline.decode import evaluate
+from goalmisgen.offline.demos import DemoSet
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -98,9 +95,7 @@ def main() -> None:
         finish(args, out)
         return
 
-    from scripts.restricted_writes_bc import load_sweep
-
-    offsets, diffs = load_sweep(args.run, base, args.sweep, args)
+    offsets, diffs = load_sweep(base, args.sweep, args.steps, fit_window=args.fit_window, minimum=3)
     axis, _ = fit_axis_and_drift(offsets, diffs)
     del diffs
     groups, _ = module_groups(base.params)

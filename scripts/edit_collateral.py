@@ -34,15 +34,12 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 import time
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.provenance import header
 
 
 def pairs(text: str) -> tuple[str, str]:
@@ -74,41 +71,22 @@ def main() -> None:
     started = time.time()
 
     import jax.numpy as jnp
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
 
     from goalmisgen.analysis import closed_loop
     from goalmisgen.analysis.layers import module_groups
-    from goalmisgen.analysis.route_targets import route_targets, usable
+    from goalmisgen.analysis.route_targets import route_targets
     from goalmisgen.analysis.weights import cosine, fit_axis_and_drift
-    from goalmisgen.configs.env import MazeConfig
+    from goalmisgen.axis import diff_from, load_base, route_levels
     from goalmisgen.edits import compare
     from goalmisgen.edits import rl as rl_edit
     from goalmisgen.edits.collateral import decisions_away_from, navigation, relative_change, single_objective
-    from goalmisgen.envs.features import CorrelatedFeatures
 
-    payload = json.loads((args.run / "BASE.json").read_text())
-    values = tuple(payload["values"])
-    config = MazeConfig(
-        max_episode_steps=120, num_envs=1, min_size=11, max_size=11, n_objectives=len(values),
-        objective_values=values, feature_value_correlation=1.0, value_encoding="none",
-        colour_is_the_only_value_cue=True, level_dataset=args.levels, dataset_split="test", asynchronous=False,
-    )
-    policy, _, _, state, _ = load_train_state(args.run / payload["checkpoint"], env_cfg=config)
-    base_flat_j, unravel = ravel_pytree(state.params)
-    base = np.asarray(base_flat_j, dtype=np.float64)
-    groups, order = module_groups(state.params)
-
-    sampler = config.sampler()
-    scheme = CorrelatedFeatures(1.0)
-    levels = []
-    for index in sampler.indices:
-        here = tuple(float(v) for v in sampler.dataset.values[index])
-        level = sampler.dataset.level(int(index), scheme.assign(here, np.random.default_rng(int(index))))
-        if usable(level):
-            levels.append(level)
-        if len(levels) == args.n_eval:
-            break
+    # One environment and no seed: built only to load the weights.
+    agent = load_base(args.run, args.levels, split="test", num_envs=1, seed=None)
+    policy, unravel = agent.policy, agent.unravel
+    base = agent.flat
+    groups, order = module_groups(agent.params)
+    levels = route_levels(agent.config, "test", args.n_eval)
     targets = route_targets(levels, size=11)
     singles = {keep: single_objective(levels, keep, size=11) for keep in ("rich", "poor")}
     rollout = closed_loop.make_rollout_fn(policy, unravel)
@@ -193,8 +171,7 @@ def main() -> None:
         if not checkpoints:
             print(f"  {name}: no checkpoint in {arm}, skipped")
             continue
-        _, _, _, arm_state, _ = load_train_state(checkpoints[-1], env_cfg=config)
-        diff = np.asarray(ravel_pytree(arm_state.params)[0], dtype=np.float64) - base
+        diff = diff_from(agent, checkpoints[-1], subtract_in="float64")
         m = re.search(r"o1([+-])(\d{3})", arm.name)
         offset = (1 if m.group(1) == "+" else -1) * int(m.group(2)) / 100
         arm_diffs[name], arm_offsets[name] = diff, offset

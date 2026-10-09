@@ -26,22 +26,19 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.field_decomp import (  # noqa: E402
+from goalmisgen.analysis.field_decomp import (
     NEITHER,
     cell_norms,
     combination_fit,
     decompose,
     energies,
 )
-from goalmisgen.analysis.geometry import free_cells  # noqa: E402
-from goalmisgen.analysis.route_fields import (  # noqa: E402
+from goalmisgen.analysis.geometry import free_cells
+from goalmisgen.analysis.route_fields import (
     cell_grids,
     erasure_observations,
     grid_distance_from,
@@ -49,7 +46,7 @@ from goalmisgen.analysis.route_fields import (  # noqa: E402
     profile,
     scale_objective,
 )
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.provenance import header
 
 
 def parse_args() -> argparse.Namespace:

@@ -30,8 +30,9 @@ from goalmisgen.offline.decode import evaluate
 from goalmisgen.offline.demos import DemoSet
 from goalmisgen.offline.fast_decode import greedy_decode_cached
 from goalmisgen.offline.train import list_checkpoints, load_checkpoint
+from goalmisgen.paths import offline_demos
 
-DEFAULT_DEMOS = "/workspace/data/offline/demos/test.rho100"
+DEFAULT_DEMOS = str(offline_demos("test"))
 
 
 def parse_args() -> argparse.Namespace:

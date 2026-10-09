@@ -31,18 +31,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.input_gain import input_kernel  # noqa: E402
-from goalmisgen.analysis.norm_survival import decompose, layer_norm, relative_change  # noqa: E402
-from goalmisgen.edits.rotation import RotationEdit, colour_planes, partner_map  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.input_gain import input_kernel
+from goalmisgen.analysis.norm_survival import decompose, layer_norm, relative_change
+from goalmisgen.edits.rotation import RotationEdit, colour_planes, partner_map
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -201,43 +198,20 @@ def rl_setup(args):
     """States, parameters and axis for a cleanba agent, read through :class:`StateReader`."""
     import jax
     import jax.numpy as jnp
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
 
     from goalmisgen.analysis.closed_loop import draw_agent
-    from goalmisgen.analysis.route_targets import route_targets, usable
+    from goalmisgen.analysis.route_targets import route_targets
     from goalmisgen.analysis.weights import fit_axis_and_drift
-    from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.envs.features import CorrelatedFeatures
+    from goalmisgen.axis import load_base, load_sweep, route_levels
     from goalmisgen.nets.readers import state_reader_for
 
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
-
-    def config_for(split):
-        return MazeConfig(
-            max_episode_steps=120, num_envs=1, min_size=11, max_size=11, n_objectives=len(values),
-            objective_values=values, feature_value_correlation=1.0, value_encoding="none",
-            colour_is_the_only_value_cue=True, level_dataset=args.levels, dataset_split=split, asynchronous=False,
-        )
-
-    config = config_for("test")
-    policy, _, _, state, _ = load_train_state(checkpoint, env_cfg=config)
-    flat, unravel = ravel_pytree(state.params)
-    flat = np.asarray(flat, dtype=np.float64)
+    # One environment and no seed: it is built only to load the weights.
+    base = load_base(args.run, args.levels, split="test", num_envs=1, seed=None)
+    checkpoint, values, policy, unravel = base.checkpoint, base.values, base.policy, base.unravel
+    flat = base.flat
     print(f"base   {checkpoint}  ({flat.size:,} parameters), values {values}")
 
-    sampler = config_for("test").sampler()
-    scheme = CorrelatedFeatures(1.0)
-    levels = []
-    for index in sampler.indices:
-        values_here = tuple(float(v) for v in sampler.dataset.values[index])
-        level = sampler.dataset.level(int(index), scheme.assign(values_here, np.random.default_rng(int(index))))
-        if usable(level):
-            levels.append(level)
-        if len(levels) == args.n_levels:
-            break
+    levels = route_levels(base.config, "test", args.n_levels)
     targets = route_targets(levels, size=11)
     # The agent has to be somewhere: read the state at each level's start cell.
     # cleanba's Policy takes NCHW, as every rollout in goalmisgen.analysis.closed_loop does.
@@ -246,7 +220,7 @@ def rl_setup(args):
     reader = state_reader_for(policy)
     names = list(reader.layer_names)
     key = jax.random.PRNGKey(0)
-    carry = policy.apply(state.params, jax.random.PRNGKey(1), observations.shape, method=policy.initialize_carry)
+    carry = policy.apply(base.params, jax.random.PRNGKey(1), observations.shape, method=policy.initialize_carry)
     starts = jnp.ones(observations.shape[0], dtype=bool)
 
     def states_of(flat_params):
@@ -255,14 +229,12 @@ def rl_setup(args):
         return [np.asarray(grid) for grid in per_cell.features]
 
     def load_axis():
-        from scripts.restricted_writes import load_sweep
-
-        offsets, diffs = load_sweep(args.run, args.sweep, values, args, config, flat)
+        offsets, diffs = load_sweep(base, args.sweep, arm_steps=args.arm_steps, fit_window=args.fit_window)
         axis, _ = fit_axis_and_drift(offsets, diffs)
         return axis
 
     # Only the ViT has a normalisation to pass through; the DRC and ResNet run IdentityNorm.
-    first_norm = find_first_layer_norm(state.params)
+    first_norm = find_first_layer_norm(base.params)
     norm_params = None
     if first_norm is not None:
         def norm_params(flat_params):
@@ -272,7 +244,7 @@ def rl_setup(args):
             norm = find_first_layer_norm(tree)
             return embedding, np.asarray(norm["scale"]), np.asarray(norm["bias"])
 
-    return states_of, flat, state.params, names, load_axis, norm_params
+    return states_of, flat, base.params, names, load_axis, norm_params
 
 
 def find_first_layer_norm(tree, wanted=("norm_attention", "ln_attention")):
@@ -302,7 +274,7 @@ def offline_setup(args):
     from goalmisgen.analysis.closed_loop import draw_agent
     from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
-    from goalmisgen.offline.axis import arm_dirs, load_base, load_diffs
+    from goalmisgen.offline.axis import load_base, load_sweep
     from goalmisgen.offline.demos import DemoSet
 
     base = load_base(args.run)
@@ -341,11 +313,8 @@ def offline_setup(args):
         return np.asarray(residuals[0][:, : config.n_cells]), np.asarray(norm["scale"]), np.asarray(norm["bias"])
 
     def load_axis():
-        arms = arm_dirs(args.run, args.sweep, args.steps_tag)
-        arms = {o: d for o, d in arms.items() if 1e-9 < abs(o) <= args.fit_window}
-        diffs = load_diffs(base, arms, dtype=np.float64)
-        offsets = np.array(sorted(diffs))
-        axis, _ = fit_axis_and_drift(offsets, np.stack([diffs[o] for o in offsets]))
+        offsets, diffs = load_sweep(base, args.sweep, args.steps_tag, fit_window=args.fit_window)
+        axis, _ = fit_axis_and_drift(offsets, diffs)
         return axis
 
     return states_of, base.flat, base.params, names, load_axis, norm_params

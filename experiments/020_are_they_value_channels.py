@@ -41,12 +41,12 @@ from pathlib import Path
 
 import jax
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
 
 from goalmisgen import provenance
 from goalmisgen.analysis import collect_episode_outcomes, summarise
 from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
 from goalmisgen.analysis.probes import roc_auc
+from goalmisgen.axis import checkpoint_eval_config, load_checkpoint
 from goalmisgen.configs.env import MazeConfig
 
 
@@ -59,7 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--objective-values", type=float, nargs="+", required=True)
     parser.add_argument("--episodes", type=int, default=1024)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--controls", type=int, default=4, help="Random channel pairs to score against.")
     parser.add_argument("--alphas", type=float, nargs="+", default=[-3.0, -1.0, 1.0, 3.0])
@@ -68,20 +68,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def config_for(args) -> MazeConfig:
-    return MazeConfig(
-        max_episode_steps=120,
+    """The base's own training environment, from its cfg.json, at the given values on the test split."""
+    return checkpoint_eval_config(
+        args.base,
+        args.levels,
+        split="test",
         num_envs=args.num_envs,
-        min_size=args.size,
-        max_size=args.size,
-        n_objectives=len(args.objective_values),
-        objective_values=tuple(args.objective_values),
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split="test",
-        asynchronous=False,
         seed=args.seed,
+        values=tuple(args.objective_values),
+        size=args.size,
     )
 
 
@@ -138,8 +133,8 @@ def main() -> None:
     print(provenance.header() + "\n")
 
     config = config_for(args)
-    policy, _, _, state, _ = load_train_state(args.base, env_cfg=config)
-    params = state.params
+    base = load_checkpoint(args.base, config)
+    policy, params = base.policy, base.params
     envs = config.make()
     rng = np.random.default_rng(args.seed)
     target = list(args.channels)

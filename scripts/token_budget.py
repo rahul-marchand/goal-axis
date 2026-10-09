@@ -18,16 +18,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.token_budget import budget, cell_token_parts  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.token_budget import budget, cell_token_parts
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 

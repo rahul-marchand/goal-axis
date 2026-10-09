@@ -7,26 +7,35 @@ re-measurement cannot leave a stale annotation behind on a plot. The experiment
 scripts print tables rather than emitting JSON, so this parses those tables once
 and writes the result where the figures can find it.
 
-Parsing formatted text is fragile, which is why every extraction here asserts on
-the number of rows it found. A changed table format fails loudly instead of
-silently producing a figure with three points on it.
+The tables are read with :mod:`goalmisgen.analysis.tables`, the one parser of
+014's format. Parsing formatted text is fragile, which is why every extraction
+here asserts on the number of rows it found. A changed table format fails loudly
+instead of silently producing a figure with three points on it.
 """
 
 from __future__ import annotations
 
 import json
-import re
+import sys
 from pathlib import Path
 
-RESULTS = Path(__file__).resolve().parents[1] / "results"
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # run with plain python3 as well as uv
+
+from goalmisgen.analysis import tables  # noqa: E402
+
+RESULTS = ROOT / "results"
 OUT = Path(__file__).parent / "data"
 
 
-def rows(text: str, pattern: str, expected: int, what: str) -> list[tuple[float, ...]]:
-    found = [tuple(float(g) for g in m.groups()) for m in re.finditer(pattern, text, re.MULTILINE)]
+def rows(found: list[tuple[float, ...]], expected: int, what: str) -> list[tuple[float, ...]]:
     if len(found) != expected:
         raise SystemExit(f"expected {expected} {what}, parsed {len(found)} — has the table format changed?")
     return found
+
+
+def labelled(text: str, label: str) -> list[tuple[float, ...]]:
+    return [(row.point,) for row in tables.rows(text) if row.label == label]
 
 
 def main() -> None:
@@ -35,39 +44,36 @@ def main() -> None:
     held = (RESULTS / "value-axis-heldout.txt").read_text()
 
     # The arms themselves, and the base they were all fine-tuned from.
-    trained = rows(full, r"v=(\d\.\d\d) fine-tuned\s+(-?\d+\.\d)", 7, "fine-tuned arms")
-    base = rows(full, r"base, untouched\s+(-?\d+\.\d)", 1, "base measurement")[0][0]
+    trained = rows([(r.value, r.point) for r in tables.value_rows(full, ("fine-tuned",))], 7, "fine-tuned arms")
+    base = rows(labelled(full, tables.BASE_LABEL), 1, "base measurement")[0][0]
 
     # Written from an axis fitted *without* the arm being predicted. This is the
     # claim; the in-sample version cannot separate an axis from a lookup of the
     # arms it was built from.
-    heldout = rows(held, r"^\s+(\d\.\d\d)\s+(-?\d+\.\d)\s+(-?\d+\.\d)\s+[+-]\d+\.\d", 6, "held-out writes")
+    heldout = rows([loo[:3] for loo in tables.loo_rows(held)], 6, "held-out writes")
 
     # Values outside the fitted grid. These come from the full-data axis, since
     # there is no arm at 0.20 or 1.10 to hold out.
-    beyond = rows(full, r"v=(\d\.\d\d) written \(unseen\)\s+(-?\d+\.\d)", 2, "extrapolations")
+    beyond = rows([(r.value, r.point) for r in tables.value_rows(full, ("written (unseen)",))], 2, "extrapolations")
 
     # Directions of the same length, chosen at random. The control that makes
     # the rest mean anything.
-    random = rows(full, r"random, matched to (\d\.\d)\s+(-?\d+\.\d)", 2, "random controls")
+    random = rows(
+        [(float(m.group("magnitude")), r.point) for r in tables.rows(full) if (m := tables.RANDOM_LABEL.match(r.label))],
+        2,
+        "random controls",
+    )
 
     # The axis written far outside the fitted grid, in both directions. Reach is
     # carried through because it is the whole caveat: past a certain write the
     # agent stops solving the maze, and a threshold measured on a policy that
     # fails two thirds of its episodes is not a preference.
-    ood_rows = rows(
-        (RESULTS / "value-axis-ood.txt").read_text(),
-        r"v=(-?\d\.\d\d) written \((?:unseen|grid)\)\s+(-?\d+\.\d)\s+" r"\[\s*(-?\d+\.\d),\s*(-?\d+\.\d)\]\s+(\d+\.\d)%",
-        17,
-        "out-of-grid writes",
-    )
+    def written(path: Path) -> list[tuple[float, ...]]:
+        found = tables.value_rows(path.read_text(), ("written (unseen)", "written (grid)"))
+        return [(r.value, r.point, r.low, r.high, r.reach) for r in found]
 
-    ood0_rows = rows(
-        (RESULTS / "value-axis-ood-colour0.txt").read_text(),
-        r"v=(-?\d\.\d\d) written \((?:unseen|grid)\)\s+(-?\d+\.\d)\s+" r"\[\s*(-?\d+\.\d),\s*(-?\d+\.\d)\]\s+(\d+\.\d)%",
-        18,
-        "colour-0 out-of-grid writes",
-    )
+    ood_rows = rows(written(RESULTS / "value-axis-ood.txt"), 17, "out-of-grid writes")
+    ood0_rows = rows(written(RESULTS / "value-axis-ood-colour0.txt"), 18, "colour-0 out-of-grid writes")
 
     payload = {
         "base_value": 0.5,

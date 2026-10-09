@@ -22,15 +22,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.far_dose import first_departure, fit_linear_gain, fit_log_law  # noqa: E402
-from goalmisgen.analysis.separability import Decisions, banded_crossings, bootstrap, paired, tabulate  # noqa: E402
+from goalmisgen.analysis.far_dose import first_departure, fit_linear_gain, fit_log_law
+from goalmisgen.analysis.separability import Decisions, banded_crossings, bootstrap, paired, tabulate
 
 POOLED = [(1, 80)]
 

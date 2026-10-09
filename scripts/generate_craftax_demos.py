@@ -13,7 +13,6 @@ against the ore-field fingerprint rebuilt from its ``sampler.json``.
 from __future__ import annotations
 
 import argparse
-import sys
 import time
 from pathlib import Path
 
@@ -21,12 +20,10 @@ import numpy as np
 
 from goalmisgen.craftax.demos import CraftaxDemoSet, CraftaxTask
 from goalmisgen.craftax.levels import ore_field_fingerprint
+from goalmisgen.craftax.ore_fields import load_sampler
 from goalmisgen.envs.dataset import LevelDataset
 from goalmisgen.offline.demos import DEFAULT_MAX_ACTIONS
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_levels import usable_cpus  # noqa: E402
-from generate_ore_fields import load_sampler  # noqa: E402
+from goalmisgen.parallel import usable_cpus
 
 
 def parse_args() -> argparse.Namespace:

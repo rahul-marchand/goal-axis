@@ -31,15 +31,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 from scipy import stats
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.separability import (  # noqa: E402
+from goalmisgen.analysis.separability import (
     Decisions,
     Surface,
     banded_crossings,

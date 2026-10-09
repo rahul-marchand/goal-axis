@@ -15,23 +15,13 @@ same values but different level counts.
 
 from __future__ import annotations
 
-import importlib.util
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-_spec = importlib.util.spec_from_file_location(
-    "migrate_volume", Path(__file__).resolve().parents[1] / "scripts" / "migrate_volume.py"
-)
-assert _spec is not None and _spec.loader is not None
-migrate = importlib.util.module_from_spec(_spec)
-# ``@dataclass`` resolves annotations through ``sys.modules[cls.__module__]``, so
-# the module has to be registered before it is executed rather than after.
-sys.modules[_spec.name] = migrate
-_spec.loader.exec_module(migrate)
+from scripts import migrate_volume as migrate
 
 
 def write_run(root: Path, relative: str, values: list[float], steps: int, *, arm: bool = False) -> Path:

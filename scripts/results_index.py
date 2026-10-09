@@ -26,13 +26,10 @@ from __future__ import annotations
 import argparse
 import ast
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import parse_header  # noqa: E402
+from goalmisgen.provenance import parse_header
 
 FLAG = re.compile(r"(?<!\S)--[a-z0-9-]+")
 

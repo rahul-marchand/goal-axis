@@ -24,9 +24,8 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.arm_length import MeasureTable, parse_measure_table, slope, write_error  # noqa: E402
+from goalmisgen.analysis.arm_length import slope, write_error
+from goalmisgen.analysis.tables import MeasureTable, parse_measure_table
 
 TASK_SLOPE = 20.0  # steps per unit value at a 0.05 step penalty
 _NAME = re.compile(r"^len-(?P<agent>.+)-(?P<sweep>[ok][01])@(?P<budget>\d+[kM])-at(?P<index>\d+)(?P<loo>-loo)?\.txt$")

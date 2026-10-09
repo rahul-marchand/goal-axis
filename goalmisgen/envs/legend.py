@@ -35,15 +35,14 @@ favour one of them.
 The legend is task input, not ground truth: it is the same bit colour carried,
 and the network still has to find distances for itself.
 
-**Activation is opt-in and process-wide.** Every script in the project builds a
-plain :class:`~goalmisgen.configs.env.MazeConfig`, and many launch the next
-stage as a subprocess, so a flag on the config would have to be threaded
-through dozens of call sites. Instead ``scripts/legend_site`` holds a
-``sitecustomize`` that calls :func:`install_on_import`; putting that directory
-on ``PYTHONPATH`` makes every Python process in the chain -- training, arms,
-analysis -- encode with the legend, and leaving it off changes nothing. A
-checkpoint trained one way cannot be silently read the other: the observation
-is 12x12 here against 11x11, so the parameter shapes disagree and loading fails.
+**Activation is a config field**, ``MazeConfig(observation="legend")``, so it is
+written into every run's ``cfg.json`` and every reader rebuilds the observation
+the weights were trained on. (It used to be a ``sitecustomize`` import hook that
+patched ``MazeConfig.encoder`` process-wide, which no run recorded; the runs it
+made are read through their ``OBSERVATION`` file instead, see
+:func:`goalmisgen.configs.saved.train_env`.) A checkpoint trained one way cannot
+be silently read the other: the observation is 12x12 here against 11x11, so the
+parameter shapes disagree and loading fails.
 
 This module is deliberately outside ``dataset.CONTENT_MODULES``: it changes how
 a stored level is drawn, never what it contains, so existing level datasets
@@ -53,9 +52,6 @@ serve it unchanged.
 from __future__ import annotations
 
 import dataclasses
-import importlib.abc
-import importlib.machinery
-import sys
 
 import gymnasium as gym
 import numpy as np
@@ -139,56 +135,3 @@ def legend_encoder(config) -> LegendEncoder:
     if config.pad_size is not None and config.pad_size != config.max_size + 1:
         raise ValueError(f"the legend fixes the observation at max_size + 1; pad_size={config.pad_size} was asked for")
     return LegendEncoder(max_size=config.max_size, n_features=config.n_features or config.n_objectives)
-
-
-def install() -> None:
-    """Make every ``MazeConfig`` in this process encode with the legend."""
-    from goalmisgen.configs.env import MazeConfig
-
-    if getattr(MazeConfig.encoder, "__legend__", False):
-        return
-
-    def encoder(self) -> LegendEncoder:
-        return legend_encoder(self)
-
-    encoder.__legend__ = True  # type: ignore[attr-defined]
-    MazeConfig.encoder = encoder  # type: ignore[method-assign]
-
-
-class _PatchAfterLoad(importlib.abc.MetaPathFinder):
-    """Runs :func:`install` the moment ``goalmisgen.configs.env`` finishes importing.
-
-    Patching lazily keeps interpreter start-up free of JAX: importing the config
-    module eagerly from ``sitecustomize`` would drag cleanba into every process,
-    including the spawned level-generation workers that are JAX-free on purpose.
-    """
-
-    TARGET = "goalmisgen.configs.env"
-
-    def find_spec(self, fullname, path, target=None):
-        if fullname != self.TARGET:
-            return None
-        spec = importlib.machinery.PathFinder.find_spec(fullname, path)
-        if spec is None or spec.loader is None:
-            return None
-        original = spec.loader
-
-        class Loader(importlib.abc.Loader):
-            def create_module(self, spec):
-                return original.create_module(spec)
-
-            def exec_module(self, module):
-                original.exec_module(module)
-                install()
-
-        spec.loader = Loader()
-        return spec
-
-
-def install_on_import() -> None:
-    """Arrange for :func:`install` to run whenever the config module is imported."""
-    if "goalmisgen.configs.env" in sys.modules:
-        install()
-        return
-    if not any(isinstance(finder, _PatchAfterLoad) for finder in sys.meta_path):
-        sys.meta_path.insert(0, _PatchAfterLoad())

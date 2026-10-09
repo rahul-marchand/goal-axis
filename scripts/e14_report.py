@@ -10,6 +10,10 @@ import json
 import sys
 from pathlib import Path
 
+from goalmisgen.paths import figures_data_dir, repo_root
+
+RESULTS = repo_root() / "results" / "gain-vs-factorised"
+
 BASES = ["novalue11g1.s1234", "novalue11g1.s9012", "novalue11g1.s3456e"]
 
 PREAMBLE = """# E14: is the decision a projection of the two fields at the agent's cell?
@@ -44,11 +48,9 @@ is the check.
 
 
 def main() -> None:
-    root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/workspace/data/figures-data/gain-vs-factorised/e14")
-    out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(
-        "/workspace/GoalMisgeneralisation/results/gain-vs-factorised/E14.md")
-    tables = Path(sys.argv[3]) if len(sys.argv) > 3 else Path(
-        "/workspace/GoalMisgeneralisation/results/gain-vs-factorised")
+    root = Path(sys.argv[1]) if len(sys.argv) > 1 else figures_data_dir() / "gain-vs-factorised" / "e14"
+    out = Path(sys.argv[2]) if len(sys.argv) > 2 else RESULTS / "E14.md"
+    tables = Path(sys.argv[3]) if len(sys.argv) > 3 else RESULTS
 
     parts = [PREAMBLE]
     for base in BASES:

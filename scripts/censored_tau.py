@@ -27,11 +27,9 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.behaviour import indifference_point  # noqa: E402
-from goalmisgen.envs.solver import UNREACHABLE  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.behaviour import indifference_point
+from goalmisgen.envs.solver import UNREACHABLE
+from goalmisgen.provenance import header
 
 
 def parse_args() -> argparse.Namespace:

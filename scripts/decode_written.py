@@ -29,9 +29,10 @@ from goalmisgen.offline.axis import arm_dirs, load_base, load_diffs
 from goalmisgen.offline.decode import evaluate
 from goalmisgen.offline.demos import DemoSet
 from goalmisgen.offline.fast_decode import greedy_decode_cached
+from goalmisgen.paths import offline_demos
 from goalmisgen.volume import offset_tag
 
-DEFAULT_DEMOS = "/workspace/data/offline/demos/test.rho100"
+DEFAULT_DEMOS = str(offline_demos("test"))
 
 
 def parse_args() -> argparse.Namespace:

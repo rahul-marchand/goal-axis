@@ -9,7 +9,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from goalmisgen.analysis.arm_length import decompose, parse_measure_table, slope, table_row, write_error
+from goalmisgen.analysis.arm_length import decompose, slope, table_row, write_error
+from goalmisgen.analysis.tables import parse_measure_table
 
 
 def _orthonormal(n_vectors: int, dim: int, seed: int = 0) -> np.ndarray:

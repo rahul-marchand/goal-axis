@@ -20,19 +20,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import time
 from pathlib import Path
 
 import numpy as np
 
-from goalmisgen.craftax.levels import OreFieldGenerator, generate_ore_fields, ore_field_fingerprint
-from goalmisgen.envs.sampling import MazeLevelSampler
+from goalmisgen.craftax.levels import generate_ore_fields, ore_field_fingerprint
+from goalmisgen.craftax.ore_fields import ore_field_sampler
 from goalmisgen.envs.splits import layout_groups, split_by_layout
-from goalmisgen.envs.values import FixedValues
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_levels import usable_cpus  # noqa: E402
+from goalmisgen.parallel import usable_cpus
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,20 +51,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_sampler(levels: Path) -> MazeLevelSampler:
-    """Rebuild the sampler an ore-field dataset was drawn from, from its sampler.json."""
-    spec = json.loads((levels / "sampler.json").read_text())
-    return ore_field_sampler(int(spec["size"]), float(spec["density"]), tuple(float(v) for v in spec["values"]))
-
-
-def ore_field_sampler(size: int, density: float, values: tuple[float, ...]) -> MazeLevelSampler:
-    """The one place the ore-field distribution is spelled out; scripts and tests share it."""
-    return MazeLevelSampler(
-        generator=OreFieldGenerator(density),
-        size_range=(size, size),
-        n_objectives=len(values),
-        values=FixedValues(tuple(values)),
-    )
 
 
 def main() -> None:

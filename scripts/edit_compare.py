@@ -13,14 +13,11 @@ as ``v_step``) sit in one matrix. Directions should be per step of threshold.
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.provenance import header
 
 
 def main() -> None:
@@ -36,12 +33,9 @@ def main() -> None:
     from goalmisgen.analysis.route_targets import FORK
     from goalmisgen.analysis.weights import cosine
     from goalmisgen.edits import compare
+    from goalmisgen.edits.backends import rl_backend
 
-    sys.argv = [sys.argv[0], str(args.run), "--levels", args.levels, "--n-edit", "16", "--n-eval", str(args.n)]
-    from scripts.cheapest_edit import parse_args as edit_args
-    from scripts.cheapest_edit import rl_backend
-
-    backend = rl_backend(edit_args())
+    backend = rl_backend(args.run, args.levels, n_edit=16, n_eval=args.n)
     directions = {}
     for spec in args.direction:
         name, rest = spec.split("=", 1)

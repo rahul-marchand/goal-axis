@@ -16,18 +16,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.layers import module_groups, restrict  # noqa: E402
-from goalmisgen.analysis.weights import fit_axis_and_drift  # noqa: E402
-from goalmisgen.offline.axis import arm_dirs, load_base, load_diffs, measure_flat  # noqa: E402
-from goalmisgen.offline.demos import DemoSet  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.layers import module_groups, restrict
+from goalmisgen.analysis.weights import fit_axis_and_drift
+from goalmisgen.offline.axis import arm_dirs, load_base, load_sweep, measure_flat
+from goalmisgen.offline.demos import DemoSet
+from goalmisgen.provenance import header
 
 
 def parse_args() -> argparse.Namespace:
@@ -53,16 +50,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_sweep(run: Path, base, sweep: str, args) -> tuple[np.ndarray, np.ndarray]:
-    arms = arm_dirs(run, sweep, args.steps)
-    arms = {o: d for o, d in arms.items() if abs(o) > 1e-9 and abs(o) <= args.fit_window}
-    if len(arms) < 3:
-        sys.exit(f"sweep {sweep}: {len(arms)} arms inside |offset| <= {args.fit_window}, need three")
-    diffs = load_diffs(base, arms, dtype=np.float64)
-    offsets = np.array(sorted(diffs))
-    return offsets, np.stack([diffs[o] for o in offsets])
-
-
 def main() -> None:
     args = parse_args()
     print(header())
@@ -76,7 +63,7 @@ def main() -> None:
     groups, order = module_groups(base.params)
     sizes = {name: int(len(groups[name])) for name in order}
 
-    offsets, diffs = load_sweep(args.run, base, args.sweep, args)
+    offsets, diffs = load_sweep(base, args.sweep, args.steps, fit_window=args.fit_window, minimum=3)
     axis, _ = fit_axis_and_drift(offsets, diffs)
     del diffs
     print(f"sweep  {args.sweep}: {len(offsets)} arms at {np.round(offsets, 2).tolist()}; |axis| {np.linalg.norm(axis):.3g}")
@@ -84,7 +71,7 @@ def main() -> None:
     axis_share = {name: float(axis[groups[name]] @ axis[groups[name]]) / float(axis @ axis) for name in order}
     rank_by, rank_label = axis_share, f"share of ||axis||^2 in sweep {args.sweep} (no second sweep to rank by)"
     if arm_dirs(args.run, other, args.steps):
-        other_offsets, other_diffs = load_sweep(args.run, base, other, args)
+        other_offsets, other_diffs = load_sweep(base, other, args.steps, fit_window=args.fit_window, minimum=3)
         other_axis, _ = fit_axis_and_drift(other_offsets, other_diffs)
         del other_diffs
         coherent = {name: float(-(axis[groups[name]] @ other_axis[groups[name]])) for name in order}

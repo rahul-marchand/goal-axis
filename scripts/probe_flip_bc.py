@@ -41,10 +41,11 @@ from goalmisgen.offline.gap_probe import (
     gap_targets,
 )
 from goalmisgen.offline.train import initial_params, list_checkpoints, load_checkpoint
+from goalmisgen.paths import offline_demos
 from goalmisgen.provenance import header
 
-DEFAULT_PROBE_DEMOS = "/workspace/data/offline/demos/train.rho100"
-DEFAULT_EVAL_DEMOS = "/workspace/data/offline/demos/test.rho100"
+DEFAULT_PROBE_DEMOS = str(offline_demos("train"))
+DEFAULT_EVAL_DEMOS = str(offline_demos("test"))
 BAND = (4, 18)
 
 

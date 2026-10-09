@@ -8,9 +8,6 @@ the stored levels (and so their fingerprint) moves.
 
 from __future__ import annotations
 
-import os
-import subprocess
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -110,53 +107,95 @@ def hidden_config(**overrides):
     return MazeConfig(**settings)
 
 
-def test_install_switches_every_maze_config_and_leaves_the_sampler_alone(monkeypatch):
-    from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.envs import legend
+def test_the_config_field_switches_the_encoder_and_leaves_the_sampler_alone():
     from goalmisgen.envs.dataset import dataset_fingerprint
+    from goalmisgen.envs.observation import ObservationEncoder
 
-    config = hidden_config()
-    fingerprint = dataset_fingerprint(config.live_sampler())
-    monkeypatch.setattr(MazeConfig, "encoder", MazeConfig.encoder)  # restored after the test
-    legend.install()
-    assert isinstance(config.encoder(), LegendEncoder)
-    assert dataset_fingerprint(config.live_sampler()) == fingerprint
+    planes, legend = hidden_config(), hidden_config(observation="legend")
+    assert isinstance(planes.encoder(), ObservationEncoder)
+    assert isinstance(legend.encoder(), LegendEncoder)
+    assert dataset_fingerprint(legend.live_sampler()) == dataset_fingerprint(planes.live_sampler())
 
-    env = config.build_env()
+    env = legend.build_env()
     obs, info = env.reset(seed=0)
     assert obs.shape == (8, 8, 4)
     assert obs[:, :, LEGEND_CHANNEL].sum() == 2
     assert obs[:, :, OBJECTIVE_CHANNEL].sum() == 2
 
-    envs = config.make()
+    envs = legend.make()
     batch, _ = envs.reset()
     assert batch.shape == (1, 4, 8, 8)  # NCHW after cleanba's wrapper
 
 
-def test_install_refuses_a_visible_value_channel(monkeypatch):
-    from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.envs import legend
-
-    monkeypatch.setattr(MazeConfig, "encoder", MazeConfig.encoder)
-    legend.install()
+def test_the_legend_refuses_a_visible_value_channel():
     with pytest.raises(ValueError, match="hidden-value control"):
-        hidden_config(value_encoding="at_objective", colour_is_the_only_value_cue=False).encoder()
+        hidden_config(observation="legend", value_encoding="at_objective", colour_is_the_only_value_cue=False).encoder()
 
 
-def run_python(code: str, with_site: bool) -> str:
-    env = dict(os.environ)
-    path = [str(ROOT / "scripts" / "legend_site")] if with_site else []
-    env["PYTHONPATH"] = os.pathsep.join(path + [p for p in env.get("PYTHONPATH", "").split(os.pathsep) if p])
-    return subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True, check=True, cwd=ROOT).stdout
+def test_an_unknown_observation_is_refused():
+    with pytest.raises(ValueError, match="observation"):
+        hidden_config(observation="pixels")
 
 
-def test_site_hook_reaches_a_fresh_interpreter_only_when_on_the_path():
-    code = (
-        "import sys\n"
-        "assert 'jax' not in sys.modules, 'the hook must not import JAX at start-up'\n"
-        "from goalmisgen.configs.env import MazeConfig\n"
-        "c = MazeConfig(max_episode_steps=60, num_envs=1, min_size=7, max_size=7, value_encoding='none', colour_is_the_only_value_cue=True)\n"
-        "print(type(c.encoder()).__name__)\n"
-    )
-    assert run_python(code, with_site=True).strip() == "LegendEncoder"
-    assert run_python(code, with_site=False).strip() == "ObservationEncoder"
+def save_run(root: Path, observation: str | None, marker: str | None = None) -> Path:
+    """A run's checkpoint with cfg.json as 001 writes it; ``observation=None`` drops the field, as old runs lack it."""
+    import json
+
+    import farconf
+    from cleanba.config import Args
+
+    from goalmisgen.configs.presets import maze_drc33
+
+    config = maze_drc33(min_size=11, max_size=11, hide_values=True, observation=observation or "planes")
+    payload = farconf.to_dict(config, Args)
+    if observation is None:
+        del payload["train_env"]["observation"]
+    checkpoint = root / "local-files" / "cp_150000000"
+    checkpoint.mkdir(parents=True)
+    (checkpoint / "cfg.json").write_text(json.dumps({"cfg": payload, "update_step": 1}))
+    if marker is not None:
+        (root / "OBSERVATION").write_text(marker + "\n")
+    return checkpoint
+
+
+def test_the_observation_round_trips_through_cfg_json(tmp_path):
+    from goalmisgen.configs import saved
+
+    checkpoint = save_run(tmp_path / "legend", "legend")
+    assert saved.train_env(checkpoint).observation == "legend"
+    assert saved.observation(checkpoint) == "legend"
+    assert isinstance(saved.train_env(checkpoint).encoder(), LegendEncoder)
+
+
+def test_a_record_from_before_the_field_still_loads(tmp_path):
+    """Every run trained before the field existed has no ``observation`` in its cfg.json."""
+    from goalmisgen.configs import saved
+
+    checkpoint = save_run(tmp_path / "old", None)
+    assert saved.train_env(checkpoint).observation == "planes"
+    assert saved.observation(checkpoint) == "planes"
+
+
+def test_a_hook_era_legend_run_is_read_through_its_observation_file(tmp_path):
+    """The legend runs made with the import hook recorded it only in OBSERVATION beside BASE.json."""
+    from goalmisgen.configs import saved
+
+    agent = tmp_path / "legend11g1.s1234"
+    checkpoint = save_run(agent, None, marker="legend")
+    assert saved.train_env(checkpoint).observation == "legend"
+    arm = agent / "arms" / "o1+020@400k" / "local-files" / "cp_400000"
+    arm.mkdir(parents=True)
+    (arm / "cfg.json").write_text((checkpoint / "cfg.json").read_text())
+    assert saved.observation(arm) == "legend"
+
+
+def test_a_legend_base_makes_legend_arms(tmp_path):
+    from goalmisgen.finetune import finetune_config, parse_args
+
+    agent = tmp_path / "legend11g1.s1234"
+    checkpoint = save_run(agent, None, marker="legend")
+    args = parse_args([str(checkpoint), "--value", "0.7", "--levels", "/tmp/levels", "--run-dir", str(tmp_path / "arm")])
+    assert finetune_config(args).train_env.observation == "legend"
+    plain = save_run(tmp_path / "plain", None)
+    args = parse_args([str(plain), "--value", "0.7", "--levels", "/tmp/levels", "--run-dir", str(tmp_path / "arm2")])
+    assert finetune_config(args).train_env.observation == "planes"

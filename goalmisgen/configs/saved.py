@@ -83,3 +83,54 @@ def trained_net(checkpoint: Path) -> PolicySpec | None:
     if config is None or config.get("net") is None:
         return None
     return farconf.from_dict(config["net"], PolicySpec)
+
+
+def legacy_observation(checkpoint: Path) -> str | None:
+    """The observation an ``OBSERVATION`` file records for a run that predates the config field.
+
+    The legend runs were trained with an import hook switching every
+    ``MazeConfig`` to the legend, so their ``cfg.json`` says nothing about it;
+    ``scripts/legend_chain.sh`` wrote ``OBSERVATION`` into the agent's
+    directory instead. A checkpoint sits at ``<agent>/local-files/cp_*``, or at
+    ``<agent>/arms/<arm>/local-files/cp_*`` for one of its arms.
+    """
+    checkpoint = Path(checkpoint)
+    candidates = [checkpoint.parent.parent]
+    if len(checkpoint.parents) > 3 and checkpoint.parents[2].name == "arms":
+        candidates.append(checkpoint.parents[3])
+    for directory in candidates:
+        marker = directory / "OBSERVATION"
+        if marker.is_file():
+            return marker.read_text().strip()
+    return None
+
+
+def observation(checkpoint: Path) -> str:
+    """How the agent's levels were drawn: ``MazeConfig.observation``, from the record or its legacy marker."""
+    config = saved_config(checkpoint)
+    recorded = (config or {}).get("train_env", {}).get("observation")
+    return recorded or legacy_observation(checkpoint) or "planes"
+
+
+def train_env(checkpoint: Path):
+    """The training environment's :class:`~goalmisgen.configs.env.MazeConfig`, or ``None`` if unrecorded.
+
+    Decoded the way ``load_train_state`` decodes the whole record, so it is the
+    configuration the weights were trained under -- observation format, value
+    encoding, sizes, step penalty, episode limit -- rather than one rebuilt from
+    literals in whichever script is reading the agent. A record from before
+    ``observation`` was a field takes it from :func:`legacy_observation`.
+    """
+    import dataclasses
+
+    from cleanba.config import Args
+
+    config = saved_config(checkpoint)
+    if config is None or config.get("train_env") is None:
+        return None
+    env = farconf.from_dict(config, Args).train_env
+    if "observation" not in config["train_env"]:
+        legacy = legacy_observation(checkpoint)
+        if legacy is not None:
+            env = dataclasses.replace(env, observation=legacy)
+    return env

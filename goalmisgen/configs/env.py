@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import dataclasses
 from functools import partial
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Literal
 
 import gymnasium as gym
 from cleanba.environments import EnvConfig, VectorNHWCtoNCHWWrapper
@@ -33,7 +33,11 @@ from goalmisgen.envs.sampling import LevelSampler, MazeLevelSampler
 from goalmisgen.envs.values import FixedValues, UniformValues, ValueScheme
 
 if TYPE_CHECKING:
+    from goalmisgen.envs.legend import LegendEncoder
     from goalmisgen.envs.maze import MazeEnv
+
+Observation = Literal["planes", "legend"]
+"""How a level is drawn for the network; see :attr:`MazeConfig.observation`."""
 
 
 class SeededVectorEnv(gym.vector.VectorEnvWrapper):
@@ -165,6 +169,25 @@ class MazeConfig(EnvConfig):
 
     value_encoding: ValueEncoding = "at_objective"
 
+    observation: Observation = "planes"
+    """How a level is drawn for the network.
+
+    ``"planes"`` is :class:`~goalmisgen.envs.observation.ObservationEncoder`:
+    walls, agent, and one plane per colour, with the value channel
+    ``value_encoding`` asks for. ``"legend"`` is
+    :class:`~goalmisgen.envs.legend.LegendEncoder`, the factorised-value
+    control: every objective on one uncoloured plane, the one carrying feature 0
+    named by marks in a border one cell wider than the maze. It needs
+    ``value_encoding="none"``.
+
+    A field rather than a process-wide switch so that it is written into every
+    run's ``cfg.json`` and read back with the weights. The legend runs trained
+    before it existed were switched on by an import hook and recorded the fact
+    only in an ``OBSERVATION`` file beside ``BASE.json``, which
+    :func:`goalmisgen.configs.saved.train_env` reads for them. Neither drawing
+    changes what a stored level contains, so datasets serve both.
+    """
+
     colour_is_the_only_value_cue: bool = False
     """Permit an observation with no value channel, knowingly.
 
@@ -224,6 +247,8 @@ class MazeConfig(EnvConfig):
             raise ValueError(
                 f"objective_values has {len(self.objective_values)} entries " f"but n_objectives={self.n_objectives}"
             )
+        if self.observation not in ("planes", "legend"):
+            raise ValueError(f"observation is 'planes' or 'legend', not {self.observation!r}")
         if self.n_features is not None and self.n_features != self.n_objectives:
             # CorrelatedFeatures emits a permutation of 0..n_objectives-1, so a
             # wider palette only adds channels that are always zero - the
@@ -282,7 +307,11 @@ class MazeConfig(EnvConfig):
             require_all_objectives_reachable=self.require_all_objectives_reachable,
         )
 
-    def encoder(self) -> ObservationEncoder:
+    def encoder(self) -> "ObservationEncoder | LegendEncoder":
+        if self.observation == "legend":
+            from goalmisgen.envs.legend import legend_encoder
+
+            return legend_encoder(self)
         values = (self.value_low, self.value_high) if self.randomise_values else self.objective_values
         # Both bounds are derived. Deriving only the upper one left the lower
         # pinned at 0.0, so any negative objective value passed construction and

@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from multiprocessing.pool import Pool
+from pathlib import Path
 
 
 def worker_pool(workers: int) -> Pool:
@@ -33,3 +34,35 @@ def worker_pool(workers: int) -> Pool:
     pickle, which was already true under fork-with-arguments.
     """
     return mp.get_context("spawn").Pool(workers)
+
+
+def usable_cpus(root: Path = Path("/")) -> int:
+    """CPUs we are actually allowed to use.
+
+    ``multiprocessing.cpu_count()`` reports the host's cores, which inside a
+    container is wildly optimistic — a cloud pod may show 48 while its cgroup
+    quota permits 5. Oversubscribing that badly makes generation slower, not
+    faster, so read the quota where one exists.
+
+    Both cgroup layouts have to be tried. Reading only ``cpu.max`` covers v2 and
+    silently falls through to the host's core count on a v1 host, which is how a
+    pod with a 5.1-core quota came to be generating levels across 48 workers,
+    each getting a tenth of a core. ``nproc`` and ``cpuset`` both said 48 there;
+    only ``cpu.cfs_quota_us`` said otherwise.
+    """
+    cgroup = root / "sys/fs/cgroup"
+    try:  # cgroup v2
+        quota, period = (cgroup / "cpu.max").read_text().split()
+        if quota != "max":
+            return max(1, int(float(quota) / float(period)))
+        return mp.cpu_count()
+    except (OSError, ValueError):
+        pass
+    try:  # cgroup v1
+        quota = float((cgroup / "cpu/cpu.cfs_quota_us").read_text())
+        period = float((cgroup / "cpu/cpu.cfs_period_us").read_text())
+        if quota > 0 and period > 0:
+            return max(1, int(quota / period))
+    except (OSError, ValueError, ZeroDivisionError):
+        pass
+    return mp.cpu_count()

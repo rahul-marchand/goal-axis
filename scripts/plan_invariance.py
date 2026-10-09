@@ -48,18 +48,16 @@ Phases:
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
-import sys
 from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis import plan_invariance as pi  # noqa: E402
-from goalmisgen.analysis.weights import cosine  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis import plan_invariance as pi
+from goalmisgen.analysis.weights import cosine
+from goalmisgen.provenance import header
 
 N_FEATURES = 2
 
@@ -92,51 +90,30 @@ def main() -> None:  # noqa: C901 - one linear pipeline, read top to bottom
     print()
 
     import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
 
-    from goalmisgen.analysis import collect_episode_outcomes, fields, metrics, targets
-    from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
+    from goalmisgen.analysis import fields, metrics, targets
     from goalmisgen.analysis.input_gain import scale_planes
     from goalmisgen.analysis.layers import module_groups, restrict
     from goalmisgen.analysis.probes import apply_linear, fit_ridge
     from goalmisgen.analysis.weights import fit_axis_and_drift
-    from goalmisgen.configs.env import MazeConfig
+    from goalmisgen.axis import Greedy, load_base, load_sweep, read_threshold
     from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
     from goalmisgen.volume import sweep_index
-    from scripts.restricted_writes import load_sweep
 
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
+    base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
+    checkpoint, values, policy, unravel = base.checkpoint, base.values, base.policy, base.unravel
     swept = sweep_index(args.sweep)
     twin_sweep = f"o{1 - swept}"
     plane = FIRST_FEATURE_CHANNEL + swept
 
-    def config(split: str) -> MazeConfig:
-        return MazeConfig(
-            max_episode_steps=120,
-            num_envs=args.num_envs,
-            min_size=11,
-            max_size=11,
-            n_objectives=len(values),
-            objective_values=values,
-            feature_value_correlation=1.0,
-            value_encoding="none",
-            colour_is_the_only_value_cue=True,
-            level_dataset=args.levels,
-            dataset_split=split,
-            asynchronous=False,
-            seed=args.seed,
-        )
+    def config(split: str):
+        return dataclasses.replace(base.config, dataset_split=split)
 
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config(args.split))
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
-    groups, _ = module_groups(base_state.params)
+    base_flat = base.flat
+    groups, _ = module_groups(base.params)
     axes = {}
     for sweep in (args.sweep, twin_sweep):
-        offsets, diffs = load_sweep(args.run, sweep, values, args, config(args.split), base_flat)
+        offsets, diffs = load_sweep(base, sweep, arm_steps=args.arm_steps, fit_window=args.fit_window)
         axes[sweep], _ = fit_axis_and_drift(offsets, diffs)
         print(f"axis   {sweep}: {len(offsets)} arms, |axis| {np.linalg.norm(axes[sweep]):.3g}")
         del diffs
@@ -194,20 +171,11 @@ def main() -> None:  # noqa: C901 - one linear pipeline, read top to bottom
     h_base = states(tree(base_flat), test_obs)
 
     # ------------------------------------------------------------------ 1. behaviour
+    greedy = Greedy(policy, envs, get_action)
+
     def threshold(flat, gains=None) -> float:
-        params = tree(flat)
-        carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry)
-        state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, starts):
-            if gains:
-                observations = scale_planes(observations, gains, channel_axis=1)
-            state["carry"], action, _, state["key"] = get_action(params, state["carry"], observations, starts, state["key"], temperature=0.0)
-            return np.asarray(action)
-
-        outcomes = collect_episode_outcomes(envs, act, args.behaviour_episodes, seed=args.seed)
-        gaps, took_richer, _ = value_distance_decisions(outcomes)
-        return float(indifference_point(gaps, took_richer))
+        outcomes = greedy.outcomes(tree(flat), args.behaviour_episodes, args.seed, gains)
+        return float(read_threshold(outcomes, resamples=0).point)
 
     big = max(abs(d) for d in args.doses)
     conditions: dict[str, tuple[np.ndarray, dict | None]] = {"base": (base_flat, None)}

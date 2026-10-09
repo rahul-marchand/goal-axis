@@ -34,6 +34,7 @@ from goalmisgen import provenance
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.configs.presets import PRESETS, preset_for, with_final_checkpoint
 from goalmisgen.configs.writers import CsvWriter
+from goalmisgen.paths import runs_dir
 
 
 def parse_args() -> argparse.Namespace:
@@ -93,6 +94,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--randomise-values", action="store_true")
     parser.add_argument(
+        "--observation",
+        choices=("planes", "legend"),
+        default=None,
+        help="How a level is drawn: one plane per colour (the default), or the legend control, "
+        "objectives uncoloured and the richer named in a border (goalmisgen/envs/legend.py). "
+        "Recorded in the run's cfg.json.",
+    )
+    parser.add_argument(
         "--hide-values",
         action="store_true",
         help="Drop the value channel, so the agent must learn what each objective is worth "
@@ -109,7 +118,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--run-dir",
         type=Path,
-        default=Path("/workspace/data/runs"),
+        default=runs_dir(),
         help="Where checkpoints go. Use the persistent volume so a reclaimed pod does not lose the run.",
     )
     return parser.parse_args()
@@ -142,6 +151,8 @@ def main() -> None:
         overrides["randomise_values"] = True
     if args.hide_values:
         overrides["hide_values"] = True
+    if args.observation is not None:
+        overrides["observation"] = args.observation
     config = with_final_checkpoint(preset_for(args.net)(**overrides))
     # Set after the preset rather than through it: the schedule is a property of
     # the run, not of the maze, and every preset shares maze_drc33's optimiser.

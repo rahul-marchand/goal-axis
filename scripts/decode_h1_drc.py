@@ -26,18 +26,19 @@ import argparse
 import json
 import sys
 import time
-from functools import partial
 from pathlib import Path
 
 import numpy as np
 
+from goalmisgen.paths import level_dataset
 from goalmisgen.provenance import header
+from goalmisgen.volume import read_base_marker
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("run", type=Path, help="Run directory with BASE.json, or a checkpoint directory itself.")
-    parser.add_argument("--levels", type=str, default="/workspace/data/levels/values/1.00-0.50@1M")
+    parser.add_argument("--levels", type=str, default=str(level_dataset(n_levels=1_000_000)))
     parser.add_argument("--split", type=str, default="test")
     parser.add_argument("--episodes", type=int, default=50_000)
     parser.add_argument("--num-envs", type=int, default=64)
@@ -55,10 +56,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve(run: Path) -> tuple[Path, tuple[float, ...]]:
-    marker = run / "BASE.json"
-    if marker.exists():
-        payload = json.loads(marker.read_text())
-        return run / payload["checkpoint"], tuple(payload["values"])
+    if (run / "BASE.json").exists():
+        marker = read_base_marker(run)
+        return marker.checkpoint, marker.values
     if (run / "cfg.json").exists():  # a checkpoint directory was passed directly
         cfg = json.loads((run / "cfg.json").read_text())
         cfg = cfg.get("cfg", cfg)
@@ -86,60 +86,26 @@ def main() -> None:
     print(f"checkpoint {checkpoint}")
     print(f"values     {values}")
 
-    import jax
-    from cleanba.cleanba_impala import load_train_state
+    from goalmisgen.analysis import summarise
+    from goalmisgen.analysis.behaviour import decision_arrays
+    from goalmisgen.axis import Greedy, checkpoint_eval_config, load_checkpoint
 
-    from goalmisgen.analysis import collect_episode_outcomes, summarise
-    from goalmisgen.configs.env import MazeConfig
-
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=11,
-        max_size=11,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split=args.split,
-        asynchronous=False,
-        seed=args.seed,
+    # Colours by value rank, as the literal this replaced had them, even for a
+    # colour-keyed arm read directly: at the base values the two schemes paint
+    # the same, but they draw differently from the level sampler's generator.
+    config = checkpoint_eval_config(
+        checkpoint, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed, values=values, colour_keyed=False
     )
-
-    policy, _, _, train_state, update = load_train_state(checkpoint, env_cfg=config)
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
-    envs = config.make()
-    carry = policy.apply(
-        train_state.params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry
-    )
-    state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-    def act(observations, starts):
-        state["carry"], action, _, state["key"] = get_action(
-            train_state.params, state["carry"], observations, starts, state["key"], temperature=0.0
-        )
-        return np.asarray(action)
+    base = load_checkpoint(checkpoint, config)
+    greedy = Greedy.of(base)
 
     start = time.perf_counter()
-    outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-    print(f"rolled out {len(outcomes):,} episodes in {time.perf_counter() - start:.0f}s  (update {update})")
+    outcomes = greedy.outcomes(base.params, args.episodes, args.seed)
+    print(f"rolled out {len(outcomes):,} episodes in {time.perf_counter() - start:.0f}s  (update {base.update})")
     summary = summarise(outcomes)
     print(f"reached {summary.reached_objective:.1%}  chose optimal {summary.chose_optimal:.1%}\n")
 
-    fids = sorted(int(k.split("_")[1]) for k in outcomes[0] if k.startswith("feature_") and k.endswith("_value"))
-    v = np.array([[o[f"feature_{fid}_value"] for fid in fids] for o in outcomes])
-    d = np.array([[o[f"feature_{fid}_distance"] for fid in fids] for o in outcomes], dtype=int)
-    richer = np.argmax(v, axis=1)
-    rows = np.arange(len(outcomes))
-    arrays = dict(
-        d_rich=d[rows, richer],
-        d_poor=d[rows, 1 - richer],
-        colour_of_rich=np.array(fids)[richer],
-        reached=np.array([bool(o.get("reached_objective")) for o in outcomes]),
-        reached_fid=np.array([o.get("reached_feature_id", -1) for o in outcomes], dtype=int),
-    )
+    arrays = decision_arrays(outcomes)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     np.savez(args.out, **arrays)
     print(f"saved {args.out}  ({len(outcomes):,} episode rows; levels sampled with replacement)\n")

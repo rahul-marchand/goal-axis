@@ -17,17 +17,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen import provenance  # noqa: E402
-from goalmisgen.analysis.arm_length import decompose, table_row  # noqa: E402
-from goalmisgen.analysis.weights import cosine, fit_axis_and_drift  # noqa: E402
-from goalmisgen.volume import discover_arms, parse_checkpoint_dirname  # noqa: E402
+from goalmisgen import provenance
+from goalmisgen.analysis.arm_length import decompose, table_row
+from goalmisgen.analysis.weights import cosine, fit_axis_and_drift
+from goalmisgen.volume import discover_arms, parse_checkpoint_dirname
 
 
 def parse_args() -> argparse.Namespace:
@@ -43,38 +40,19 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     print(provenance.header() + "\n")
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
+    from goalmisgen.axis import diff_from, load_base
 
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.configs.env import MazeConfig
-
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=1,
-        min_size=11,
-        max_size=11,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        asynchronous=False,
-    )
-    _, _, _, base_state, update = load_train_state(checkpoint, env_cfg=config)
-    base_flat = np.asarray(ravel_pytree(base_state.params)[0], dtype=np.float64)
-    print(f"base {checkpoint}  (update {update}, {base_flat.size:,} parameters)")
+    # Weights only: the environment is built to load them, never stepped.
+    base = load_base(args.run, None, split="train", num_envs=1, seed=None)
+    checkpoint, values, base_flat = base.checkpoint, base.values, base.flat
+    print(f"base {checkpoint}  (update {base.update}, {base_flat.size:,} parameters)")
     print(f"shares read at |offset| = {args.dose}, averaged over both sweeps' arms at that dose\n")
 
     def diffs_for(objective: int, steps: int, at: int) -> tuple[np.ndarray, np.ndarray, int]:
         found = discover_arms(args.run / "arms", objective, values[objective], steps=steps, at=at)
         offsets, rows, reached = [], [], set()
         for value, path in sorted(found.items()):
-            _, _, _, state, _ = load_train_state(path, env_cfg=config)
-            rows.append(np.asarray(ravel_pytree(state.params)[0], dtype=np.float64) - base_flat)
+            rows.append(diff_from(base, path, subtract_in="float64"))
             offsets.append(round(value - values[objective], 10))
             reached.add(parse_checkpoint_dirname(path.name))
         if len(reached) > 1:
@@ -121,7 +99,7 @@ def main() -> None:
             )
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(json.dumps({"agent": args.run.name, "base": payload["checkpoint"], "dose": args.dose, "rows": rows_out}, indent=1))
+        args.out.write_text(json.dumps({"agent": args.run.name, "base": base.marker.payload["checkpoint"], "dose": args.dose, "rows": rows_out}, indent=1))
         print(f"\nwrote {args.out}")
 
 

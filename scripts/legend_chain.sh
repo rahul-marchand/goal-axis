@@ -12,8 +12,9 @@ export PYTHONUNBUFFERED=1
 export UV_NO_SYNC=1  # the .venv is shared across pods; never let a stage re-sync it
 export JAX_COMPILATION_CACHE_DIR=/workspace/data/jax-cache-legend
 cd /workspace/GoalMisgeneralisation
-# The switch: every python process below, and every one they launch, encodes with the legend.
-export PYTHONPATH="$PWD/scripts/legend_site${PYTHONPATH:+:$PYTHONPATH}"
+# The switch is the base's own config: 001 --observation legend records it in cfg.json,
+# and every later stage reads it back with the weights (arms inherit it through 013).
+# Runs trained before the field existed are read through the OBSERVATION file below.
 UV="$(command -v uv)"; [ -n "$UV" ] || { echo "NO_UV"; exit 1; }
 DATA=/workspace/data
 LEVELS_TRAIN=$DATA/levels/values/1.00-0.50@1M
@@ -27,8 +28,8 @@ mkdir -p "$OUT" "$DATA/figures-data/gain-vs-factorised"
 
 $UV run python -c "
 from goalmisgen.configs.env import MazeConfig
-c = MazeConfig(max_episode_steps=120, num_envs=1, min_size=11, max_size=11, value_encoding='none', colour_is_the_only_value_cue=True)
-e = c.encoder(); assert type(e).__name__ == 'LegendEncoder', e; print('encoder', e, e.shape)" || { echo "LEGEND_HOOK_FAILED"; exit 1; }
+c = MazeConfig(max_episode_steps=120, num_envs=1, min_size=11, max_size=11, value_encoding='none', colour_is_the_only_value_cue=True, observation='legend')
+e = c.encoder(); assert type(e).__name__ == 'LegendEncoder', e; print('encoder', e, e.shape)" || { echo "LEGEND_CONFIG_FAILED"; exit 1; }
 
 echo "=== $NAME: train (legend, seed=$SEED gamma=1.0 steps=$STEPS)"
 reached_steps() { ls "$1/local-files" 2>/dev/null | sed -n 's/^cp_0*//p' | sort -n | tail -1; }
@@ -40,9 +41,9 @@ if [ ! -f "$RUN/BASE.json" ]; then
   if [ -z "$r" ] || [ "$r" -lt $((STEPS * 99 / 100)) ]; then
     rm -rf "$RUN"
     $UV run python experiments/001_maze_repro.py --net drc33 --correlation 1.0 \
-      --min-size 11 --max-size 11 --levels "$LEVELS_TRAIN" --hide-values --gamma 1.0 \
+      --min-size 11 --max-size 11 --levels "$LEVELS_TRAIN" --hide-values --observation legend --gamma 1.0 \
       --total-timesteps "$STEPS" --seed "$SEED" --run-dir "$RUN" \
-      --note "E5 gain-vs-factorised control: novalue11g1 recipe on the LEGEND observation (objectives uncoloured on one plane, the richer one named by row/column marks in a border; goalmisgen/envs/legend.py). Must be read with PYTHONPATH=scripts/legend_site. 2026-09-15." \
+      --note "E5 gain-vs-factorised control: novalue11g1 recipe on the LEGEND observation (objectives uncoloured on one plane, the richer one named by row/column marks in a border; goalmisgen/envs/legend.py). Recorded in cfg.json as observation=legend. 2026-09-15." \
       || { echo "TRAIN_FAILED $NAME"; exit 1; }
   fi
   echo legend > "$RUN/OBSERVATION"

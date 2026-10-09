@@ -32,6 +32,7 @@ from goalmisgen.offline.decode import replay_all
 from goalmisgen.offline.demos import DemoSet
 from goalmisgen.offline.fast_decode import greedy_decode_cached
 from goalmisgen.offline.train import list_checkpoints, load_checkpoint
+from goalmisgen.paths import offline_demos, offline_runs_dir
 from goalmisgen.volume import offset_tag
 
 OFFSETS = (-0.45, -0.40, -0.30, -0.20, -0.10, -0.05, 0.0, 0.05, 0.10, 0.20, 0.30, 0.40, 0.45)
@@ -47,8 +48,8 @@ near-identical arms is visible.
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--runs", type=Path, default=Path("/workspace/data/offline/runs"))
-    parser.add_argument("--demos", default="/workspace/data/offline/demos/test.rho100")
+    parser.add_argument("--runs", type=Path, default=offline_runs_dir())
+    parser.add_argument("--demos", default=str(offline_demos("test")))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--seeds", type=int, nargs="+", default=[1, 2, 3])
     parser.add_argument("--sweeps", nargs="+", default=["o0", "o1"])

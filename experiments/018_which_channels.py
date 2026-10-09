@@ -36,11 +36,10 @@ from pathlib import Path
 
 import jax
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
 
 from goalmisgen import provenance
 from goalmisgen.analysis.weights import fit_axis_and_drift
-from goalmisgen.configs.env import MazeConfig
+from goalmisgen.axis import checkpoint_eval_config, load_params
 from goalmisgen.volume import iter_arms, sweep_index
 
 GATES = ("input", "candidate", "forget", "output")
@@ -65,7 +64,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cell", type=int, default=0, help="Which recurrent layer to open up (cell_list_N is a layer, not a maze cell)."
     )
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--at", type=int, default=-1)
     parser.add_argument("--top", type=int, default=8)
     return parser.parse_args()
@@ -91,9 +90,9 @@ def sweep_axis(root: Path, prefix: str, base_value: float, at: int, config, cell
         offset = parsed.offset
         if abs(offset) < 1e-9:
             continue
-        _, _, _, state, _ = load_train_state(checkpoints[at], env_cfg=config)
+        params = load_params(checkpoints[at], config)
         offsets.append(offset)
-        arms.append(kernels(state.params, cell))
+        arms.append(kernels(params, cell))
     if len(offsets) < 3:
         raise SystemExit(f"sweep {prefix!r} has {len(offsets)} usable arms, need three")
     return np.array(offsets), arms
@@ -157,23 +156,12 @@ def main() -> None:
     args = parse_args()
     print(provenance.header() + "\n")
 
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=8,
-        min_size=args.size,
-        max_size=args.size,
-        n_objectives=len(args.objective_values),
-        objective_values=tuple(args.objective_values),
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split="test",
-        asynchronous=False,
-        seed=0,
+    # Weights only: the base's own environment, at the values given, built to load and never stepped.
+    config = checkpoint_eval_config(
+        args.base, args.levels, split="test", num_envs=8, seed=0, values=tuple(args.objective_values), size=args.size
     )
-    _, _, _, base_state, _ = load_train_state(args.base, env_cfg=config)
-    base = kernels(base_state.params, args.cell)
+    base_params = load_params(args.base, config)
+    base = kernels(base_params, args.cell)
     print(f"cell_list_{args.cell}: " + ", ".join(f"{k} {v.shape}" for k, v in sorted(base.items())))
 
     sweeps = {}

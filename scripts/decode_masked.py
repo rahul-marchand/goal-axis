@@ -31,6 +31,7 @@ from goalmisgen.offline.axis import arm_dirs, load_base, load_diffs
 from goalmisgen.offline.decode import replay_all
 from goalmisgen.offline.demos import DemoSet
 from goalmisgen.offline.fast_decode import greedy_decode_cached
+from goalmisgen.paths import offline_demos
 from goalmisgen.volume import offset_tag
 
 
@@ -42,7 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--offsets", type=float, nargs="+", default=[-0.45, -0.20, 0.20, 0.45])
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--n", type=int, default=20_000)
-    parser.add_argument("--demos", default="/workspace/data/offline/demos/test.rho100")
+    parser.add_argument("--demos", default=str(offline_demos("test")))
     return parser.parse_args()
 
 

@@ -14,13 +14,11 @@ not edited. ``FROZEN.json`` beside the checkpoints records which modules were he
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+from goalmisgen.paths import repo_root
 
 
 def main() -> None:
@@ -33,19 +31,19 @@ def main() -> None:
     rest = sys.argv[split + 1 :]
 
     from goalmisgen.edits.freeze import frozen_modules
-
-    spec = importlib.util.spec_from_file_location("value_axis_013", ROOT / "experiments" / "013_value_axis.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    from goalmisgen.finetune import parse_args, run
 
     run_dir = Path(rest[rest.index("--run-dir") + 1])
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "FROZEN.json").write_text(json.dumps({"frozen": args.freeze, "argv": rest}, indent=1))
     print(f"frozen modules  {args.freeze}")
 
-    sys.argv = [str(ROOT / "experiments" / "013_value_axis.py"), *rest]
+    # The provenance header names 013 as the producer, as it did when this
+    # loaded 013 and called its main.
+    script = repo_root() / "experiments" / "013_value_axis.py"
+    sys.argv = [str(script), *rest]
     with frozen_modules(args.freeze):
-        module.main()
+        run(parse_args(rest))
 
 
 if __name__ == "__main__":

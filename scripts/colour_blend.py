@@ -31,16 +31,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -92,56 +89,24 @@ def logistic_width(gaps: np.ndarray, took_richer: np.ndarray) -> float:
 def main() -> None:
     args = parse_args()
     print(header())
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
+    from goalmisgen.analysis.behaviour import on_shortest_route, value_distance_decisions
+    from goalmisgen.axis import Greedy, load_base
 
-    import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis import collect_episode_outcomes, summarise
-    from goalmisgen.analysis.behaviour import indifference_point, on_shortest_route, value_distance_decisions
-    from goalmisgen.analysis.metrics import bootstrap_episodes
-    from goalmisgen.configs.env import MazeConfig
-
-    config = MazeConfig(
-        max_episode_steps=120, num_envs=args.num_envs, min_size=11, max_size=11, n_objectives=len(values),
-        objective_values=values, feature_value_correlation=1.0, value_encoding="none",
-        colour_is_the_only_value_cue=True, level_dataset=args.levels, dataset_split=args.split,
-        asynchronous=False, seed=args.seed,
-    )
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    flat, unravel = ravel_pytree(base_state.params)
-    params = unravel(np.asarray(flat, dtype=np.float32))
+    base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
+    checkpoint, values = base.checkpoint, base.values
+    params = base.unravel(np.asarray(base.raveled, dtype=np.float32))
     print(f"base   {checkpoint}, values {values}\n")
 
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
     out: dict = {"run": str(args.run), "checkpoint": str(checkpoint), "values": list(values), "rows": []}
 
     print(f"  {'alpha':>6}{'steps':>9}  {'95% interval':^15}{'width':>8}{'reached':>9}{'route':>9}")
     for alpha in args.alphas:
-        carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape,
-                             method=policy.initialize_carry)
-        state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, starts):
-            observations = blend_planes(observations, alpha, channel_axis=1)
-            state["carry"], action, _, state["key"] = get_action(
-                params, state["carry"], observations, starts, state["key"], temperature=0.0
-            )
-            return np.asarray(action)
-
-        outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
+        found = greedy.threshold(params, args.episodes, args.seed, transform=partial(blend_planes, alpha=alpha, channel_axis=1))
+        point, low, high, outcomes = found.point, found.low, found.high, found.outcomes
         gaps, took_richer, _ = value_distance_decisions(outcomes)
-        point = indifference_point(gaps, took_richer)
-        low, high = bootstrap_episodes(
-            lambda rows: indifference_point(gaps[rows], took_richer[rows]), np.arange(len(gaps)),
-            resamples=200, seed=args.seed,
-        )
         width = logistic_width(gaps, took_richer)
-        reached = summarise(outcomes).reached_objective
+        reached = found.reached
         route = on_shortest_route(outcomes)
         print(f"  {alpha:>6.2f}{point:>9.2f}  [{low:6.1f},{high:6.1f}]{width:>8.2f}{reached:>9.1%}{route:>9.1%}",
               flush=True)

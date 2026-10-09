@@ -35,9 +35,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.design import (  # noqa: E402
+from goalmisgen.design import (
     ONE_SIDED_FAMILIES,
     arm_values,
     check_no_preference_flip,
@@ -46,7 +44,8 @@ from goalmisgen.design import (  # noqa: E402
     one_sided_arms,
     sweep_arms,
 )
-from goalmisgen.volume import arm_is_complete, dataset_dirname, is_colour_keyed  # noqa: E402
+from goalmisgen.paths import data_root
+from goalmisgen.volume import arm_is_complete, dataset_dirname, is_colour_keyed
 
 # Seconds to construct one level, by objective count: a maze plus a
 # breadth-first search per objective, and a mutual reachability check beyond two.
@@ -55,7 +54,7 @@ SECONDS_PER_LEVEL = {2: 0.00042, 3: 0.00175}
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--data", type=Path, default=Path("/workspace/data"))
+    parser.add_argument("--data", type=Path, default=data_root())
     parser.add_argument("--agent", type=str, required=True, help="A directory under runs/, e.g. novalue11.s1234.")
     parser.add_argument(
         "--objectives",

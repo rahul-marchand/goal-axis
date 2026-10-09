@@ -35,18 +35,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.layers import module_groups, restrict  # noqa: E402
-from goalmisgen.analysis.weights import fit_axis_and_drift  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
-from goalmisgen.volume import discover_arms, sweep_index  # noqa: E402
+from goalmisgen.analysis.layers import module_groups, restrict
+from goalmisgen.analysis.weights import fit_axis_and_drift
+from goalmisgen.provenance import header
+from goalmisgen.volume import sweep_index
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,81 +71,30 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-# --- axis --------------------------------------------------------------------
-
-
-def load_sweep(run: Path, sweep: str, base_values: tuple[float, ...], args, config, base_flat):
-    """Offsets and diffs of one sweep's arms inside the fit window."""
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    objective = sweep_index(sweep)
-    arms = discover_arms(run / "arms", objective=objective, base_value=base_values[objective], steps=args.arm_steps)
-    offsets, diffs = [], []
-    for value, checkpoint in sorted(arms.items()):
-        offset = value - base_values[objective]
-        if abs(offset) < 1e-9 or abs(offset) > args.fit_window:
-            continue
-        _, _, _, state, _ = load_train_state(checkpoint, env_cfg=config)
-        flat, _ = ravel_pytree(state.params)
-        offsets.append(offset)
-        diffs.append(np.asarray(flat - base_flat, dtype=np.float64))
-    if len(offsets) < 3:
-        sys.exit(f"sweep {sweep}: {len(offsets)} arms inside |offset| <= {args.fit_window}, need three")
-    return np.array(offsets), np.stack(diffs)
-
-
 def main() -> None:
     args = parse_args()
     print(header())
     print()
 
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
+    from goalmisgen.axis import Greedy, has_sweep, load_base, load_sweep
+
+    base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
+    checkpoint, values, base_flat = base.checkpoint, base.values, base.flat
     objective = sweep_index(args.sweep)
     other = f"o{1 - objective}" if len(values) == 2 else None
-
-    import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis import collect_episode_outcomes, summarise
-    from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
-    from goalmisgen.analysis.metrics import bootstrap_episodes
-    from goalmisgen.configs.env import MazeConfig
-
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=11,
-        max_size=11,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split=args.split,
-        asynchronous=False,
-        seed=args.seed,
-    )
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
     print(f"base   {checkpoint}  ({base_flat.size:,} parameters), values {values}")
 
-    groups, order = module_groups(base_state.params)
+    groups, order = module_groups(base.params)
     sizes = {name: int(len(groups[name])) for name in order}
 
-    offsets, diffs = load_sweep(args.run, args.sweep, values, args, config, base_flat)
+    offsets, diffs = load_sweep(base, args.sweep, arm_steps=args.arm_steps, fit_window=args.fit_window)
     axis, drift = fit_axis_and_drift(offsets, diffs)
     print(f"sweep  {args.sweep}: {len(offsets)} arms at {np.round(offsets, 2).tolist()}; |axis| {np.linalg.norm(axis):.3g}")
 
     axis_share = {name: float(axis[groups[name]] @ axis[groups[name]]) / float(axis @ axis) for name in order}
     rank_by, rank_label = axis_share, f"share of ||axis||^2 in sweep {args.sweep} (no second sweep to rank by)"
-    if other is not None and discover_arms(args.run / "arms", 1 - objective, values[1 - objective], steps=args.arm_steps):
-        other_offsets, other_diffs = load_sweep(args.run, other, values, args, config, base_flat)
+    if other is not None and has_sweep(base, other, arm_steps=args.arm_steps):
+        other_offsets, other_diffs = load_sweep(base, other, arm_steps=args.arm_steps, fit_window=args.fit_window)
         other_axis, _ = fit_axis_and_drift(other_offsets, other_diffs)
         coherent = {name: float(-(axis[groups[name]] @ other_axis[groups[name]])) for name in order}
         total = sum(coherent.values())
@@ -186,30 +131,14 @@ def main() -> None:
         finish(args, out)
         return
 
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
     axis_norm = float(np.linalg.norm(axis))
 
     def measure(flat: np.ndarray, label: str, **tags) -> dict:
-        params = unravel(np.asarray(flat, dtype=np.float32))
-        carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry)
-        state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, starts):
-            state["carry"], action, _, state["key"] = get_action(
-                params, state["carry"], observations, starts, state["key"], temperature=0.0
-            )
-            return np.asarray(action)
-
-        outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-        gaps, took_richer, _ = value_distance_decisions(outcomes)
-        point = indifference_point(gaps, took_richer)
-        low, high = bootstrap_episodes(
-            lambda rows: indifference_point(gaps[rows], took_richer[rows]), np.arange(len(gaps)), resamples=200, seed=args.seed
-        )
-        reached = summarise(outcomes).reached_objective
+        found = greedy.threshold(base.params_of(flat), args.episodes, args.seed)
+        point, low, high, reached = found.point, found.low, found.high, found.reached
         print(f"  {label:>44}{point:>8.1f}  [{low:5.1f}, {high:5.1f}]{reached:>10.1%}", flush=True)
-        row = {"label": label, "steps": float(point), "low": float(low), "high": float(high), "reached": float(reached), **tags}
+        row = {"label": label, **found.as_row(), **tags}
         out["writes"].append(row)
         return row
 

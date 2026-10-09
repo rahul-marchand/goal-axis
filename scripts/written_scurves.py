@@ -15,24 +15,20 @@ alpha, plus a printed binned curve as a sanity check.
 from __future__ import annotations
 
 import argparse
-import json
-import sys
-from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.paths import level_dataset, run_dir
+from goalmisgen.provenance import header
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--agent", type=Path, default=Path("/workspace/data/runs/novalue11.s1234"))
+    parser.add_argument("--agent", type=Path, default=run_dir("novalue11.s1234"))
     parser.add_argument("--axis", type=Path, required=True, help="Cached axis npz from scripts/basin_map.py.")
     parser.add_argument("--alphas", type=float, nargs="+", default=[-0.2, 0.0, 0.2])
-    parser.add_argument("--levels", type=str, default="/workspace/data/levels/values/1.00-0.50@1M")
+    parser.add_argument("--levels", type=str, default=str(level_dataset(n_levels=1_000_000)))
     parser.add_argument("--split", type=str, default="test")
     parser.add_argument("--episodes", type=int, default=8192)
     parser.add_argument("--num-envs", type=int, default=256)
@@ -46,69 +42,24 @@ def main() -> None:
     print(header())
     print()
 
-    payload = json.loads((args.agent / "BASE.json").read_text())
-    checkpoint = args.agent / payload["checkpoint"]
-    values = tuple(payload["values"])
+    from goalmisgen.analysis.behaviour import decision_arrays
+    from goalmisgen.axis import Greedy, load_base
+    from goalmisgen.volume import read_base_marker
+
+    checkpoint = read_base_marker(args.agent).checkpoint
     axis = np.load(args.axis)["axis"].astype(np.float64)
     print(f"checkpoint {checkpoint}")
     print(f"axis       {args.axis.name}  |axis| {np.linalg.norm(axis):.1f} per unit value")
 
-    import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis import collect_episode_outcomes
-    from goalmisgen.configs.env import MazeConfig
-
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=11,
-        max_size=11,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split=args.split,
-        asynchronous=False,
-        seed=args.seed,
-    )
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
-    envs = config.make()
+    base = load_base(args.agent, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
+    base_flat = base.flat
+    greedy = Greedy.of(base)
 
     args.out.mkdir(parents=True, exist_ok=True)
     for alpha in args.alphas:
-        params = unravel(np.asarray(base_flat + alpha * axis, dtype=np.float32))
-        carry0 = policy.apply(
-            params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry
-        )
-        state = {"carry": carry0, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, episode_starts):
-            state["carry"], action, _, state["key"] = get_action(
-                params, state["carry"], observations, episode_starts, state["key"], temperature=0.0
-            )
-            return np.asarray(action)
-
-        outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-        fids = sorted(int(k.split("_")[1]) for k in outcomes[0] if k.startswith("feature_") and k.endswith("_value"))
-        v = np.array([[o[f"feature_{fid}_value"] for fid in fids] for o in outcomes])
-        d = np.array([[o[f"feature_{fid}_distance"] for fid in fids] for o in outcomes], dtype=int)
-        richer = np.argmax(v, axis=1)
-        rows = np.arange(len(outcomes))
-        reached = np.array([bool(o.get("reached_objective")) for o in outcomes])
-        arrays = dict(
-            d_rich=d[rows, richer],
-            d_poor=d[rows, 1 - richer],
-            colour_of_rich=np.array(fids)[richer],
-            reached=reached,
-            reached_fid=np.array([int(o["reached_feature_id"]) if r else -1 for o, r in zip(outcomes, reached)]),
-        )
+        outcomes = greedy.outcomes(base.params_of(base_flat + alpha * axis), args.episodes, args.seed)
+        arrays = decision_arrays(outcomes)
+        reached = arrays["reached"]
         tag = f"{'+' if alpha >= 0 else '-'}{abs(alpha):.2f}"
         out = args.out / f"scurve.{args.agent.name}.a{tag}.npz"
         np.savez_compressed(out, alpha=alpha, **arrays)

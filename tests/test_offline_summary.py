@@ -109,14 +109,8 @@ def test_own_and_other_skips_episodes_that_reached_nothing():
 
 def test_a_sep_edit_touches_only_the_sep_position(demos, model_and_params):
     """The write ``032`` makes: one vector at the end-of-input token, nothing at the cells."""
-    import sys
-    from pathlib import Path
-
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "experiments"))
-    module = __import__("032_bc_write_the_distance")
-
     direction = np.arange(TINY.d_model, dtype=float)
-    grid = module.sep_edit(direction, alpha=2.0, n_episodes=3, n_cells=TINY.n_cells)
+    grid = summary.sep_edit(direction, alpha=2.0, n_episodes=3, n_cells=TINY.n_cells)
     assert grid.shape == (3, TINY.n_cells + 1, TINY.d_model)
     np.testing.assert_array_equal(grid[:, : TINY.n_cells], 0.0)
     np.testing.assert_allclose(grid[:, TINY.n_cells], np.tile(2.0 * direction, (3, 1)))

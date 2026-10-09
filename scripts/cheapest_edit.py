@@ -47,14 +47,12 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.input_gain import input_kernel  # noqa: E402
-from goalmisgen.analysis.layers import module_groups  # noqa: E402
-from goalmisgen.analysis.route_targets import route_targets, usable  # noqa: E402
-from goalmisgen.analysis.weights import cosine, fit_axis_and_drift, split_half_reliability  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.input_gain import input_kernel
+from goalmisgen.analysis.layers import module_groups
+from goalmisgen.analysis.weights import cosine, fit_axis_and_drift, split_half_reliability
+from goalmisgen.edits.backends import offline_backend, rl_backend
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -102,169 +100,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-# --- backends ---------------------------------------------------------------------
-
-
-@dataclasses.dataclass
-class Backend:
-    """Everything that differs between a cleanba agent and the route model."""
-
-    base_flat: np.ndarray
-    unravel: object
-    params: object
-    logits_fn: object
-    edit_arrays: dict
-    eval_arrays: dict
-    edit_targets: object
-    eval_targets: object
-    evaluate: object  # (flat, targets, gains | None) -> (reached, steps)
-    load_axis: object  # () -> (offsets, diffs)
-    onpolicy_fn: object = None
-
-
-def rl_backend(args) -> Backend:
-    import jax.numpy as jnp
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis import closed_loop
-    from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits import rl as rl_edit
-    from goalmisgen.envs.features import CorrelatedFeatures
-
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
-
-    def config_for(split):
-        return MazeConfig(
-            max_episode_steps=120, num_envs=1, min_size=11, max_size=11, n_objectives=len(values),
-            objective_values=values, feature_value_correlation=1.0, value_encoding="none",
-            colour_is_the_only_value_cue=True, level_dataset=args.levels, dataset_split=split, asynchronous=False,
-        )
-
-    config = config_for("test")
-    policy, _, _, state, _ = load_train_state(checkpoint, env_cfg=config)
-    flat, unravel = ravel_pytree(state.params)
-    print(f"base   {checkpoint}  ({flat.size:,} parameters), values {values}")
-
-    def levels_of(split, count):
-        sampler = config_for(split).sampler()
-        scheme = CorrelatedFeatures(1.0)
-        out = []
-        for index in sampler.indices:
-            values_here = tuple(float(v) for v in sampler.dataset.values[index])
-            level = sampler.dataset.level(int(index), scheme.assign(values_here, np.random.default_rng(int(index))))
-            if usable(level):
-                out.append(level)
-            if len(out) == count:
-                break
-        return out
-
-    edit_targets = route_targets(levels_of("valid", args.n_edit), size=11)
-    eval_targets = route_targets(levels_of("test", args.n_eval), size=11)
-    rollout = closed_loop.make_rollout_fn(policy, unravel)
-
-    def evaluate(flat_params, targets, gains=None):
-        g = np.ones(4, dtype=np.float32)
-        for channel, gain in (gains or {}).items():
-            g[channel] = gain
-        reached, steps = [], []
-        for start in range(0, len(targets), 1024):
-            rows = slice(start, start + 1024)
-            r, s = rollout(
-                jnp.asarray(flat_params, dtype=jnp.float32),
-                jnp.asarray(targets.static[rows]),
-                jnp.asarray(targets.positions[rows, 0, 0]),
-                jnp.asarray(g),
-            )
-            reached.append(np.asarray(r))
-            steps.append(np.asarray(s))
-        return np.concatenate(reached), np.concatenate(steps)
-
-    def arrays(targets):
-        out = {k: getattr(targets, k) for k in ("static", "positions", "toward_rich", "toward_poor", "role", "gap", "rich_above", "fields")}
-        out["start"] = targets.positions[:, 0, 0]
-        return out
-
-    def load_axis():
-        from scripts.restricted_writes import load_sweep
-
-        return load_sweep(args.run, args.sweep, values, args, config, np.asarray(flat, dtype=np.float64))
-
-    return Backend(
-        base_flat=np.asarray(flat, dtype=np.float64), unravel=unravel, params=state.params,
-        logits_fn=rl_edit.make_logits_fn(policy, unravel), edit_arrays=arrays(edit_targets), eval_arrays=arrays(eval_targets),
-        edit_targets=edit_targets, eval_targets=eval_targets, evaluate=evaluate, load_axis=load_axis,
-        onpolicy_fn=rl_edit.make_onpolicy_fn(policy, unravel, args.horizon),
-    )
-
-
-def offline_backend(args) -> Backend:
-    from goalmisgen.edits import bc as bc_edit
-    from goalmisgen.offline.axis import arm_dirs, load_base, load_diffs
-    from goalmisgen.offline.decode import replay
-    from goalmisgen.offline.demos import DemoSet
-    from goalmisgen.offline.fast_decode import greedy_decode_cached
-
-    base = load_base(args.run)
-    print(f"base   {args.run.name} @ step {base.step:,}  ({base.flat.size:,} parameters), values {base.values}")
-    max_actions = base.model.config.max_actions
-
-    def levels_of(name, count):
-        demos = DemoSet.load(args.demos / name, hide_values=base.hide_values)
-        out = []
-        for index in range(len(demos)):
-            level = demos.level(index)
-            if usable(level):
-                out.append(level)
-            if len(out) == count:
-                break
-        return out, demos
-
-    edit_levels, _ = levels_of("valid.rho100", args.n_edit)
-    eval_levels, eval_demos = levels_of("test.rho100", args.n_eval)
-    channels = base.model.config.n_channels
-    edit_targets = route_targets(edit_levels, size=base.model.config.size, n_channels=channels)
-    eval_targets = route_targets(eval_levels, size=base.model.config.size, n_channels=channels)
-    eval_level_list = {id(eval_targets): eval_levels, id(edit_targets): edit_levels}
-    step_penalty = float(eval_demos.meta["step_penalty"])
-    step_limit = int(eval_demos.meta["step_limit"])
-
-    def evaluate(flat_params, targets, gains=None):
-        import jax.numpy as jnp
-
-        from goalmisgen.analysis.closed_loop import draw_agent
-        from goalmisgen.analysis.input_gain import scale_planes
-
-        # draw_agent writes with jnp's .at[], so both arguments have to be JAX
-        # arrays: route targets arrive from numpy and would fail here otherwise.
-        obs = np.asarray(draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0])))
-        if gains:
-            obs = scale_planes(obs, gains, channel_axis=-1)
-        decoded = greedy_decode_cached(base.model, base.unravel(np.asarray(flat_params, dtype=np.float32)), obs)
-        reached, steps = [], []
-        for row, level in enumerate(eval_level_list[id(targets)]):
-            info = replay(level, decoded.actions[row], step_penalty, step_limit, bool(decoded.emitted_eos[row]))
-            reached.append(info["reached_feature_id"] if info["reached_objective"] else -1)
-            steps.append(info["episode_steps"])
-        return np.array(reached), np.array(steps)
-
-    def load_axis():
-        arms = arm_dirs(args.run, args.sweep, args.steps_tag)
-        arms = {o: d for o, d in arms.items() if 1e-9 < abs(o) <= args.fit_window}
-        diffs = load_diffs(base, arms, dtype=np.float64)
-        offsets = np.array(sorted(diffs))
-        return offsets, np.stack([diffs[o] for o in offsets])
-
-    return Backend(
-        base_flat=base.flat, unravel=base.unravel, params=base.params,
-        logits_fn=bc_edit.make_logits_fn(base.model, base.unravel),
-        edit_arrays=bc_edit.with_eos(edit_targets, max_actions), eval_arrays=bc_edit.with_eos(eval_targets, max_actions),
-        edit_targets=edit_targets, eval_targets=eval_targets, evaluate=evaluate, load_axis=load_axis,
-    )
-
-
 # --- main ------------------------------------------------------------------------------
 
 
@@ -288,7 +123,11 @@ def main() -> None:
         weight_kernels,
     )
 
-    backend = offline_backend(args) if args.offline else rl_backend(args)
+    common = dict(n_edit=args.n_edit, n_eval=args.n_eval, sweep=args.sweep, fit_window=args.fit_window)
+    if args.offline:
+        backend = offline_backend(args.run, args.demos, steps_tag=args.steps_tag, **common)
+    else:
+        backend = rl_backend(args.run, args.levels, arm_steps=args.arm_steps, horizon=args.horizon, **common)
     flat = backend.base_flat
     groups, order = module_groups(backend.params)
     print(f"levels {len(backend.edit_targets)} to edit on, {len(backend.eval_targets)} held out")

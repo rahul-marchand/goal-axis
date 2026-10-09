@@ -25,15 +25,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
+import sys
 from pathlib import Path
 
-ROW = re.compile(
-    r"^\s+v=(?P<value>-?\d\.\d\d)\s+(?P<kind>fine-tuned|written, held out|written \(grid\)|written \(unseen\))"
-    r"\s+(?P<steps>-?\d+\.\d)\s+\[\s*(?P<lo>-?\d+\.\d),\s*(?P<hi>-?\d+\.\d)\]\s+(?P<reach>\d+\.\d)%",
-    re.MULTILINE,
-)
-BASE = re.compile(r"^\s+base, untouched\s+(-?\d+\.\d)\s+\[\s*(-?\d+\.\d),\s*(-?\d+\.\d)\]\s+(\d+\.\d)%", re.MULTILINE)
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # run with plain python3 as well as uv
+
+from goalmisgen.analysis import tables  # noqa: E402
 
 # Which bases entered the figure, per architecture. Everything else the g1
 # campaign trained either failed to converge within its budget or was a
@@ -84,23 +81,13 @@ def read_rows(path: Path) -> tuple[dict[float, dict], dict[float, dict], dict | 
     text = path.read_text()
     trained: dict[float, dict] = {}
     written: dict[float, dict] = {}
-    for match in ROW.finditer(text):
-        row = {
-            "value": float(match.group("value")),
-            "steps": float(match.group("steps")),
-            "lo": float(match.group("lo")),
-            "hi": float(match.group("hi")),
-            "reach": float(match.group("reach")),
-        }
-        if row["reach"] < REACH_FLOOR:
+    for row in tables.value_rows(text):
+        if row.reach < REACH_FLOOR:
             continue
-        target = trained if match.group("kind") == "fine-tuned" else written
-        target[row["value"]] = row
-    found = BASE.search(text)
-    base = None
-    if found:
-        base = {"steps": float(found.group(1)), "lo": float(found.group(2)),
-                "hi": float(found.group(3)), "reach": float(found.group(4))}
+        target = trained if row.kind == "fine-tuned" else written
+        target[row.value] = {"value": row.value, "steps": row.point, "lo": row.low, "hi": row.high, "reach": row.reach}
+    found = tables.base_row(text)
+    base = None if found is None else {"steps": found.point, "lo": found.low, "hi": found.high, "reach": found.reach}
     return trained, written, base
 
 
@@ -118,7 +105,9 @@ def series(results: Path, run: str, sweep: str) -> tuple[list[dict], list[dict]]
     out_written = [{"dv": round(v - value, 2), **{k: r[k] for k in ("steps", "lo", "hi")}} for v, r in written.items()]
     # The unedited agent is the written series' own zero: nothing was written.
     out_written.append({"dv": 0.0, "steps": base["steps"], "lo": base["lo"], "hi": base["hi"]})
-    order = lambda rows: sorted((r for r in rows if abs(r["dv"]) <= PLOT_LIMIT), key=lambda r: r["dv"])
+    def order(rows):
+        return sorted((r for r in rows if abs(r["dv"]) <= PLOT_LIMIT), key=lambda r: r["dv"])
+
     return order(out_trained), order(out_written)
 
 
@@ -141,7 +130,9 @@ def limit_series(results: Path, run: str, sweep: str) -> tuple[list[dict], list[
     out_trained = [{"dv": round(v - value, 2), **{k: r[k] for k in ("steps", "lo", "hi")}} for v, r in trained.items()]
     out_written = [{"dv": round(v - value, 2), **{k: r[k] for k in ("steps", "lo", "hi")}} for v, r in written.items()]
     out_written.append({"dv": 0.0, "steps": base["steps"], "lo": base["lo"], "hi": base["hi"]})
-    order = lambda rows: sorted(rows, key=lambda r: r["dv"])
+    def order(rows):
+        return sorted(rows, key=lambda r: r["dv"])
+
     return order(out_trained), order(out_written)
 
 
@@ -173,7 +164,9 @@ def bc_panel(bc: Path, results: Path) -> dict:
                 written.append({"dv": dv, "steps": row["written"]["indifference"]})
             trained.append({"dv": 0.0, "steps": behaviour["null"]["indifference"]})
             written.append({"dv": 0.0, "steps": behaviour["base"]["indifference"]})
-            keep = lambda rows: [r for r in rows if any(abs(r["dv"] - g) < 1e-9 for g in EVEN_GRID)]
+            def keep(rows):
+                return [r for r in rows if any(abs(r["dv"] - g) < 1e-9 for g in EVEN_GRID)]
+
             trained, written = keep(trained), keep(written)
 
             crossing, _, _ = read_rows(results / f"g1-bcnv11.s{seed}-{crossing_family}.txt")

@@ -35,13 +35,11 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.input_gain import gain_coefficients, gain_part, input_kernel  # noqa: E402
-from goalmisgen.analysis.layers import module_groups, restrict  # noqa: E402
-from goalmisgen.analysis.weights import fit_axis_and_drift  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.input_gain import gain_coefficients, gain_part, input_kernel
+from goalmisgen.analysis.layers import module_groups, restrict
+from goalmisgen.analysis.weights import fit_axis_and_drift
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -80,53 +78,30 @@ def main() -> None:
     print()
 
     import jax.numpy as jnp
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
 
     from goalmisgen.analysis import closed_loop
     from goalmisgen.analysis import gain_alignment as ga
     from goalmisgen.analysis import leftover as lo
     from goalmisgen.analysis.closed_loop import read_outcomes
-    from goalmisgen.analysis.route_targets import PAD, route_targets, usable
-    from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.envs.features import CorrelatedFeatures
-    from scripts.restricted_writes import load_sweep
+    from goalmisgen.analysis.route_targets import PAD, route_targets
+    from goalmisgen.axis import load_base, load_sweep, route_levels
 
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
-
-    def config_for(split):
-        return MazeConfig(
-            max_episode_steps=args.step_limit, num_envs=1, min_size=11, max_size=11, n_objectives=len(values),
-            objective_values=values, feature_value_correlation=1.0, value_encoding="none",
-            colour_is_the_only_value_cue=True, level_dataset=args.levels, dataset_split=split, asynchronous=False,
-        )
-
-    config = config_for("test")
-    policy, _, _, state, _ = load_train_state(checkpoint, env_cfg=config)
-    flat32, unravel = ravel_pytree(state.params)
+    # One environment and no seed: it is built only to load the weights, and every
+    # readout here rolls out inside JAX on stored levels.
+    agent = load_base(args.run, args.levels, split="test", num_envs=1, seed=None, max_episode_steps=args.step_limit)
+    checkpoint, values, policy = agent.checkpoint, agent.values, agent.policy
+    flat32, unravel = agent.raveled, agent.unravel
     base = np.asarray(flat32, dtype=np.float64)
-    kernel = input_kernel(state.params)
+    kernel = input_kernel(agent.params)
     n_inputs = kernel.n_inputs
-    groups, order = module_groups(state.params)
+    groups, order = module_groups(agent.params)
     sites = ga.sites_of(policy.cfg)
     print(f"base   {checkpoint}  ({base.size:,} parameters), values {values}")
 
     def levels_of(split, count):
-        sampler = config_for(split).sampler()
-        scheme = CorrelatedFeatures(1.0)
-        out = []
-        for index in sampler.indices:
-            here = tuple(float(v) for v in sampler.dataset.values[index])
-            level = sampler.dataset.level(int(index), scheme.assign(here, np.random.default_rng(int(index))))
-            if usable(level):
-                out.append(level)
-            if len(out) == count:
-                break
-        return out
+        return route_levels(agent.config, split, count)
 
-    offsets, diffs = load_sweep(args.run, args.sweep, values, args, config, base)
+    offsets, diffs = load_sweep(agent, args.sweep, arm_steps=args.arm_steps, fit_window=args.fit_window)
     axis, _ = fit_axis_and_drift(offsets, diffs)
     del diffs
     gain = gain_part(axis, base, kernel, COLOUR)

@@ -30,17 +30,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.input_gain import input_kernel  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.input_gain import input_kernel
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -73,62 +70,33 @@ def permute_planes(observations: np.ndarray, channel_axis: int, gains: dict[int,
 def main() -> None:
     args = parse_args()
     print(header())
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
-
     import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
 
-    from goalmisgen.analysis import collect_episode_outcomes, summarise
-    from goalmisgen.analysis.behaviour import indifference_point, on_shortest_route, value_distance_decisions
-    from goalmisgen.analysis.metrics import bootstrap_episodes
-    from goalmisgen.configs.env import MazeConfig
+    from goalmisgen.analysis.behaviour import on_shortest_route
+    from goalmisgen.axis import Greedy, load_base
 
-    config = MazeConfig(
-        max_episode_steps=120, num_envs=args.num_envs, min_size=11, max_size=11, n_objectives=len(values),
-        objective_values=values, feature_value_correlation=1.0, value_encoding="none",
-        colour_is_the_only_value_cue=True, level_dataset=args.levels, dataset_split=args.split,
-        asynchronous=False, seed=args.seed,
-    )
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    flat, unravel = ravel_pytree(base_state.params)
-    params = unravel(np.asarray(flat, dtype=np.float32))
+    base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
+    checkpoint, values = base.checkpoint, base.values
+    params = base.unravel(np.asarray(base.raveled, dtype=np.float32))
 
-    kernel = input_kernel(base_state.params)
-    whole = np.concatenate([np.asarray(leaf).ravel() for leaf in jax.tree_util.tree_leaves(base_state.params)])
+    kernel = input_kernel(base.params)
+    whole = np.concatenate([np.asarray(leaf).ravel() for leaf in jax.tree_util.tree_leaves(base.params)])
     lengths = {c: float(np.linalg.norm(whole[kernel.plane(c)])) for c in COLOUR}
     ratio = lengths[COLOUR[0]] / lengths[COLOUR[1]]
     print(f"base   {checkpoint}, values {values}")
     print(f"input  {kernel.path} {kernel.shape}; |K0| {lengths[COLOUR[0]]:.3f}, |K1| {lengths[COLOUR[1]]:.3f}, "
           f"ratio {ratio:.3f}\n")
 
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
     out: dict = {"run": str(args.run), "checkpoint": str(checkpoint), "values": list(values),
                  "lengths": {str(k): v for k, v in lengths.items()}, "ratio": ratio, "rows": []}
 
     def measure(label: str, swap: bool, gains: dict[int, float] | None = None) -> None:
-        carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape,
-                             method=policy.initialize_carry)
-        state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, starts):
-            observations = permute_planes(observations, channel_axis=1, gains=gains, swap=swap)
-            state["carry"], action, _, state["key"] = get_action(
-                params, state["carry"], observations, starts, state["key"], temperature=0.0
-            )
-            return np.asarray(action)
-
-        outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-        gaps, took_richer, _ = value_distance_decisions(outcomes)
-        point = indifference_point(gaps, took_richer)
-        low, high = bootstrap_episodes(
-            lambda rows: indifference_point(gaps[rows], took_richer[rows]), np.arange(len(gaps)),
-            resamples=200, seed=args.seed,
+        found = greedy.threshold(
+            params, args.episodes, args.seed, transform=partial(permute_planes, channel_axis=1, gains=gains, swap=swap)
         )
-        reached = summarise(outcomes).reached_objective
+        point, low, high, outcomes = found.point, found.low, found.high, found.outcomes
+        reached = found.reached
         route = on_shortest_route(outcomes)
         print(f"  {label:>28}{point:>9.2f}  [{low:6.1f},{high:6.1f}]{reached:>9.1%}{route:>9.1%}", flush=True)
         out["rows"].append({"label": label, "swap": swap, "steps": float(point), "low": float(low),

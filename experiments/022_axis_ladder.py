@@ -62,23 +62,11 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
-from jax.flatten_util import ravel_pytree
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from functools import partial  # noqa: E402
-
-import jax  # noqa: E402
-
-from goalmisgen import provenance  # noqa: E402
-from goalmisgen.analysis import collect_episode_outcomes, metrics, summarise  # noqa: E402
-from goalmisgen.analysis.behaviour import (  # noqa: E402
-    indifference_point,
-    value_distance_decisions,
-    write_verdict,
-)
-from goalmisgen.analysis.weights import (  # noqa: E402
+from goalmisgen import provenance
+from goalmisgen.analysis import summarise
+from goalmisgen.analysis.behaviour import write_verdict
+from goalmisgen.analysis.weights import (
     cosine,
     fit_axis_and_drift,
     permutation_cosines,
@@ -86,14 +74,16 @@ from goalmisgen.analysis.weights import (  # noqa: E402
     permutation_p_value,
     split_half_reliability,
 )
-from goalmisgen.base_ladder import Rung, discover_rungs  # noqa: E402
-from goalmisgen.configs.env import MazeConfig  # noqa: E402
-from goalmisgen.volume import arm_is_complete, discover_arms  # noqa: E402
+from goalmisgen.axis import Greedy, checkpoint_eval_config, diff_from, load_checkpoint
+from goalmisgen.base_ladder import Rung, discover_rungs
+from goalmisgen.configs.env import MazeConfig
+from goalmisgen.paths import data_root
+from goalmisgen.volume import arm_is_complete, discover_arms
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--data", type=Path, default=Path("/workspace/data"))
+    parser.add_argument("--data", type=Path, default=data_root())
     parser.add_argument("--agent", type=str, required=True, help="The run whose ladder is read, e.g. novalue11.s1234.")
     parser.add_argument("--levels", type=str, required=True, help="Any dataset at the base values; used only to load.")
     parser.add_argument("--objectives", type=int, nargs="+", default=[0, 1])
@@ -106,7 +96,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--at", type=int, default=-1, help="Which checkpoint of each arm, in step order.")
     parser.add_argument("--resamples", type=int, default=2000)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--rungs",
@@ -169,44 +159,18 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def eval_config(args: argparse.Namespace, values: tuple[float, ...]) -> MazeConfig:
-    return MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=args.size,
-        max_size=args.size,
-        feature_value_correlation=1.0,
-        objective_values=values,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split="test",
-        asynchronous=False,
-        seed=args.seed,
+def eval_config(args: argparse.Namespace, values: tuple[float, ...], checkpoint: Path) -> MazeConfig:
+    """``checkpoint``'s own training environment, at ``values``, on the test split of ``--levels``."""
+    return checkpoint_eval_config(
+        checkpoint, args.levels, split="test", num_envs=args.num_envs, seed=args.seed, values=values, size=args.size
     )
 
 
-def measure(params, policy, get_action, envs, args, label: str) -> tuple[float, float, float, float]:
+def measure(params, greedy: Greedy, args, label: str) -> tuple[float, float, float, float]:
     """Exchange rate in extra steps, its 95% interval, and whether the agent still finishes."""
-    carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry)
-    state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-    def act(observations, starts):
-        state["carry"], action, _, state["key"] = get_action(
-            params, state["carry"], observations, starts, state["key"], temperature=0.0
-        )
-        return np.asarray(action)
-
-    outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-    gaps, took_richer, _ = value_distance_decisions(outcomes)
-    point = indifference_point(gaps, took_richer)
-    low, high = metrics.bootstrap_episodes(
-        lambda rows: indifference_point(gaps[rows], took_richer[rows]),
-        np.arange(len(gaps)),
-        resamples=200,
-        seed=args.seed,
-    )
-    summary = summarise(outcomes)
+    found = greedy.threshold(params, args.episodes, args.seed)
+    point, low, high = found.point, found.low, found.high
+    summary = summarise(found.outcomes)
     reached, optimal = summary.reached_objective, summary.chose_optimal
     # Both, because they say different things and only one of them is about the
     # trade-off. reached_objective is whether the agent finishes at all -- it can
@@ -220,7 +184,7 @@ def measure(params, policy, get_action, envs, args, label: str) -> tuple[float, 
     return point, low, high, reached
 
 
-def write_test(args, rung, base_flat, unravel, trained, stack, base_value, policy, get_action, envs) -> dict:
+def write_test(args, rung, base_flat, unravel, trained, stack, base_value, greedy: Greedy) -> dict:
     """Write the axis into this rung's own weights and see whether behaviour moves.
 
     This is the measurement that decides whether a rung has an axis. Everything
@@ -250,7 +214,7 @@ def write_test(args, rung, base_flat, unravel, trained, stack, base_value, polic
     print(f"    {'':>34}{'steps':>9}  {'95% interval':>15}{'reached':>10}{'optimal':>10}")
 
     base_point, base_low, base_high, base_reached = measure(
-        unravel(base_flat), policy, get_action, envs, args, "unwritten base"
+        unravel(base_flat), greedy, args, "unwritten base"
     )
 
     written: list[dict] = []
@@ -262,9 +226,7 @@ def write_test(args, rung, base_flat, unravel, trained, stack, base_value, polic
         held_axis, _ = fit_axis_and_drift(np.array([trained[i] for i in keep]) - base_value, stack[keep])
         point, low, high, reached = measure(
             unravel(base_flat + offset * held_axis),
-            policy,
-            get_action,
-            envs,
+            greedy,
             args,
             f"write {offset:+.2f} (held out)",
         )
@@ -280,7 +242,7 @@ def write_test(args, rung, base_flat, unravel, trained, stack, base_value, polic
         direction = rng.normal(size=base_flat.shape)
         direction *= abs(widest["offset"]) * np.linalg.norm(axis_all) / np.linalg.norm(direction)
         point, low, high, reached = measure(
-            unravel(base_flat + direction), policy, get_action, envs, args, "norm-matched random"
+            unravel(base_flat + direction), greedy, args, "norm-matched random"
         )
         control = {"point": point, "low": low, "high": high, "reached": reached}
 
@@ -314,10 +276,9 @@ def fit_rung(args: argparse.Namespace, rung: Rung, values: tuple[float, ...], ro
     cosines. So the diffs live inside this function and what leaves it is small.
     """
     directory = args.data / "runs" / rung.agent
-    config = eval_config(args, values)
-    _, _, _, base_state, _ = load_train_state(directory / rung.checkpoint_path, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
+    config = eval_config(args, values, directory / rung.checkpoint_path)
+    base = load_checkpoint(directory / rung.checkpoint_path, config)
+    base_flat, unravel = base.flat, base.unravel
 
     axes: dict[int, np.ndarray] = {}
     drifts: dict[int, np.ndarray] = {}
@@ -343,9 +304,7 @@ def fit_rung(args: argparse.Namespace, rung: Rung, values: tuple[float, ...], ro
         trained = sorted(arms)
         stack = []
         for value in trained:
-            _, _, _, state, _ = load_train_state(arms[value], env_cfg=config)
-            flat, _ = ravel_pytree(state.params)
-            stack.append(np.asarray(flat, dtype=np.float64) - base_flat)
+            stack.append(diff_from(base, arms[value], subtract_in="float64"))
         offsets[objective] = np.array(trained) - base_value
         diffs[objective] = np.stack(stack)
         if rollout is not None and objective == args.write_objective:
@@ -389,9 +348,7 @@ def fit_rung(args: argparse.Namespace, rung: Rung, values: tuple[float, ...], ro
             written_trained,
             written_stack,
             values[args.write_objective],
-            rollout["policy"],
-            rollout["get_action"],
-            rollout["envs"],
+            rollout["greedy"],
         )
     # Diffs go out of scope here; only the axes survive, one vector per objective.
     return entry
@@ -433,18 +390,13 @@ def main() -> None:
         # every written point. Compiling per measurement would cost more than the
         # rollouts do, and the envs depend only on the base values, which no rung
         # changes.
-        config = eval_config(args, values)
-        policy, _, _, _, _ = load_train_state(args.data / "runs" / rungs[-1].agent / rungs[-1].checkpoint_path, env_cfg=config)
+        deepest = args.data / "runs" / rungs[-1].agent / rungs[-1].checkpoint_path
+        policy = load_checkpoint(deepest, eval_config(args, values, deepest)).policy
         if args.write_near is None:
             chosen = {rung.steps for rung in rungs}
         else:
             chosen = {min(rungs, key=lambda r, t=m * 1_000_000: abs(r.steps - t)).steps for m in args.write_near}
-        rollout = {
-            "policy": policy,
-            "get_action": jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature"),
-            "envs": config.make(),
-            "write_rungs": chosen,
-        }
+        rollout = {"greedy": Greedy.build(policy, eval_config(args, values, deepest)), "write_rungs": chosen}
         written_labels = [r.label for r in rungs if r.steps in chosen]
         print(f"writing {len(chosen)} of {len(rungs)} rungs: {', '.join(written_labels)}\n")
 

@@ -21,15 +21,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-from functools import partial
 from pathlib import Path
 
-import jax
-import numpy as np
-from cleanba.cleanba_impala import load_train_state
-
-from goalmisgen.analysis import collect_episode_outcomes, summarise
-from goalmisgen.configs.env import MazeConfig
+from goalmisgen.analysis import summarise
+from goalmisgen.axis import Greedy, checkpoint_eval_config, load_checkpoint
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,49 +32,33 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("checkpoint", type=Path)
     parser.add_argument("--levels", type=str, required=True)
     parser.add_argument("--split", type=str, default="test")
-    parser.add_argument("--n-objectives", type=int, default=3)
+    parser.add_argument("--n-objectives", type=int, default=3, help="Must agree with --objective-values.")
     parser.add_argument("--objective-values", type=float, nargs="+", required=True)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the checkpoint's own maze size.")
     parser.add_argument("--episodes", type=int, default=1024)
     parser.add_argument("--num-envs", type=int, default=64)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--min-reached", type=float, default=95.0, help="Percent, below which this exits non-zero.")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if len(args.objective_values) != args.n_objectives:
+        parser.error(f"--objective-values has {len(args.objective_values)} entries but --n-objectives is {args.n_objectives}")
+    return args
 
 
 def main() -> None:
     args = parse_args()
-    config = MazeConfig(
-        max_episode_steps=120,
+    config = checkpoint_eval_config(
+        args.checkpoint,
+        args.levels,
+        split=args.split,
         num_envs=args.num_envs,
-        min_size=args.size,
-        max_size=args.size,
-        n_objectives=args.n_objectives,
-        objective_values=tuple(args.objective_values),
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split=args.split,
-        asynchronous=False,
         seed=args.seed,
+        values=tuple(args.objective_values),
+        size=args.size,
     )
-
-    policy, _, _, train_state, update = load_train_state(args.checkpoint, env_cfg=config)
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
-    envs = config.make()
-    carry = policy.apply(
-        train_state.params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry
-    )
-    state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-    def act(observations, starts):
-        state["carry"], action, _, state["key"] = get_action(
-            train_state.params, state["carry"], observations, starts, state["key"], temperature=0.0
-        )
-        return np.asarray(action)
-
-    summary = summarise(collect_episode_outcomes(envs, act, args.episodes, seed=args.seed))
+    agent = load_checkpoint(args.checkpoint, config)
+    update = agent.update
+    summary = summarise(Greedy.of(agent).outcomes(agent.params, args.episodes, args.seed))
     print(f"checkpoint {args.checkpoint.name}  (update {update})")
     print(f"  reached        {summary.reached_objective:.1%}")
     print(f"  chose optimal  {summary.chose_optimal:.1%}")

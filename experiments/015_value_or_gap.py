@@ -69,20 +69,16 @@ from __future__ import annotations
 
 import argparse
 import sys
-from functools import partial
 from pathlib import Path
 
-import jax
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
-from jax.flatten_util import ravel_pytree
 
 from goalmisgen import provenance
-from goalmisgen.analysis import collect_episode_outcomes, metrics, summarise
-from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
 from goalmisgen.analysis.weights import cosine, fit_axis_and_drift, permutation_cosines, permutation_p_value
+from goalmisgen.axis import Greedy, checkpoint_eval_config, load_checkpoint
+from goalmisgen.axis import arm_checkpoints as sweep_checkpoints
 from goalmisgen.configs.env import MazeConfig
-from goalmisgen.volume import discover_arms, sweep_family, sweep_index
+from goalmisgen.volume import sweep_index
 
 COLOUR_ZERO_BASE = 1.0
 COLOUR_ONE_BASE = 0.5
@@ -105,7 +101,7 @@ def parse_args() -> argparse.Namespace:
         "cosine is read against. The p-value cannot go below 1/(resamples+1).",
     )
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--at", type=int, default=-1, help="Which checkpoint of each arm, in step order.")
     parser.add_argument(
@@ -127,20 +123,8 @@ def parse_args() -> argparse.Namespace:
 
 
 def eval_config(args: argparse.Namespace) -> MazeConfig:
-    return MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=args.size,
-        max_size=args.size,
-        feature_value_correlation=1.0,
-        objective_values=(COLOUR_ZERO_BASE, COLOUR_ONE_BASE),
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split="test",
-        asynchronous=False,
-        seed=args.seed,
-    )
+    """The base's own training environment, from its cfg.json, on the test split of ``--levels``."""
+    return checkpoint_eval_config(args.base, args.levels, split="test", num_envs=args.num_envs, seed=args.seed, size=args.size)
 
 
 def arm_checkpoints(root: Path, prefix: str, at: int, base_value: float, steps: int | None) -> dict[float, Path]:
@@ -150,7 +134,7 @@ def arm_checkpoints(root: Path, prefix: str, at: int, base_value: float, steps: 
     once at different arm lengths, which are not comparable and which
     ``discover_arms`` refuses to mix silently.
     """
-    return discover_arms(root, sweep_index(prefix), base_value, steps=steps, at=at, family=sweep_family(prefix))
+    return sweep_checkpoints(root, prefix, base_value, steps=steps, at=at)
 
 
 def load_sweep(
@@ -159,33 +143,17 @@ def load_sweep(
     """Weight diffs for one sweep, keyed by the value the arm was trained at."""
     diffs: dict[float, np.ndarray] = {}
     for value, checkpoint in sorted(arm_checkpoints(root, prefix, at, base_value, steps).items()):
-        _, _, _, state, _ = load_train_state(checkpoint, env_cfg=config)
-        flat, _ = ravel_pytree(state.params)
-        diffs[value] = np.asarray(flat - base_flat, dtype=np.float64)
+        diffs[value] = np.asarray(load_checkpoint(checkpoint, config).raveled - base_flat, dtype=np.float64)
         print(
             f"  o{sweep_index(prefix)}{value - base_value:+.2f}  value {value:.2f}  offset {value - base_value:+.2f}  |delta| {np.linalg.norm(diffs[value]):.4g}"
         )
     return diffs
 
 
-def measure(params, policy, get_action, envs, args, label: str) -> float:
-    carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry)
-    state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-    def act(observations, starts):
-        state["carry"], action, _, state["key"] = get_action(
-            params, state["carry"], observations, starts, state["key"], temperature=0.0
-        )
-        return np.asarray(action)
-
-    outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-    gaps, took_richer, _ = value_distance_decisions(outcomes)
-    point = indifference_point(gaps, took_richer)
-    low, high = metrics.bootstrap_episodes(
-        lambda rows: indifference_point(gaps[rows], took_richer[rows]), np.arange(len(gaps)), resamples=200, seed=args.seed
-    )
-    print(f"  {label:>32}{point:>8.1f}  [{low:5.1f}, {high:5.1f}]{summarise(outcomes).reached_objective:>11.1%}")
-    return point
+def measure(params, greedy: Greedy, args, label: str) -> float:
+    found = greedy.threshold(params, args.episodes, args.seed)
+    print(found.line(label, width=32))
+    return found.point
 
 
 def fit(diffs: dict[float, np.ndarray], base_value: float) -> tuple[np.ndarray, np.ndarray, list[float]]:
@@ -199,8 +167,8 @@ def main() -> None:
     print(provenance.header() + "\n")
 
     config = eval_config(args)
-    policy, _, _, base_state, _ = load_train_state(args.base, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
+    base = load_checkpoint(args.base, config)
+    base_flat, unravel = base.raveled, base.unravel
     print(f"base {args.base.name}  ({base_flat.size:,} parameters)\n")
 
     print("colour 1 swept, colour 0 held at 1.0")
@@ -295,8 +263,7 @@ def main() -> None:
     if args.skip_behaviour:
         return
 
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
 
     if args.cross:
         # This was built to separate the hypotheses causally and does not. Under
@@ -306,29 +273,24 @@ def main() -> None:
         # two axes are interchangeable as edits of the gap, to within 0.1 steps.
         print("\n\n=== can colour 1's axis write colour 0's arms? ===\n")
         print(f"  {'':>32}{'steps':>8}  {'95% interval':>14}{'reached':>11}")
-        measure(base_state.params, policy, get_action, envs, args, "base, untouched")
+        measure(base.params, greedy, args, "base, untouched")
         checkpoints = arm_checkpoints(args.arms, "c", args.at, COLOUR_ZERO_BASE, args.arm_steps)
         crossed: list[tuple[float, float, float, float]] = []
         for value in values_zero:
             offset = value - COLOUR_ZERO_BASE
             own = measure(
                 unravel(base_flat + offset * axis_zero),
-                policy,
-                get_action,
-                envs,
+                greedy,
                 args,
                 f"colour 0 = {value:.2f} via axis_0",
             )
             other = measure(
                 unravel(base_flat - offset * axis_one),
-                policy,
-                get_action,
-                envs,
+                greedy,
                 args,
                 f"colour 0 = {value:.2f} via -axis_1",
             )
-            _, _, _, arm_state, _ = load_train_state(checkpoints[value], env_cfg=config)
-            trained = measure(arm_state.params, policy, get_action, envs, args, f"colour 0 = {value:.2f} fine-tuned")
+            trained = measure(base.other_params(checkpoints[value]), greedy, args, f"colour 0 = {value:.2f} fine-tuned")
             crossed.append((value, trained, own, other))
 
         print(f"\n  {'colour 0':>10}{'fine-tuned':>13}{'via axis_0':>13}{'via -axis_1':>14}")
@@ -343,9 +305,8 @@ def main() -> None:
 
     print("\n\n=== does axis_0 work at all? held-out writes ===\n")
     print(f"  {'':>32}{'steps':>8}  {'95% interval':>14}{'reached':>11}")
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
-    measure(base_state.params, policy, get_action, envs, args, "base, untouched")
+    greedy = Greedy.of(base)
+    measure(base.params, greedy, args, "base, untouched")
 
     rows: list[tuple[float, float, float]] = []
     for value in values_zero:
@@ -353,16 +314,12 @@ def main() -> None:
         held, _ = fit_axis_and_drift(np.array(others) - COLOUR_ZERO_BASE, np.stack([zero[v] for v in others]))
         written = measure(
             unravel(base_flat + (value - COLOUR_ZERO_BASE) * held),
-            policy,
-            get_action,
-            envs,
+            greedy,
             args,
             f"colour 0 = {value:.2f} written, held out",
         )
-        _, _, _, arm_state, _ = load_train_state(
-            arm_checkpoints(args.arms, "c", args.at, COLOUR_ZERO_BASE, args.arm_steps)[value], env_cfg=config
-        )
-        trained = measure(arm_state.params, policy, get_action, envs, args, f"colour 0 = {value:.2f} fine-tuned")
+        checkpoint = arm_checkpoints(args.arms, "c", args.at, COLOUR_ZERO_BASE, args.arm_steps)[value]
+        trained = measure(base.other_params(checkpoint), greedy, args, f"colour 0 = {value:.2f} fine-tuned")
         rows.append((value, trained, written))
 
     print(f"\n  {'colour 0':>10}{'gap':>7}{'fine-tuned':>13}{'written':>10}{'error':>9}")

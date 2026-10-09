@@ -30,25 +30,20 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.input_gain import (  # noqa: E402
+from goalmisgen.analysis.input_gain import (
     gain_coefficients,
     gain_part,
     input_kernel,
     kernel_cosines,
-    scale_planes,
 )
-from goalmisgen.analysis.layers import module_groups, restrict  # noqa: E402
-from goalmisgen.analysis.weights import fit_axis_and_drift  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.layers import module_groups, restrict
+from goalmisgen.analysis.weights import fit_axis_and_drift
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 """Input channels of colour 0 (the 1.0 goal at the base values) and colour 1."""
@@ -78,69 +73,24 @@ def main() -> None:
     print(header())
     print()
 
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
+    from goalmisgen.analysis.behaviour import on_shortest_route
+    from goalmisgen.axis import Greedy, load_base, load_sweep
 
-    import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis import collect_episode_outcomes, summarise
-    from goalmisgen.analysis.behaviour import indifference_point, on_shortest_route, value_distance_decisions
-    from goalmisgen.analysis.metrics import bootstrap_episodes
-    from goalmisgen.configs.env import MazeConfig
-
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=11,
-        max_size=11,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split=args.split,
-        asynchronous=False,
-        seed=args.seed,
-    )
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
-    kernel = input_kernel(base_state.params)
+    base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
+    checkpoint, values, base_flat = base.checkpoint, base.values, base.flat
+    kernel = input_kernel(base.params)
     print(f"base   {checkpoint}  ({base_flat.size:,} parameters), values {values}")
     print(f"input  {kernel.path} {kernel.shape}")
 
     out: dict = {"run": str(args.run), "checkpoint": str(checkpoint), "values": list(values), "kernel": kernel.path, "rows": []}
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
 
     def measure(flat: np.ndarray, label: str, gains: dict[int, float] | None = None, **tags) -> dict:
-        params = unravel(np.asarray(flat, dtype=np.float32))
-        carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry)
-        state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, starts):
-            if gains:
-                observations = scale_planes(observations, gains, channel_axis=1)  # cleanba's envs are NCHW
-            state["carry"], action, _, state["key"] = get_action(
-                params, state["carry"], observations, starts, state["key"], temperature=0.0
-            )
-            return np.asarray(action)
-
-        outcomes = collect_episode_outcomes(envs, act, args.episodes, seed=args.seed)
-        gaps, took_richer, _ = value_distance_decisions(outcomes)
-        point = indifference_point(gaps, took_richer)
-        low, high = bootstrap_episodes(
-            lambda rows: indifference_point(gaps[rows], took_richer[rows]), np.arange(len(gaps)), resamples=200, seed=args.seed
-        )
-        reached = summarise(outcomes).reached_objective
-        route = on_shortest_route(outcomes)
+        found = greedy.threshold(base.params_of(flat), args.episodes, args.seed, gains=gains)
+        point, low, high, reached = found.point, found.low, found.high, found.reached
+        route = on_shortest_route(found.outcomes)
         print(f"  {label:>52}{point:>8.2f}  [{low:5.1f}, {high:5.1f}]{reached:>9.1%}{route:>9.1%}", flush=True)
-        row = {"label": label, "steps": float(point), "low": float(low), "high": float(high), "reached": float(reached),
-               "on_route": float(route), "gains": {str(k): v for k, v in (gains or {}).items()}, **tags}
+        row = {"label": label, **found.as_row(), "on_route": float(route), "gains": {str(k): v for k, v in (gains or {}).items()}, **tags}
         out["rows"].append(row)
         return row
 
@@ -161,12 +111,10 @@ def main() -> None:
         finish(args, out)
         return
 
-    from scripts.restricted_writes import load_sweep
-
-    offsets, diffs = load_sweep(args.run, args.sweep, values, args, config, base_flat)
+    offsets, diffs = load_sweep(base, args.sweep, arm_steps=args.arm_steps, fit_window=args.fit_window)
     axis, _ = fit_axis_and_drift(offsets, diffs)
     del diffs
-    groups, _ = module_groups(base_state.params)
+    groups, _ = module_groups(base.params)
     input_module = "input conv" if "input conv" in groups else "patch embed"
     input_slice = restrict(axis, groups, input_module)
     gain = gain_part(axis, base_flat, kernel, COLOUR)

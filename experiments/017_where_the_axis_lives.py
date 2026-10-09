@@ -44,11 +44,10 @@ from pathlib import Path
 
 import jax
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
 
 from goalmisgen import provenance
 from goalmisgen.analysis.weights import cosine, fit_axis_and_drift
-from goalmisgen.configs.env import MazeConfig
+from goalmisgen.axis import checkpoint_eval_config, load_params
 from goalmisgen.volume import iter_arms, sweep_index
 
 
@@ -61,7 +60,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--levels", type=str, required=True)
     parser.add_argument("--n-objectives", type=int, default=2)
     parser.add_argument("--objective-values", type=float, nargs="+", required=True)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--at", type=int, default=-1)
     parser.add_argument("--top", type=float, nargs="+", default=[0.001, 0.01, 0.1])
     return parser.parse_args()
@@ -103,8 +102,8 @@ def sweep(
         checkpoints = sorted((run / "local-files").glob("cp_*"))
         if not checkpoints:
             continue
-        _, _, _, state, _ = load_train_state(checkpoints[at], env_cfg=config)
-        arms.append(dict(leaf_paths(state.params)))
+        params = load_params(checkpoints[at], config)
+        arms.append(dict(leaf_paths(params)))
         values.append(base_value + parsed.offset)
         names.append(run.name)
     return values, arms, names
@@ -130,23 +129,14 @@ def main() -> None:
     args = parse_args()
     print(provenance.header() + "\n")
 
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=8,
-        min_size=args.size,
-        max_size=args.size,
-        n_objectives=args.n_objectives,
-        objective_values=tuple(args.objective_values),
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split="test",
-        asynchronous=False,
-        seed=0,
+    if args.n_objectives != len(args.objective_values):
+        raise SystemExit(f"--n-objectives {args.n_objectives} but {len(args.objective_values)} --objective-values")
+    # Weights only: the base's own environment, at the values given, built to load and never stepped.
+    config = checkpoint_eval_config(
+        args.base, args.levels, split="test", num_envs=8, seed=0, values=tuple(args.objective_values), size=args.size
     )
-    _, _, _, base_state, _ = load_train_state(args.base, env_cfg=config)
-    base = dict(leaf_paths(base_state.params))
+    base_params = load_params(args.base, config)
+    base = dict(leaf_paths(base_params))
     counts = {path: value.size for path, value in base.items()}
     print(f"base {args.base.name}  {sum(counts.values()):,} parameters in {len(counts)} arrays\n")
 

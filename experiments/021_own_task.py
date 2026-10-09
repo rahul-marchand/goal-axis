@@ -61,16 +61,13 @@ grids are a fact about the measurement rather than about the agent.
 from __future__ import annotations
 
 import argparse
-from functools import partial
 from pathlib import Path
 
-import jax
 import numpy as np
-from cleanba.cleanba_impala import load_train_state
 
 from goalmisgen import provenance
-from goalmisgen.analysis import collect_episode_outcomes, summarise
-from goalmisgen.configs.env import MazeConfig
+from goalmisgen.analysis import summarise
+from goalmisgen.axis import Greedy, checkpoint_eval_config, load_checkpoint
 from goalmisgen.volume import arm_trained_values
 
 
@@ -83,7 +80,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-values", type=float, nargs="+", required=True)
     parser.add_argument("--episodes", type=int, default=2048)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
     parser.add_argument("--seed", type=int, default=0)
     return parser.parse_args()
 
@@ -105,37 +102,22 @@ def asymmetry(values: tuple[float, ...]) -> float:
 
 
 def evaluate(checkpoint: Path, levels: str, values: tuple[float, ...], args) -> tuple[float, float]:
-    config = MazeConfig(
-        max_episode_steps=120,
+    # The checkpoint's own environment at its own values and levels, coloured by
+    # value rank as the literal this replaced had it.
+    config = checkpoint_eval_config(
+        checkpoint,
+        levels,
+        split="test",
         num_envs=args.num_envs,
-        min_size=args.size,
-        max_size=args.size,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=levels,
-        dataset_split="test",
-        asynchronous=False,
         seed=args.seed,
+        values=values,
+        size=args.size,
+        colour_keyed=False,
     )
-    policy, _, _, state, _ = load_train_state(checkpoint, env_cfg=config)
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
-    envs = config.make()
-    carry = policy.apply(
-        state.params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry
-    )
-    holder = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-    def act(observations, starts):
-        holder["carry"], action, _, holder["key"] = get_action(
-            state.params, holder["carry"], observations, starts, holder["key"], temperature=0.0
-        )
-        return np.asarray(action)
-
-    summary = summarise(collect_episode_outcomes(envs, act, args.episodes, seed=args.seed))
-    envs.close()
+    agent = load_checkpoint(checkpoint, config)
+    greedy = Greedy.of(agent)
+    summary = summarise(greedy.outcomes(agent.params, args.episodes, args.seed))
+    greedy.envs.close()
     return summary.chose_optimal, summary.reached_objective
 
 

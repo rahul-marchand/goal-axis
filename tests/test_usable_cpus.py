@@ -9,12 +9,9 @@ nothing in the output to say why.
 from __future__ import annotations
 
 import multiprocessing as mp
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-
-from generate_levels import usable_cpus  # noqa: E402
+from goalmisgen.parallel import usable_cpus
 
 
 def write(root: Path, relative: str, text: str) -> None:

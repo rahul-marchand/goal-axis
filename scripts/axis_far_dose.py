@@ -34,19 +34,16 @@ import argparse
 import json
 import sys
 import time
-from functools import partial
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.analysis.far_dose import interpolate_x, module_matched_direction, random_direction  # noqa: E402
-from goalmisgen.analysis.input_gain import gain_coefficients, gain_part, input_kernel, scale_planes  # noqa: E402
-from goalmisgen.analysis.layers import module_groups, restrict  # noqa: E402
-from goalmisgen.analysis.weights import fit_axis_and_drift  # noqa: E402
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.analysis.far_dose import interpolate_x, module_matched_direction, random_direction
+from goalmisgen.analysis.input_gain import gain_coefficients, gain_part, input_kernel
+from goalmisgen.analysis.layers import module_groups, restrict
+from goalmisgen.analysis.weights import fit_axis_and_drift
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
+from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 
@@ -86,41 +83,16 @@ def main() -> None:
     manifest_path = args.out / "manifest.json"
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"conditions": {}}
 
-    payload = json.loads((args.run / "BASE.json").read_text())
-    checkpoint = args.run / payload["checkpoint"]
-    values = tuple(payload["values"])
+    from goalmisgen.analysis import summarise
+    from goalmisgen.analysis.behaviour import decision_arrays, indifference_point, on_shortest_route, value_distance_decisions
+    from goalmisgen.axis import Greedy, load_base, load_sweep
 
-    import jax
-    from cleanba.cleanba_impala import load_train_state
-    from jax.flatten_util import ravel_pytree
-
-    from goalmisgen.analysis import collect_episode_outcomes, summarise
-    from goalmisgen.analysis.behaviour import indifference_point, on_shortest_route, value_distance_decisions
-    from goalmisgen.configs.env import MazeConfig
-
-    config = MazeConfig(
-        max_episode_steps=120,
-        num_envs=args.num_envs,
-        min_size=11,
-        max_size=11,
-        n_objectives=len(values),
-        objective_values=values,
-        feature_value_correlation=1.0,
-        value_encoding="none",
-        colour_is_the_only_value_cue=True,
-        level_dataset=args.levels,
-        dataset_split=args.split,
-        asynchronous=False,
-        seed=args.seed,
-    )
-    policy, _, _, base_state, _ = load_train_state(checkpoint, env_cfg=config)
-    base_flat, unravel = ravel_pytree(base_state.params)
-    base_flat = np.asarray(base_flat, dtype=np.float64)
+    base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
+    checkpoint, values, base_flat = base.checkpoint, base.values, base.flat
     manifest.update(run=str(args.run), checkpoint=str(checkpoint), values=list(values), levels=args.levels, split=args.split,
                     seed=args.seed, num_envs=args.num_envs, episodes=args.episodes, sweep=args.sweep, argv=sys.argv[1:])
     print(f"base {checkpoint}, values {values}")
-    envs = config.make()
-    get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+    greedy = Greedy.of(base)
 
     def save():
         manifest_path.write_text(json.dumps(manifest, indent=2))
@@ -130,34 +102,10 @@ def main() -> None:
             row = manifest["conditions"][name]
             print(f"  {name:>30}  (cached) tau {row['tau']:6.2f}", flush=True)
             return row
-        params = unravel(np.asarray(flat, dtype=np.float32))
-        carry = policy.apply(params, jax.random.PRNGKey(args.seed), envs.observation_space.shape, method=policy.initialize_carry)
-        state = {"carry": carry, "key": jax.random.PRNGKey(args.seed)}
-
-        def act(observations, starts):
-            if gains:
-                observations = scale_planes(observations, gains, channel_axis=1)
-            state["carry"], action, _, state["key"] = get_action(params, state["carry"], observations, starts, state["key"], temperature=0.0)
-            return np.asarray(action)
-
         start = time.perf_counter()
-        outcomes = collect_episode_outcomes(envs, act, episodes, seed=args.seed)
+        outcomes = greedy.outcomes(base.params_of(flat), episodes, args.seed, gains)
         seconds = time.perf_counter() - start
-        fids = sorted(int(k.split("_")[1]) for k in outcomes[0] if k.startswith("feature_") and k.endswith("_value"))
-        v = np.array([[o[f"feature_{f}_value"] for f in fids] for o in outcomes])
-        d = np.array([[o[f"feature_{f}_distance"] for f in fids] for o in outcomes], dtype=int)
-        richer = np.argmax(v, axis=1)
-        rows = np.arange(len(outcomes))
-        np.savez(
-            args.out / f"{name}.npz",
-            d_rich=d[rows, richer],
-            d_poor=d[rows, 1 - richer],
-            colour_of_rich=np.array(fids)[richer],
-            reached=np.array([bool(o.get("reached_objective")) for o in outcomes]),
-            reached_fid=np.array([o.get("reached_feature_id", -1) for o in outcomes], dtype=int),
-            steps=np.array([int(o.get("episode_steps", -1)) for o in outcomes], dtype=int),
-            value_tie=v[:, 0] == v[:, 1],
-        )
+        np.savez(args.out / f"{name}.npz", **decision_arrays(outcomes, steps=True, value_tie=True))
         gaps, took, _ = value_distance_decisions(outcomes)
         tau = indifference_point(gaps, took)
         row = {"name": name, "tau": float(tau), "episodes": episodes, "reached": float(summarise(outcomes).reached_objective),
@@ -172,13 +120,11 @@ def main() -> None:
     print("\n=== base ===")
     base_row = decode("base", base_flat, None, args.episodes, kind="base", offset=0.0)
 
-    from scripts.restricted_writes import load_sweep
-
-    offsets, diffs = load_sweep(args.run, args.sweep, values, args, config, base_flat)
+    offsets, diffs = load_sweep(base, args.sweep, arm_steps=args.arm_steps, fit_window=args.fit_window)
     axis, _ = fit_axis_and_drift(offsets, diffs)
     del diffs
-    kernel = input_kernel(base_state.params)
-    groups, _ = module_groups(base_state.params)
+    kernel = input_kernel(base.params)
+    groups, _ = module_groups(base.params)
     input_slice = restrict(axis, groups, "input conv")
     gain = gain_part(axis, base_flat, kernel, COLOUR)
     betas = gain_coefficients(axis, base_flat, kernel, COLOUR)

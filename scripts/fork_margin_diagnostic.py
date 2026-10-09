@@ -19,14 +19,11 @@ npz and each shift this prints, over the same levels:
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.provenance import header
 
 
 def main() -> None:
@@ -43,13 +40,10 @@ def main() -> None:
     import jax.numpy as jnp
 
     from goalmisgen.analysis.closed_loop import logistic_fit
+    from goalmisgen.edits.backends import rl_backend
     from goalmisgen.edits.core import fork_margins
 
-    sys.argv = [sys.argv[0], str(args.run), "--levels", args.levels, "--n-edit", str(args.n), "--n-eval", "16"]
-    from scripts.cheapest_edit import parse_args as edit_args
-    from scripts.cheapest_edit import rl_backend
-
-    backend = rl_backend(edit_args())
+    backend = rl_backend(args.run, args.levels, n_edit=args.n, n_eval=16)
     flat = backend.base_flat
     targets = backend.edit_targets
     arrays = backend.edit_arrays

@@ -14,7 +14,6 @@ About a millisecond per level, CPU-bound, embarrassingly parallel.
 from __future__ import annotations
 
 import argparse
-import sys
 import time
 from pathlib import Path
 
@@ -23,9 +22,7 @@ import numpy as np
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.envs.dataset import LevelDataset, dataset_fingerprint
 from goalmisgen.offline.demos import DEFAULT_MAX_ACTIONS, DemoSet
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_levels import usable_cpus  # noqa: E402
+from goalmisgen.parallel import usable_cpus
 
 
 def parse_args() -> argparse.Namespace:

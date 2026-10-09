@@ -13,14 +13,11 @@ shift falls short, the gap is memorisation, not a missing mechanism.
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from goalmisgen.provenance import header  # noqa: E402
+from goalmisgen.provenance import header
 
 
 def main() -> None:
@@ -35,12 +32,9 @@ def main() -> None:
     print(header())
 
     from goalmisgen.analysis.closed_loop import read_outcomes
+    from goalmisgen.edits.backends import rl_backend
 
-    sys.argv = [sys.argv[0], str(args.run), "--levels", args.levels, "--n-edit", str(args.n_edit), "--n-eval", str(args.n_eval)]
-    from scripts.cheapest_edit import parse_args as edit_args
-    from scripts.cheapest_edit import rl_backend
-
-    backend = rl_backend(edit_args())
+    backend = rl_backend(args.run, args.levels, n_edit=args.n_edit, n_eval=args.n_eval)
     flat = backend.base_flat
     sets = {"edit": backend.edit_targets, "held out": backend.eval_targets}
     base = {name: read_outcomes(t, *backend.evaluate(flat, t)).tau for name, t in sets.items()}
