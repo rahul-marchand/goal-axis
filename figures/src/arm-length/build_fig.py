@@ -79,7 +79,9 @@ class Chart:
         ]
         for steps, text in xticks:
             px = self.px(steps)
-            out.append(f'<line x1="{px}" y1="{self.y+self.h}" x2="{px}" y2="{self.y+self.h+4}" stroke="{SOFT}" stroke-width="1"/>')
+            out.append(
+                f'<line x1="{px}" y1="{self.y+self.h}" x2="{px}" y2="{self.y+self.h+4}" stroke="{SOFT}" stroke-width="1"/>'
+            )
             out.append(
                 f'<text x="{px}" y="{self.y+self.h+16}" text-anchor="middle" font-size="10" fill="{SOFT}" font-family="{MONO}">{text}</text>'
             )

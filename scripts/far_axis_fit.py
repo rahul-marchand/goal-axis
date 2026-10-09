@@ -59,7 +59,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--arm-steps", type=int, default=400_000)
     parser.add_argument("--episodes", type=int, default=2048)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
+    parser.add_argument(
+        "--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept)."
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--skip-behaviour", action="store_true")
     parser.add_argument(
@@ -119,7 +121,9 @@ def main() -> None:
     print(f"  cos(axis_far, axis_window)    {cosine(axis_far, axis_window):+.3f}")
     print(f"  cos(drift_far, axis_window)   {cosine(drift_far, axis_window):+.3f}")
     print(f"  cos(drift_far, drift_window)  {cosine(drift_far, drift_window):+.3f}")
-    print(f"  |far arm| mean {np.mean([np.linalg.norm(far[v]) for v in f_values]):.4g}   |window arm| mean {np.mean([np.linalg.norm(window[v]) for v in w_values]):.4g}")
+    print(
+        f"  |far arm| mean {np.mean([np.linalg.norm(far[v]) for v in f_values]):.4g}   |window arm| mean {np.mean([np.linalg.norm(window[v]) for v in w_values]):.4g}"
+    )
 
     print("\n=== graded and predictive? leave-one-out within the far set ===\n")
     print(f"  {'value':>7}{'offset':>8}{'|delta|':>10}{'held-out R^2':>14}{'held-out cos':>14}{'implied':>10}")
@@ -138,7 +142,9 @@ def main() -> None:
             "cos": cosine(left, held_axis),
             "implied": projected_offset(left, held_axis),
         }
-        print(f"  {v:>7.2f}{o:>+8.2f}{np.linalg.norm(far[v]):>10.4g}{far_loo[v]['r2']:>14.3f}{far_loo[v]['cos']:>14.3f}{far_loo[v]['implied']:>+10.2f}")
+        print(
+            f"  {v:>7.2f}{o:>+8.2f}{np.linalg.norm(far[v]):>10.4g}{far_loo[v]['r2']:>14.3f}{far_loo[v]['cos']:>14.3f}{far_loo[v]['implied']:>+10.2f}"
+        )
     far_slope = readback_slope(list(f_offsets), [far_loo[v]["implied"] for v in f_values])
 
     window_loo_implied = []
@@ -153,8 +159,10 @@ def main() -> None:
 
     # the window axis read on the far arms: does it see them as graded at all?
     implied_by_window = [projected_offset(far[v] - drift_window, axis_window) for v in f_values]
-    print(f"  far arms read by the window axis: implied {', '.join(f'{x:+.2f}' for x in implied_by_window)}"
-          f"   slope {readback_slope(list(f_offsets), implied_by_window):.2f}")
+    print(
+        f"  far arms read by the window axis: implied {', '.join(f'{x:+.2f}' for x in implied_by_window)}"
+        f"   slope {readback_slope(list(f_offsets), implied_by_window):.2f}"
+    )
 
     result = {
         "run": args.run.name,
@@ -165,8 +173,11 @@ def main() -> None:
         "axis_norm": {"window": float(np.linalg.norm(axis_window)), "far": float(np.linalg.norm(axis_far))},
         "cos_far_window": cosine(axis_far, axis_window),
         "loo": {f"{v:.2f}": {k: float(far_loo[v][k]) for k in ("r2", "cos", "implied")} for v in f_values},
-        "readback_slope": {"window": window_slope, "far": far_slope,
-                           "far_by_window_axis": readback_slope(list(f_offsets), implied_by_window)},
+        "readback_slope": {
+            "window": window_slope,
+            "far": far_slope,
+            "far_by_window_axis": readback_slope(list(f_offsets), implied_by_window),
+        },
     }
 
     if args.skip_behaviour:
@@ -193,15 +204,27 @@ def main() -> None:
                 np.array([u - args.base_value for u in others]), np.stack([window[u] for u in others])
             )
             arm_point, _, _, arm_reach = measure(base.other_params(window_arms[v]), f"v={v:.2f} fine-tuned")
-            written, _, _, w_reach = measure(
-                unravel(base_flat + o * held_axis), f"v={v:.2f} written, held out"
+            written, _, _, w_reach = measure(unravel(base_flat + o * held_axis), f"v={v:.2f} written, held out")
+            wrows.append(
+                {
+                    "value": v,
+                    "offset": o,
+                    "arm": arm_point,
+                    "arm_reach": arm_reach,
+                    "written": written,
+                    "written_reach": w_reach,
+                }
             )
-            wrows.append({"value": v, "offset": o, "arm": arm_point, "arm_reach": arm_reach, "written": written, "written_reach": w_reach})
         err = np.array([r["written"] - r["arm"] for r in wrows])
-        print(f"\n  median |error| {np.median(np.abs(err)):.1f} steps;  slope of written on fine-tuned "
-              f"{readback_slope([r['arm'] for r in wrows], [r['written'] for r in wrows]):.2f}")
-        result["window_loo"] = {"rows": wrows, "median_abs_error": float(np.median(np.abs(err))),
-                                "written_on_arm_slope": readback_slope([r["arm"] for r in wrows], [r["written"] for r in wrows])}
+        print(
+            f"\n  median |error| {np.median(np.abs(err)):.1f} steps;  slope of written on fine-tuned "
+            f"{readback_slope([r['arm'] for r in wrows], [r['written'] for r in wrows]):.2f}"
+        )
+        result["window_loo"] = {
+            "rows": wrows,
+            "median_abs_error": float(np.median(np.abs(err))),
+            "written_on_arm_slope": readback_slope([r["arm"] for r in wrows], [r["written"] for r in wrows]),
+        }
         finish(args, result, axis_far)
         return
 
@@ -212,9 +235,7 @@ def main() -> None:
         o = v - args.base_value
         held_axis, held_drift = far_loo[v]["axis"], far_loo[v]["drift"]
         arm_point, _, _, arm_reach = measure(base.other_params(far_arms[v]), f"v={v:.2f} fine-tuned")
-        from_base, _, _, base_reach = measure(
-            unravel(base_flat + held_drift + o * held_axis), f"v={v:.2f} written from base"
-        )
+        from_base, _, _, base_reach = measure(unravel(base_flat + held_drift + o * held_axis), f"v={v:.2f} written from base")
         anchor = min((u for u in f_values if u != v), key=lambda u: abs(u - v))
         step = (v - anchor) * held_axis
         from_anchor, _, _, anchor_reach = measure(
@@ -225,15 +246,25 @@ def main() -> None:
         random_point, _, _, random_reach = measure(
             unravel(base_flat + far[anchor] + direction), f"v={v:.2f} random from v={anchor:.2f}"
         )
-        rows.append({
-            "value": v, "offset": o, "anchor": anchor,
-            "arm": arm_point, "arm_reach": arm_reach,
-            "from_base": from_base, "from_base_reach": base_reach,
-            "from_anchor": from_anchor, "from_anchor_reach": anchor_reach,
-            "random_from_anchor": random_point, "random_reach": random_reach,
-        })
+        rows.append(
+            {
+                "value": v,
+                "offset": o,
+                "anchor": anchor,
+                "arm": arm_point,
+                "arm_reach": arm_reach,
+                "from_base": from_base,
+                "from_base_reach": base_reach,
+                "from_anchor": from_anchor,
+                "from_anchor_reach": anchor_reach,
+                "random_from_anchor": random_point,
+                "random_reach": random_reach,
+            }
+        )
 
-    print(f"\n  {'value':>7}{'fine-tuned':>12}{'from base':>11}{'err':>7}{'from nbr':>10}{'err':>7}{'random':>9}{'err':>7}{'nbr arm':>9}")
+    print(
+        f"\n  {'value':>7}{'fine-tuned':>12}{'from base':>11}{'err':>7}{'from nbr':>10}{'err':>7}{'random':>9}{'err':>7}{'nbr arm':>9}"
+    )
     for r in rows:
         nbr = next(x["arm"] for x in rows if x["value"] == r["anchor"])
         print(
@@ -251,18 +282,28 @@ def main() -> None:
         f"\n  median |error|   from base {np.median(np.abs(err_base)):.1f}   from neighbour {np.median(np.abs(err_anchor)):.1f}"
         f"   random {np.median(np.abs(err_random)):.1f} steps"
     )
-    print(f"  neighbour write: asked to move {np.median(np.abs(asked)):.1f} steps (median), moved {np.median(np.abs(moved)):.1f};"
-          f" slope of moved on asked {readback_slope(list(asked), list(moved)):.2f}")
-    print(f"  slope of written on fine-tuned across far arms   from base {readback_slope(list(arms_), [r['from_base'] for r in rows]):.2f}"
-          f"   from neighbour {readback_slope(list(arms_), [r['from_anchor'] for r in rows]):.2f}")
+    print(
+        f"  neighbour write: asked to move {np.median(np.abs(asked)):.1f} steps (median), moved {np.median(np.abs(moved)):.1f};"
+        f" slope of moved on asked {readback_slope(list(asked), list(moved)):.2f}"
+    )
+    print(
+        f"  slope of written on fine-tuned across far arms   from base {readback_slope(list(arms_), [r['from_base'] for r in rows]):.2f}"
+        f"   from neighbour {readback_slope(list(arms_), [r['from_anchor'] for r in rows]):.2f}"
+    )
     result["behaviour"] = {
         "rows": rows,
-        "median_abs_error": {"from_base": float(np.median(np.abs(err_base))), "from_anchor": float(np.median(np.abs(err_anchor))),
-                             "random": float(np.median(np.abs(err_random)))},
-        "asked_median": float(np.median(np.abs(asked))), "moved_median": float(np.median(np.abs(moved))),
+        "median_abs_error": {
+            "from_base": float(np.median(np.abs(err_base))),
+            "from_anchor": float(np.median(np.abs(err_anchor))),
+            "random": float(np.median(np.abs(err_random))),
+        },
+        "asked_median": float(np.median(np.abs(asked))),
+        "moved_median": float(np.median(np.abs(moved))),
         "moved_on_asked_slope": readback_slope(list(asked), list(moved)),
-        "written_on_arm_slope": {"from_base": readback_slope(list(arms_), [r["from_base"] for r in rows]),
-                                 "from_anchor": readback_slope(list(arms_), [r["from_anchor"] for r in rows])},
+        "written_on_arm_slope": {
+            "from_base": readback_slope(list(arms_), [r["from_base"] for r in rows]),
+            "from_anchor": readback_slope(list(arms_), [r["from_anchor"] for r in rows]),
+        },
     }
     finish(args, result, axis_far)
 

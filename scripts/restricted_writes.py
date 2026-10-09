@@ -169,7 +169,14 @@ def main() -> None:
         for name in order:
             part = restrict(axis, groups, name)
             share = float(part @ part) / float(axis @ axis)
-            measure(base_flat + offset * part, f"only {name} @ {offset:+.2f}", kind="alone", module=name, offset=offset, axis_share=share)
+            measure(
+                base_flat + offset * part,
+                f"only {name} @ {offset:+.2f}",
+                kind="alone",
+                module=name,
+                offset=offset,
+                axis_share=share,
+            )
             scale = axis_norm / float(np.linalg.norm(part)) if np.linalg.norm(part) > 0 else float("nan")
             if np.isfinite(scale):
                 measure(

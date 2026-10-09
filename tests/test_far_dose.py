@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 from goalmisgen.analysis.far_dose import (
+    first_departure,
     fit_linear_gain,
     fit_log_law,
-    first_departure,
     interpolate_x,
     module_matched_direction,
     random_direction,

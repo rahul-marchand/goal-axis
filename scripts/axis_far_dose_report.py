@@ -74,24 +74,34 @@ def report_base(directory: Path, args, say) -> dict:
 
     say("=" * 100)
     say(f"{Path(manifest['run']).name}   {manifest['checkpoint']}")
-    say(f"levels {manifest['levels']} [{manifest['split']}], {manifest['episodes']:,} episodes per condition, paired: {paired(decisions)}")
-    say(f"|axis| {manifest['axis_norm']:.3g}; input-conv gain per unit offset colour 0 {manifest['betas']['0']:+.3f}, "
-        f"colour 1 {manifest['betas']['1']:+.3f}; fit window |dv| <= {window}")
+    say(
+        f"levels {manifest['levels']} [{manifest['split']}], {manifest['episodes']:,} episodes per condition, paired: {paired(decisions)}"
+    )
+    say(
+        f"|axis| {manifest['axis_norm']:.3g}; input-conv gain per unit offset colour 0 {manifest['betas']['0']:+.3f}, "
+        f"colour 1 {manifest['betas']['1']:+.3f}; fit window |dv| <= {window}"
+    )
 
     def line(label, r, extra=""):
-        say(f"  {label:<26}{r['cross']:>+7.2f} [{r['low']:+6.2f},{r['high']:+6.2f}]{r['reached']:>8.1%}{r['on_route']:>8.1%}  {extra}")
+        say(
+            f"  {label:<26}{r['cross']:>+7.2f} [{r['low']:+6.2f},{r['high']:+6.2f}]{r['reached']:>8.1%}{r['on_route']:>8.1%}  {extra}"
+        )
 
     header = f"  {'':<26}{'tau':>7}  {'95% interval':^15}{'reached':>8}{'route':>8}"
 
     # --- log law -------------------------------------------------------------------------------
-    bright = [r for r in rows if r["kind"] == "base" or r["kind"] == "bright" or (r["kind"] == "matched" and r["family"] == "c1")]
+    bright = [
+        r for r in rows if r["kind"] == "base" or r["kind"] == "bright" or (r["kind"] == "matched" and r["family"] == "c1")
+    ]
     gain_of = lambda r: 1.0 if r["kind"] == "base" else float(r["gains"]["1"])  # noqa: E731
     competent = [r for r in bright if r["reached"] >= args.competent and np.isfinite(r["cross"])]
     law = fit_log_law([gain_of(r) for r in competent], [r["cross"] for r in competent])
     inside = [r for r in rows if r["kind"] == "matched" and r["family"] == "c1" and abs(r["offset"]) <= window + 1e-9]
     k = fit_linear_gain([r["offset"] for r in inside], [np.exp(r["log_gain"]) for r in inside])
-    say(f"\n--- log law: tau = {law.a:.2f} - {law.b:.2f} ln g on {len(competent)} colour-1 brightness decodes reaching >= {args.competent:.0%} "
-        f"(rms {law.rms:.2f} steps); inside the window g = 1 + {k:.2f} dv ---")
+    say(
+        f"\n--- log law: tau = {law.a:.2f} - {law.b:.2f} ln g on {len(competent)} colour-1 brightness decodes reaching >= {args.competent:.0%} "
+        f"(rms {law.rms:.2f} steps); inside the window g = 1 + {k:.2f} dv ---"
+    )
 
     axis = sorted([base] + [r for r in rows if r["kind"] == "axis"], key=lambda r: r.get("offset", 0.0))
     dvs = np.array([r.get("offset", 0.0) for r in axis])
@@ -104,9 +114,13 @@ def report_base(directory: Path, args, say) -> dict:
         g = f"{np.exp(m1['log_gain']):>9.2f}" if m1 else f"{'-':>9}"
         s = f"{m2['log_gain']:>13.2f}" if m2 else f"{'-':>13}"
         line(f"axis {dv:+.2f}", r, f"{pred:>+7.2f}{r['cross'] - pred:>+9.2f}{g}{1 + k * dv:>8.2f}{s}")
-    departure = first_departure(dvs, [r["cross"] for r in axis], [r["low"] for r in axis], [r["high"] for r in axis], predicted, args.tolerance)
+    departure = first_departure(
+        dvs, [r["cross"] for r in axis], [r["low"] for r in axis], [r["high"] for r in axis], predicted, args.tolerance
+    )
     reach_drop = next((float(dv) for r, dv in zip(axis, dvs) if r["reached"] < args.competent), None)
-    say(f"  first offset leaving the log law by > {args.tolerance} steps: {departure}; first offset reaching < {args.competent:.0%}: {reach_drop}")
+    say(
+        f"  first offset leaving the log law by > {args.tolerance} steps: {departure}; first offset reaching < {args.competent:.0%}: {reach_drop}"
+    )
 
     say("\n--- colour-1 brightness ---")
     say(header + f"{'log-law':>9}")
@@ -127,16 +141,27 @@ def report_base(directory: Path, args, say) -> dict:
         say("")
 
     say("--- random writes (|dtau| from base; isotropic at |axis| dv, per-module at the axis's module norms) ---")
-    say(f"  {'':<26}" + "".join(f"{'dv ' + format(dv, '+.1f'):>22}" for dv in sorted({r['offset'] for r in rows if r['kind'] == 'random'})))
+    say(
+        f"  {'':<26}"
+        + "".join(f"{'dv ' + format(dv, '+.1f'):>22}" for dv in sorted({r["offset"] for r in rows if r["kind"] == "random"}))
+    )
     random_rows = [r for r in rows if r["kind"] == "random"]
     for family in ("isotropic", "per-module"):
         for draw in sorted({r["draw"] for r in random_rows if r["family"] == family}):
             cells = sorted([r for r in random_rows if r["family"] == family and r["draw"] == draw], key=lambda r: r["offset"])
-            say(f"  {family + ' ' + str(draw):<26}" + "".join(
-                f"{abs(r['cross'] - base['cross']):>8.2f}{r['reached']:>7.1%}{r['on_route']:>7.1%}" for r in cells))
+            say(
+                f"  {family + ' ' + str(draw):<26}"
+                + "".join(f"{abs(r['cross'] - base['cross']):>8.2f}{r['reached']:>7.1%}{r['on_route']:>7.1%}" for r in cells)
+            )
     say("  (each cell: |dtau|, reached, route)")
-    return {"run": manifest["run"], "law": {"a": law.a, "b": law.b, "rms": law.rms}, "k": k, "departure": departure,
-            "reach_drop": reach_drop, "rows": rows}
+    return {
+        "run": manifest["run"],
+        "law": {"a": law.a, "b": law.b, "rms": law.rms},
+        "k": k,
+        "departure": departure,
+        "reach_drop": reach_drop,
+        "rows": rows,
+    }
 
 
 def main() -> None:

@@ -48,7 +48,9 @@ def main() -> None:
     base_values = base.values
     na, nb, cos = measure(base.params)
     print(f"{'arm':16s} {'v1':>5s} {'|K0|':>8s} {'|K1|':>8s} {'ratio':>7s} {'cos':>7s} {'angle':>7s}")
-    print(f"{'base':16s} {base_values[1]:5.2f} {na:8.3f} {nb:8.3f} {na / nb:7.3f} {cos:+7.3f} {np.degrees(np.arccos(cos)):7.2f}")
+    print(
+        f"{'base':16s} {base_values[1]:5.2f} {na:8.3f} {nb:8.3f} {na / nb:7.3f} {cos:+7.3f} {np.degrees(np.arccos(cos)):7.2f}"
+    )
     for arm in sorted((args.run / "arms").glob("o1*@400k")):
         m = re.search(r"o1([+-])(\d+)", arm.name)
         offset = (1 if m.group(1) == "+" else -1) * int(m.group(2)) / 100

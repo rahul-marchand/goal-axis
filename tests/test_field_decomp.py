@@ -41,8 +41,15 @@ SIZE = 7
 @pytest.fixture(scope="module")
 def drc():
     config = MazeConfig(
-        max_episode_steps=40, num_envs=2, min_size=SIZE, max_size=SIZE, asynchronous=False, value_encoding="none",
-        colour_is_the_only_value_cue=True, objective_values=(1.0, 0.5), feature_value_correlation=1.0,
+        max_episode_steps=40,
+        num_envs=2,
+        min_size=SIZE,
+        max_size=SIZE,
+        asynchronous=False,
+        value_encoding="none",
+        colour_is_the_only_value_cue=True,
+        objective_values=(1.0, 0.5),
+        feature_value_correlation=1.0,
     )
     args = maze_drc33(min_size=SIZE, max_size=SIZE)
     net = dataclasses.replace(args.net, n_recurrent=2, repeats_per_step=2)

@@ -117,7 +117,11 @@ def walk(tiles, start, facing, actions) -> list[tuple[int, int]]:
 def events(data) -> list[tuple[str, tuple[int, int], int]]:
     """What happened where along the rollout: (label, cell, step)."""
     actions, positions, facings, inventories, tiles = (
-        data["actions"], data["positions"], data["facings"], data["inventories"], data["tiles"]
+        data["actions"],
+        data["positions"],
+        data["facings"],
+        data["inventories"],
+        data["tiles"],
     )
     out = []
     for t, action in enumerate(actions):
@@ -226,9 +230,21 @@ def panel_tree(ax, tex, meta, ratio: float) -> None:
         ax.imshow(image, extent=(x - size / 2, x + size / 2, y - size / 2, y + size / 2), interpolation="nearest", zorder=3)
 
     def arrow(x0, y0, x1, y1, text=None, above=True):
-        ax.add_patch(FancyArrowPatch((x0, y0), (x1, y1), arrowstyle="-|>", mutation_scale=10, lw=1.0, color=SOFT, zorder=2, shrinkA=0, shrinkB=0))
+        ax.add_patch(
+            FancyArrowPatch(
+                (x0, y0), (x1, y1), arrowstyle="-|>", mutation_scale=10, lw=1.0, color=SOFT, zorder=2, shrinkA=0, shrinkB=0
+            )
+        )
         if text:
-            ax.text((x0 + x1) / 2, (y0 + y1) / 2 + (0.28 if above else -0.32), caps(text), ha="center", va="bottom" if above else "top", fontsize=5.8, color=SOFT)
+            ax.text(
+                (x0 + x1) / 2,
+                (y0 + y1) / 2 + (0.28 if above else -0.32),
+                caps(text),
+                ha="center",
+                va="bottom" if above else "top",
+                fontsize=5.8,
+                color=SOFT,
+            )
 
     def caption(x, y, text, colour=INK, size=7.4):
         ax.text(x, y, text, ha="center", va="top", fontsize=size, color=colour, linespacing=1.2)
@@ -271,8 +287,24 @@ def panel_gap(ax, data, meta) -> None:
     ax.hist(gap[gap >= threshold], bins=bins, color=POOR, alpha=0.65, lw=0)
     ax.axvline(threshold, color=INK, lw=1.2)
     top = ax.get_ylim()[1]
-    ax.text(threshold - 0.7, top * 0.98, caps(f"iron · {meta['expert_takes_iron']:.0%}"), ha="right", va="top", fontsize=6.2, color=RICH)
-    ax.text(threshold + 0.7, top * 0.98, caps(f"coal · {1 - meta['expert_takes_iron']:.0%}"), ha="left", va="top", fontsize=6.2, color=POOR)
+    ax.text(
+        threshold - 0.7,
+        top * 0.98,
+        caps(f"iron · {meta['expert_takes_iron']:.0%}"),
+        ha="right",
+        va="top",
+        fontsize=6.2,
+        color=RICH,
+    )
+    ax.text(
+        threshold + 0.7,
+        top * 0.98,
+        caps(f"coal · {1 - meta['expert_takes_iron']:.0%}"),
+        ha="left",
+        va="top",
+        fontsize=6.2,
+        color=POOR,
+    )
     ax.text(threshold + 0.7, top * 0.88, caps(f"threshold {threshold:.0f}"), ha="left", va="top", fontsize=6.2, color=INK)
     this = meta["cost_iron"] - meta["cost_coal"]
     ax.plot(this, 0, marker="^", color=INK, ms=6, clip_on=False, zorder=5)
@@ -292,7 +324,6 @@ def main() -> None:
     data = np.load(args.data)
     meta = json.loads(args.data.with_suffix(".json").read_text())
     tex = textures()
-    v = meta["values"]
 
     fw, fh = 7.2, 6.7
     fig = plt.figure(figsize=(fw, fh))

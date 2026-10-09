@@ -230,4 +230,3 @@ def run(args: argparse.Namespace) -> None:
         if isinstance(writer, CsvWriter):
             writer.flush()
     print("FINETUNE COMPLETE")
-

@@ -80,7 +80,9 @@ def main() -> None:
                 }
             )
 
-    print(f"{'model':<9}{'family':<18}{'params':>11}{'|u|/step':>10}{'reach':>8}{'spread':>8}{'reached':>9}{'route':>8}{'seed cos':>10}{'cos(u,v)':>10}{'fn cos':>8}{'fork':>7}")
+    print(
+        f"{'model':<9}{'family':<18}{'params':>11}{'|u|/step':>10}{'reach':>8}{'spread':>8}{'reached':>9}{'route':>8}{'seed cos':>10}{'cos(u,v)':>10}{'fn cos':>8}{'fork':>7}"
+    )
     for row in rows:
         print(
             f"{row['model']:<9}{row['family']:<18}{row['parameters']:>11,}{row['norm']:>10.3f}"

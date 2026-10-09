@@ -28,8 +28,10 @@ def signature(params) -> tuple[float, float, float]:
 
 def line(label, v1, params) -> None:
     na, nb, cos = signature(params)
-    print(f"{label:22s} {v1:>5} {na:8.4f} {nb:8.4f} {na / nb:7.3f} {cos:+7.3f} "
-          f"{np.degrees(np.arccos(np.clip(cos, -1, 1))):7.2f}")
+    print(
+        f"{label:22s} {v1:>5} {na:8.4f} {nb:8.4f} {na / nb:7.3f} {cos:+7.3f} "
+        f"{np.degrees(np.arccos(np.clip(cos, -1, 1))):7.2f}"
+    )
 
 
 def main() -> None:

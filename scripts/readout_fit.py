@@ -61,8 +61,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--arm-steps", type=int, default=400_000)
     parser.add_argument("--fit-window", type=float, default=0.45)
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--chunk", type=int, default=512,
-                        help="Levels per forward pass; the whole set at once exhausts the GPU at 4096.")
+    parser.add_argument(
+        "--chunk", type=int, default=512, help="Levels per forward pass; the whole set at once exhausts the GPU at 4096."
+    )
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
 
@@ -112,8 +113,10 @@ def main() -> None:
     outcome = read_outcomes(targets, reached, steps)
     took_rich = (reached == np.asarray(targets.rich_feature)).astype(float)
     finished = reached >= 0
-    print(f"choice rollouts: tau {outcome.tau:.2f} [{outcome.low:.2f}, {outcome.high:.2f}], "
-          f"reached {outcome.reached:.1%}, took rich {outcome.took_rich:.1%}\n")
+    print(
+        f"choice rollouts: tau {outcome.tau:.2f} [{outcome.low:.2f}, {outcome.high:.2f}], "
+        f"reached {outcome.reached:.1%}, took rich {outcome.took_rich:.1%}\n"
+    )
 
     # --- the fields, on teacher-forced positions ---------------------------------
     sites = sites_of(policy.cfg)
@@ -138,10 +141,20 @@ def main() -> None:
     n_train = int(args.train_frac * len(targets))
     train_rows, test_rows = order[:n_train], order[n_train:]
 
-    report: dict = {"run": str(args.run), "checkpoint": str(checkpoint), "values": list(values),
-                    "levels": len(targets), "n_steps": args.n_steps, "train_frac": args.train_frac,
-                    "tau": float(outcome.tau), "tau_low": float(outcome.low), "tau_high": float(outcome.high),
-                    "reached": float(outcome.reached), "sites": [sites[i].name for i in spatial], "rows": []}
+    report: dict = {
+        "run": str(args.run),
+        "checkpoint": str(checkpoint),
+        "values": list(values),
+        "levels": len(targets),
+        "n_steps": args.n_steps,
+        "train_frac": args.train_frac,
+        "tau": float(outcome.tau),
+        "tau_low": float(outcome.low),
+        "tau_high": float(outcome.high),
+        "reached": float(outcome.reached),
+        "sites": [sites[i].name for i in spatial],
+        "rows": [],
+    }
 
     gap = np.asarray(targets.gap, dtype=np.float64)
     vectors, directions, usable_rows = {}, {}, {}
@@ -154,8 +167,7 @@ def main() -> None:
         usable_rows[index] = reaches & finished
 
     print("=== fitted direction vs the norm, held out ===")
-    print("    crossing is the gap at which the readout is zero; the measured threshold is "
-          f"{outcome.tau:.2f}\n")
+    print("    crossing is the gap at which the readout is zero; the measured threshold is " f"{outcome.tau:.2f}\n")
     print(f"  {'site':>18} {'readout':>14} {'AUC':>6} {'corr gap':>9} {'crossing':>9} {'n':>6}")
     for index in spatial:
         x_rich, x_poor = vectors[index]
@@ -179,8 +191,10 @@ def main() -> None:
         }
         for name, score in candidates.items():
             row = evaluate_readout(score, took_rich[test], gap[test])
-            print(f"  {sites[index].name:>18} {name:>14} {row['auc']:6.3f} {row['corr']:+9.3f} "
-                  f"{row['crossing']:+9.2f} {row['n']:6d}")
+            print(
+                f"  {sites[index].name:>18} {name:>14} {row['auc']:6.3f} {row['corr']:+9.3f} "
+                f"{row['crossing']:+9.2f} {row['n']:6d}"
+            )
             report["rows"].append({"analysis": "readout", "site": sites[index].name, "readout": name, **row})
 
         # controls: random directions, and a fit on shuffled labels
@@ -190,18 +204,27 @@ def main() -> None:
         shuffled = rng.permutation(took_rich[train])
         w_shuffled, _ = logistic_direction(x[train], shuffled, ridge=args.ridge, intercept=False)
         shuffled_row = evaluate_readout(x[test] @ w_shuffled, took_rich[test], gap[test])
-        print(f"  {sites[index].name:>18} {'random x' + str(args.n_random):>14} "
-              f"{np.nanmean(aucs):6.3f} {'':>9} {np.nanmedian(crossings):+9.2f} "
-              f"  (best AUC {np.nanmax(np.maximum(aucs, 1 - aucs)):.3f})")
-        print(f"  {sites[index].name:>18} {'shuffled fit':>14} {shuffled_row['auc']:6.3f} "
-              f"{shuffled_row['corr']:+9.3f} {shuffled_row['crossing']:+9.2f} {shuffled_row['n']:6d}")
-        report["rows"].append({"analysis": "control", "site": sites[index].name, "readout": "random",
-                               "auc_mean": float(np.nanmean(aucs)),
-                               "auc_best": float(np.nanmax(np.maximum(aucs, 1 - aucs))),
-                               "crossing_median": float(np.nanmedian(crossings)),
-                               "crossing_iqr": float(np.nanpercentile(crossings, 75) - np.nanpercentile(crossings, 25))})
-        report["rows"].append({"analysis": "control", "site": sites[index].name, "readout": "shuffled",
-                               **shuffled_row})
+        print(
+            f"  {sites[index].name:>18} {'random x' + str(args.n_random):>14} "
+            f"{np.nanmean(aucs):6.3f} {'':>9} {np.nanmedian(crossings):+9.2f} "
+            f"  (best AUC {np.nanmax(np.maximum(aucs, 1 - aucs)):.3f})"
+        )
+        print(
+            f"  {sites[index].name:>18} {'shuffled fit':>14} {shuffled_row['auc']:6.3f} "
+            f"{shuffled_row['corr']:+9.3f} {shuffled_row['crossing']:+9.2f} {shuffled_row['n']:6d}"
+        )
+        report["rows"].append(
+            {
+                "analysis": "control",
+                "site": sites[index].name,
+                "readout": "random",
+                "auc_mean": float(np.nanmean(aucs)),
+                "auc_best": float(np.nanmax(np.maximum(aucs, 1 - aucs))),
+                "crossing_median": float(np.nanmedian(crossings)),
+                "crossing_iqr": float(np.nanpercentile(crossings, 75) - np.nanpercentile(crossings, 25)),
+            }
+        )
+        report["rows"].append({"analysis": "control", "site": sites[index].name, "readout": "shuffled", **shuffled_row})
 
     # --- does one direction serve the whole recurrence? --------------------------
     if len(directions) >= 2:
@@ -217,8 +240,14 @@ def main() -> None:
                 score = (x_rich - x_poor)[test] @ directions[fitted_index]
                 cells.append(auc(score, took_rich[test]))
             print(f"  {sites[fitted_index].name:>18}" + "".join(f"{c:14.3f}" for c in cells))
-            report["rows"].append({"analysis": "transfer", "fitted_at": sites[fitted_index].name,
-                                   "used_at": names, "auc": [float(c) for c in cells]})
+            report["rows"].append(
+                {
+                    "analysis": "transfer",
+                    "fitted_at": sites[fitted_index].name,
+                    "used_at": names,
+                    "auc": [float(c) for c in cells],
+                }
+            )
 
     # --- what is the direction? --------------------------------------------------
     if axis is not None and "axis +" in captured:
@@ -233,9 +262,14 @@ def main() -> None:
             mean_rich = unit(agent_vectors(a_rich, start)[usable_rows[index]].mean(0))
             w = directions[index]
             print(f"  {sites[index].name:>18} {float(w @ change_at_cell):22.3f} {float(w @ mean_rich):22.3f}")
-            report["rows"].append({"analysis": "direction", "site": sites[index].name,
-                                   "cos_axis_change": float(w @ change_at_cell),
-                                   "cos_mean_rich": float(w @ mean_rich)})
+            report["rows"].append(
+                {
+                    "analysis": "direction",
+                    "site": sites[index].name,
+                    "cos_axis_change": float(w @ change_at_cell),
+                    "cos_mean_rich": float(w @ mean_rich),
+                }
+            )
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)

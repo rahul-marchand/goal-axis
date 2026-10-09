@@ -64,6 +64,7 @@ def make_onpolicy_fn(policy, unravel, horizon: int = 40):
     objective also had a move of its own available there; its role is FORK,
     earlier steps PREFIX, later live steps BRANCH.
     """
+
     def fn(flat, batch):
         params = unravel(flat)
         static, fields = batch["static"], batch["fields"]
@@ -110,11 +111,21 @@ def make_onpolicy_fn(policy, unravel, horizon: int = 40):
         index = jnp.argmax(commit, axis=-1)
         t = jnp.arange(horizon)[None, :]
         role = jnp.where(
-            ~alive, PAD,
-            jnp.where(committed[:, None] & (t == index[:, None]), FORK,
-                      jnp.where(committed[:, None] & (t > index[:, None]), BRANCH, PREFIX)),
+            ~alive,
+            PAD,
+            jnp.where(
+                committed[:, None] & (t == index[:, None]),
+                FORK,
+                jnp.where(committed[:, None] & (t > index[:, None]), BRANCH, PREFIX),
+            ),
         ).astype(jnp.int8)
-        return {"logits": logits, "positions": positions, "toward_rich": ex_rich, "toward_poor": ex_poor,
-                "role": role, "committed": committed}
+        return {
+            "logits": logits,
+            "positions": positions,
+            "toward_rich": ex_rich,
+            "toward_poor": ex_poor,
+            "role": role,
+            "committed": committed,
+        }
 
     return fn

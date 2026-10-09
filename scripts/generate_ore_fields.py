@@ -51,8 +51,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-
-
 def main() -> None:
     args = parse_args()
     sampler = ore_field_sampler(args.size, args.density, tuple(args.objective_values))

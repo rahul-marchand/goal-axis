@@ -83,8 +83,17 @@ def main() -> None:
 
     base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
     checkpoint, values, base_flat = base.checkpoint, base.values, base.flat
-    manifest.update(run=str(args.run), checkpoint=str(checkpoint), values=list(values), levels=args.levels,
-                    split=args.split, seed=args.seed, num_envs=args.num_envs, episodes=args.episodes, sweep=args.sweep)
+    manifest.update(
+        run=str(args.run),
+        checkpoint=str(checkpoint),
+        values=list(values),
+        levels=args.levels,
+        split=args.split,
+        seed=args.seed,
+        num_envs=args.num_envs,
+        episodes=args.episodes,
+        sweep=args.sweep,
+    )
     print(f"base {checkpoint}, values {values}")
     greedy = Greedy.of(base)
 
@@ -103,15 +112,32 @@ def main() -> None:
         gaps, took, _ = value_distance_decisions(outcomes)
         tau = indifference_point(gaps, took)
         # A quick interval only; the report bootstraps properly. Full decodes are big enough not to need one here.
-        low, high = (float("nan"), float("nan")) if episodes > args.coarse_episodes else bootstrap_episodes(
-            lambda r: indifference_point(gaps[r], took[r]), np.arange(len(gaps)), resamples=20, seed=args.seed)
-        row = {"name": name, "tau": float(tau), "low": float(low), "high": float(high), "episodes": episodes,
-               "reached": float(summarise(outcomes).reached_objective), "on_route": float(on_shortest_route(outcomes)),
-               "seconds": seconds, "gains": {str(k - FIRST_FEATURE_CHANNEL): g for k, g in (gains or {}).items()}, **tags}
+        low, high = (
+            (float("nan"), float("nan"))
+            if episodes > args.coarse_episodes
+            else bootstrap_episodes(
+                lambda r: indifference_point(gaps[r], took[r]), np.arange(len(gaps)), resamples=20, seed=args.seed
+            )
+        )
+        row = {
+            "name": name,
+            "tau": float(tau),
+            "low": float(low),
+            "high": float(high),
+            "episodes": episodes,
+            "reached": float(summarise(outcomes).reached_objective),
+            "on_route": float(on_shortest_route(outcomes)),
+            "seconds": seconds,
+            "gains": {str(k - FIRST_FEATURE_CHANNEL): g for k, g in (gains or {}).items()},
+            **tags,
+        }
         manifest["conditions"][name] = row
         save()
-        print(f"  {name:>28}  tau {tau:6.2f} [{low:5.1f},{high:5.1f}]  reached {row['reached']:.1%}  route {row['on_route']:.1%}"
-              f"  {episodes / seconds:,.0f} eps/s", flush=True)
+        print(
+            f"  {name:>28}  tau {tau:6.2f} [{low:5.1f},{high:5.1f}]  reached {row['reached']:.1%}  route {row['on_route']:.1%}"
+            f"  {episodes / seconds:,.0f} eps/s",
+            flush=True,
+        )
         return row
 
     print("\n=== base ===")
@@ -131,8 +157,15 @@ def main() -> None:
     coarse = {0: [], 1: []}
     for plane, gains in ((1, args.coarse_gains_1), (0, args.coarse_gains_0)):
         for gain in gains:
-            row = decode(f"coarse-c{plane}x{gain:g}", base_flat, {COLOUR[plane]: gain}, args.coarse_episodes,
-                         kind="coarse", plane=plane, gain=gain)
+            row = decode(
+                f"coarse-c{plane}x{gain:g}",
+                base_flat,
+                {COLOUR[plane]: gain},
+                args.coarse_episodes,
+                kind="coarse",
+                plane=plane,
+                gain=gain,
+            )
             coarse[plane].append(row)
         base_tau = manifest["conditions"]["base"]["tau"]
         coarse[plane].append({"gain": 1.0, "tau": base_tau})
@@ -149,8 +182,17 @@ def main() -> None:
             if gain is None:
                 print(f"  axis{write['offset']:+.2f}: colour {plane} brightness never reaches tau {write['tau']:.2f}; skipped")
                 continue
-            decode(f"match{write['offset']:+.2f}-c{plane}", base_flat, {COLOUR[plane]: gain}, args.episodes,
-                   kind="matched", plane=plane, gain=gain, matches=write["name"], target_tau=write["tau"])
+            decode(
+                f"match{write['offset']:+.2f}-c{plane}",
+                base_flat,
+                {COLOUR[plane]: gain},
+                args.episodes,
+                kind="matched",
+                plane=plane,
+                gain=gain,
+                matches=write["name"],
+                target_tau=write["tau"],
+            )
 
     print("\n=== brightness past parity ===")
     for target in args.below_zero:
@@ -159,8 +201,16 @@ def main() -> None:
             if gain is None:
                 print(f"  colour {plane} brightness never reaches tau {target:g} on the coarse grid; skipped")
                 continue
-            decode(f"below{target:+g}-c{plane}", base_flat, {COLOUR[plane]: gain}, args.episodes,
-                   kind="below", plane=plane, gain=gain, target_tau=target)
+            decode(
+                f"below{target:+g}-c{plane}",
+                base_flat,
+                {COLOUR[plane]: gain},
+                args.episodes,
+                kind="below",
+                plane=plane,
+                gain=gain,
+                target_tau=target,
+            )
     print("\nSEPARABILITY_DECODE_DONE")
 
 

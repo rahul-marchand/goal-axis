@@ -124,8 +124,12 @@ def energies(a_rich, a_poor, total, inter, mask) -> dict:
     """Summed squares over masked cells, for the shares the report quotes."""
     weigh = lambda x: float(((np.asarray(x, dtype=np.float64) ** 2).sum(-1) * mask).sum())  # noqa: E731
     return {
-        "rich": weigh(a_rich), "poor": weigh(a_poor), "total": weigh(total), "interaction": weigh(inter),
-        "sum_of_parts": weigh(np.asarray(a_rich) + np.asarray(a_poor)), "cells": float(mask.sum()),
+        "rich": weigh(a_rich),
+        "poor": weigh(a_poor),
+        "total": weigh(total),
+        "interaction": weigh(inter),
+        "sum_of_parts": weigh(np.asarray(a_rich) + np.asarray(a_poor)),
+        "cells": float(mask.sum()),
     }
 
 
@@ -145,14 +149,23 @@ def combination_fit(a_near, a_far, total, mask) -> dict:
     gram = np.array([[(near * near).sum(), (near * far).sum()], [(near * far).sum(), (far * far).sum()]])
     rhs = np.array([(near * target).sum(), (far * target).sum()])
     if np.linalg.cond(gram) > 1e10:
-        return {"alpha": float("nan"), "gamma": float("nan"), "r2": float("nan"),
-                "cells": float(mask.sum()), "identifiable": False}
+        return {
+            "alpha": float("nan"),
+            "gamma": float("nan"),
+            "r2": float("nan"),
+            "cells": float(mask.sum()),
+            "identifiable": False,
+        }
     alpha, gamma = np.linalg.solve(gram, rhs)
     residual = target - alpha * near - gamma * far
     denominator = (target * target).sum()
-    return {"alpha": float(alpha), "gamma": float(gamma),
-            "r2": float(1 - (residual * residual).sum() / denominator) if denominator > 0 else float("nan"),
-            "cells": float(mask.sum()), "identifiable": True}
+    return {
+        "alpha": float(alpha),
+        "gamma": float(gamma),
+        "r2": float(1 - (residual * residual).sum() / denominator) if denominator > 0 else float("nan"),
+        "cells": float(mask.sum()),
+        "identifiable": True,
+    }
 
 
 def field_profile(field, distance, mask, max_distance: int = 12) -> dict:
@@ -172,15 +185,21 @@ def field_profile(field, distance, mask, max_distance: int = 12) -> dict:
         means.append(float(size[rows].mean()) if rows.any() else float("nan"))
     means = np.asarray(means)
     good = np.isfinite(means) & (np.asarray(counts) >= 20) & (means > 0)
-    out = {"means": means.tolist(), "counts": counts, "log_slope": float("nan"),
-           "log_r2": float("nan"), "linear_slope": float("nan"), "half_distance": float("nan")}
+    out = {
+        "means": means.tolist(),
+        "counts": counts,
+        "log_slope": float("nan"),
+        "log_r2": float("nan"),
+        "linear_slope": float("nan"),
+        "half_distance": float("nan"),
+    }
     if good.sum() >= 3:
         d = np.arange(max_distance + 1)[good]
         log_fit = np.polyfit(d, np.log(means[good]), 1)
         predicted = np.polyval(log_fit, d)
         residual = np.log(means[good]) - predicted
         out["log_slope"] = float(log_fit[0])
-        out["log_r2"] = float(1 - (residual ** 2).sum() / ((np.log(means[good]) - np.log(means[good]).mean()) ** 2).sum())
+        out["log_r2"] = float(1 - (residual**2).sum() / ((np.log(means[good]) - np.log(means[good]).mean()) ** 2).sum())
         out["linear_slope"] = float(np.polyfit(d, means[good], 1)[0])
         half = means[good][0] / 2
         below = np.where(means[good] <= half)[0]

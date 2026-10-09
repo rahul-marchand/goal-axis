@@ -59,7 +59,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--objective-values", type=float, nargs="+", required=True)
     parser.add_argument("--episodes", type=int, default=1024)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
+    parser.add_argument(
+        "--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept)."
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--controls", type=int, default=4, help="Random channel pairs to score against.")
     parser.add_argument("--alphas", type=float, nargs="+", default=[-3.0, -1.0, 1.0, 3.0])

@@ -336,12 +336,8 @@ def test_a_hidden_value_demo_set_cannot_see_a_value_swap(demos):
     """Which is why ``030`` picks the counterfactual from the model, not the flag."""
     hidden = demos.with_hidden_values()
     indices = np.arange(4)
-    np.testing.assert_array_equal(
-        hidden.observations(indices), rewrite.swapped_values(hidden).observations(indices)
-    )
-    assert not np.array_equal(
-        hidden.observations(indices), rewrite.swapped_features(hidden).observations(indices)
-    )
+    np.testing.assert_array_equal(hidden.observations(indices), rewrite.swapped_values(hidden).observations(indices))
+    assert not np.array_equal(hidden.observations(indices), rewrite.swapped_features(hidden).observations(indices))
 
 
 def test_start_and_tail_partition_the_erase(rollouts):

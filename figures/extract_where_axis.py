@@ -80,7 +80,10 @@ def summarise(rows: list[list[float]]) -> list[dict]:
 def main() -> None:
     panels = []
     for title, family in FAMILIES:
-        runs = [json.loads(pathlib.Path(f).read_text()) for f in sorted(glob.glob(str(ROOT / "data" / "restricted" / f"{family}.*.o1.json")))]
+        runs = [
+            json.loads(pathlib.Path(f).read_text())
+            for f in sorted(glob.glob(str(ROOT / "data" / "restricted" / f"{family}.*.o1.json")))
+        ]
         if not runs:
             panels.append({"title": title, "family": family, "pending": True})
             continue

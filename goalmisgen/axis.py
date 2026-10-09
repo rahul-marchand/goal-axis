@@ -364,7 +364,9 @@ class Greedy:
 
     @classmethod
     def build(cls, policy, config: MazeConfig) -> "Greedy":
-        return cls(policy, config.make(), jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature"))
+        return cls(
+            policy, config.make(), jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
+        )
 
     @classmethod
     def of(cls, base: Base) -> "Greedy":
@@ -387,7 +389,9 @@ class Greedy:
         from goalmisgen.analysis.input_gain import scale_planes
 
         policy, get_action = self.policy, self.get_action
-        carry = policy.apply(params, jax.random.PRNGKey(seed), self.envs.observation_space.shape, method=policy.initialize_carry)
+        carry = policy.apply(
+            params, jax.random.PRNGKey(seed), self.envs.observation_space.shape, method=policy.initialize_carry
+        )
         state = {"carry": carry, "key": jax.random.PRNGKey(seed)}
 
         def act(observations, starts):

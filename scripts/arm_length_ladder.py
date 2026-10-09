@@ -99,7 +99,12 @@ def main() -> None:
             )
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(json.dumps({"agent": args.run.name, "base": base.marker.payload["checkpoint"], "dose": args.dose, "rows": rows_out}, indent=1))
+        args.out.write_text(
+            json.dumps(
+                {"agent": args.run.name, "base": base.marker.payload["checkpoint"], "dose": args.dose, "rows": rows_out},
+                indent=1,
+            )
+        )
         print(f"\nwrote {args.out}")
 
 

@@ -156,8 +156,6 @@ def cells_edit(direction: np.ndarray, alpha: float, n_episodes: int, n_cells: in
     return grid
 
 
-
-
 def cell_and_sep(model, params, observations, edit, depth):
     """The SEP residual at the top, with ``edit`` applied at ``depth``."""
     return summary.sep_residuals_edited(model, params, observations, edit, depth)[model.config.n_layers]
@@ -261,16 +259,14 @@ def main() -> None:
             # write leaves untouched - the "recomputed downstream" escape that
             # makes a null ambiguous. Measured rather than argued: the top
             # probe's decoded value, before and after an edit made here.
-            if depth < cfg.n_layers and args.site == 'sep':
+            if depth < cfg.n_layers and args.site == "sep":
                 top_weights, top_mean, top_std = summary.fit_scalar(fit_features[cfg.n_layers], y, seed=args.seed)
                 probe_x = summary.sep_residuals(model, params, observations)
                 before = apply_linear(probe_x[cfg.n_layers], top_weights, top_mean, top_std)
                 carried = []
                 for alpha in (a for a in args.alphas if a != 0.0):
                     grid = summary.sep_edit(direction.delta, alpha, len(observations), cfg.n_cells)
-                    after_stream = np.asarray(
-                        cell_and_sep(model, params, observations, grid, depth)
-                    )
+                    after_stream = np.asarray(cell_and_sep(model, params, observations, grid, depth))
                     after = apply_linear(after_stream, top_weights, top_mean, top_std)
                     carried.append((alpha, float(np.mean(after - before))))
                 print(

@@ -50,10 +50,16 @@ def main() -> None:
     margin_of = jax.jit(lambda f, b: fork_margins(backend.logits_fn(f, b), b["toward_rich"], b["toward_poor"], b["role"]))
 
     def margins(params):
-        return np.concatenate([
-            np.asarray(margin_of(jnp.asarray(params, dtype=jnp.float32), {k: jnp.asarray(v[i : i + 64]) for k, v in arrays.items()}))
-            for i in range(0, len(targets), 64)
-        ])
+        return np.concatenate(
+            [
+                np.asarray(
+                    margin_of(
+                        jnp.asarray(params, dtype=jnp.float32), {k: jnp.asarray(v[i : i + 64]) for k, v in arrays.items()}
+                    )
+                )
+                for i in range(0, len(targets), 64)
+            ]
+        )
 
     def choices(params):
         reached, _ = backend.evaluate(params, targets)
@@ -65,15 +71,19 @@ def main() -> None:
     slope = abs(b)
     done, rich = choices(flat)
     base_rich = rich.copy()
-    print(f"\nbase: margin {a:+.3f} {b:+.3f} x gap; behavioural threshold {logistic_fit(gaps[done], rich[done].astype(float))[0]:.2f}; "
-          f"sign agrees with rollout {np.mean((m0 > 0)[done] == rich[done]):.1%}")
+    print(
+        f"\nbase: margin {a:+.3f} {b:+.3f} x gap; behavioural threshold {logistic_fit(gaps[done], rich[done].astype(float))[0]:.2f}; "
+        f"sign agrees with rollout {np.mean((m0 > 0)[done] == rich[done]):.1%}"
+    )
 
     deltas = np.load(args.deltas)
     for name in deltas.files:
         direction = deltas[name].astype(np.float64)
         print(f"\n=== {name}  |d| {np.linalg.norm(direction):.4g} per step ===")
-        print(f"  {'shift':>6}{'tau':>7}{'mean dm':>9}{'sd dm':>8}{'corr gap':>10}{'corr m0':>9}{'sign~rollout':>14}{'sign~shifted base':>19}"
-              f"{'|m0|<1 dm':>11}{'|m0|>3 dm':>11}{'flips':>7}{'fork too':>9}{'to target':>10}")
+        print(
+            f"  {'shift':>6}{'tau':>7}{'mean dm':>9}{'sd dm':>8}{'corr gap':>10}{'corr m0':>9}{'sign~rollout':>14}{'sign~shifted base':>19}"
+            f"{'|m0|<1 dm':>11}{'|m0|>3 dm':>11}{'flips':>7}{'fork too':>9}{'to target':>10}"
+        )
         for shift in args.shifts:
             m = margins(flat + shift * direction)
             dm = (m - m0) / slope

@@ -90,9 +90,9 @@ def test_scale_objective_handles_the_variant_stack(demos: DemoSet) -> None:
     scaled = scale_objective(variants, poor, 2.0)
     rows = np.arange(len(indices))
     assert np.allclose(scaled[BOTH, rows, poor[:, 1], poor[:, 2], poor[:, 0]], 2.0)
-    assert np.allclose(scaled[NEITHER, rows, poor[:, 1], poor[:, 2], poor[:, 0]], 0.0), (
-        "scaling an absent objective is a no-op, which is what makes it a source change"
-    )
+    assert np.allclose(
+        scaled[NEITHER, rows, poor[:, 1], poor[:, 2], poor[:, 0]], 0.0
+    ), "scaling an absent objective is a no-op, which is what makes it a source change"
 
 
 def test_cell_grids_unflattens_prefix_tokens_in_row_major_order() -> None:

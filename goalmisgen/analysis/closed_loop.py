@@ -128,7 +128,10 @@ def read_outcomes(targets, reached: np.ndarray, steps: np.ndarray, resamples: in
     tau = tau_of(np.ones_like(finished))
     index = np.flatnonzero(finished)
     low, high = bootstrap_episodes(
-        lambda r: indifference_point(gaps[index[r]], took_rich[index[r]]), np.arange(len(index)), resamples=resamples, seed=seed
+        lambda r: indifference_point(gaps[index[r]], took_rich[index[r]]),
+        np.arange(len(index)),
+        resamples=resamples,
+        seed=seed,
     )
     return Readout(
         tau=float(tau),

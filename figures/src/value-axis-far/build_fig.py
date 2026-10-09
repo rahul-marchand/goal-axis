@@ -65,10 +65,7 @@ def panel_letter(x, y, letter):
 
 
 def subtitle(x, y, text):
-    return (
-        f'<text x="{x}" y="{y}" font-size="13" font-weight="600" fill="var(--ink)" '
-        f'font-family="{SANS}">{text}</text>'
-    )
+    return f'<text x="{x}" y="{y}" font-size="13" font-weight="600" fill="var(--ink)" ' f'font-family="{SANS}">{text}</text>'
 
 
 class Chart:
@@ -105,9 +102,7 @@ class Chart:
                 )
         for t in yticks:
             py = self.py(t)
-            out.append(
-                f'<line x1="{self.x-4}" y1="{py}" x2="{self.x}" y2="{py}" stroke="var(--ink-soft)" stroke-width="1"/>'
-            )
+            out.append(f'<line x1="{self.x-4}" y1="{py}" x2="{self.x}" y2="{py}" stroke="var(--ink-soft)" stroke-width="1"/>')
             if ylabels:
                 out.append(
                     f'<text x="{self.x-8}" y="{py+3.5}" text-anchor="end" font-size="10" '
@@ -150,7 +145,9 @@ def marker(chart, v, m, colour, filled, square):
 def draw_series(chart, stats, colour, filled, dashed, square_beyond=None):
     out = []
     band_path = (
-        " ".join(f"{'M' if i == 0 else 'L'}{chart.px(v)},{chart.py(chart.clip(hi))}" for i, (v, _, (lo, hi), _) in enumerate(stats))
+        " ".join(
+            f"{'M' if i == 0 else 'L'}{chart.px(v)},{chart.py(chart.clip(hi))}" for i, (v, _, (lo, hi), _) in enumerate(stats)
+        )
         + " "
         + " ".join(f"L{chart.px(v)},{chart.py(chart.clip(lo))}" for v, _, (lo, hi), _ in reversed(stats))
         + " Z"
@@ -218,8 +215,10 @@ def build(name="value-axis-far"):
                 pts.append((v, y0 + sign * slope * v))
             # clip to the frame by walking the segment
             (v1, s1), (v2, s2) = pts
+
             def at_y(target):
                 return v1 + (target - s1) * (v2 - v1) / (s2 - s1)
+
             clipped = []
             for v, s in pts:
                 if YR[0] <= s <= YR[1]:
@@ -284,10 +283,14 @@ def build(name="value-axis-far"):
                 if glyph == "square":
                     svg.append(f'<rect x="{lx+5.6}" y="{ly-2.4}" width="4.8" height="4.8" fill="{colour}"/>')
                 elif glyph == "open":
-                    svg.append(f'<circle cx="{lx+8}" cy="{ly}" r="2.6" fill="var(--panel)" stroke="{colour}" stroke-width="1.5"/>')
+                    svg.append(
+                        f'<circle cx="{lx+8}" cy="{ly}" r="2.6" fill="var(--panel)" stroke="{colour}" stroke-width="1.5"/>'
+                    )
                 else:
                     svg.append(f'<circle cx="{lx+8}" cy="{ly}" r="2.6" fill="{colour}"/>')
-            svg.append(f'<text x="{lx+22}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>')
+            svg.append(
+                f'<text x="{lx+22}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>'
+            )
             lx += 22 + est(text) + gap
     svg.append(
         f'<text x="26" y="{(row_y[0]+row_y[1]+chart_h)/2}" text-anchor="middle" font-size="10.5" '

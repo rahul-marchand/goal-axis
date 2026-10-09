@@ -101,7 +101,9 @@ def parse_args() -> argparse.Namespace:
         "cosine is read against. The p-value cannot go below 1/(resamples+1).",
     )
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
+    parser.add_argument(
+        "--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept)."
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--at", type=int, default=-1, help="Which checkpoint of each arm, in step order.")
     parser.add_argument(

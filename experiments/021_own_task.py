@@ -80,7 +80,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-values", type=float, nargs="+", required=True)
     parser.add_argument("--episodes", type=int, default=2048)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
+    parser.add_argument(
+        "--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept)."
+    )
     parser.add_argument("--seed", type=int, default=0)
     return parser.parse_args()
 

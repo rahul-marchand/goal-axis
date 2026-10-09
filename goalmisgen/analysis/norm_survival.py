@@ -80,7 +80,9 @@ def decompose(tokens: np.ndarray, delta: np.ndarray) -> Decomposition:
     )
 
 
-def layer_norm(x: np.ndarray, scale: np.ndarray | None = None, bias: np.ndarray | None = None, epsilon: float = 1e-6) -> np.ndarray:
+def layer_norm(
+    x: np.ndarray, scale: np.ndarray | None = None, bias: np.ndarray | None = None, epsilon: float = 1e-6
+) -> np.ndarray:
     """``nn.LayerNorm`` in numpy, for applying a checkpoint's own first norm by hand."""
     x = np.asarray(x, dtype=np.float64)
     centred = x - x.mean(axis=-1, keepdims=True)

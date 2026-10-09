@@ -45,7 +45,9 @@ def main() -> None:
         direction = deltas[name].astype(np.float64)
         print(f"\n=== {name} ===\n  {'shift':>6}{'edit shift':>12}{'held-out shift':>16}")
         for shift in args.shifts:
-            moved = {k: read_outcomes(t, *backend.evaluate(flat + shift * direction, t)).tau - base[k] for k, t in sets.items()}
+            moved = {
+                k: read_outcomes(t, *backend.evaluate(flat + shift * direction, t)).tau - base[k] for k, t in sets.items()
+            }
             print(f"  {shift:>+6.1f}{moved['edit']:>+12.2f}{moved['held out']:>+16.2f}", flush=True)
 
 

@@ -81,7 +81,9 @@ def main() -> None:
     res = result.flip - gap
     q = np.nanpercentile(res[band], [25, 50, 75])
     print(f"\n{M} models, theta {result.thetas.min():.1f}..{result.thetas.max():.1f}")
-    print(f"bracketed {result.bracketed.mean():.1%} (low {result.censored_low.mean():.1%}, high {result.censored_high.mean():.1%})")
+    print(
+        f"bracketed {result.bracketed.mean():.1%} (low {result.censored_low.mean():.1%}, high {result.censored_high.mean():.1%})"
+    )
     print(
         f"violations in gap band {lo}..{hi}: per-decision {banded.violations.mean() / M:.1%}"
         f"  (zero {np.mean(banded.violations == 0):.1%}, <=2 {np.mean(banded.violations <= 2):.1%})"

@@ -145,8 +145,17 @@ def test_curve_loss_accepts_any_levels_that_produce_the_rate():
     logits[2:, 0, 2, RIGHT] = 5.0
     swapped = logits[::-1].copy()
     for candidate in (logits, swapped):
-        _, metrics = curve_loss(jnp.asarray(candidate), jnp.asarray(candidate), t.toward_rich, t.toward_poor, t.role,
-                                jnp.zeros(4, jnp.int32), jnp.full(4, 0.5), n_bins=1, temperature=0.1)
+        _, metrics = curve_loss(
+            jnp.asarray(candidate),
+            jnp.asarray(candidate),
+            t.toward_rich,
+            t.toward_poor,
+            t.role,
+            jnp.zeros(4, jnp.int32),
+            jnp.full(4, 0.5),
+            n_bins=1,
+            temperature=0.1,
+        )
         assert float(metrics["fork_error"]) < 1e-3
 
 
@@ -215,7 +224,9 @@ def test_teacher_forced_logits_equal_stepping_the_route(drc):
         for t in range(targets.steps):
             obs = np.stack([encoder.encode(level, tuple(targets.positions[i, branch, t])) for i, level in enumerate(levels)])
             starts = np.full(len(levels), t == 0)
-            carry, _, step_logits, _ = get_action(params, carry, obs.transpose(0, 3, 1, 2), starts, jax.random.PRNGKey(0), temperature=0.0)
+            carry, _, step_logits, _ = get_action(
+                params, carry, obs.transpose(0, 3, 1, 2), starts, jax.random.PRNGKey(0), temperature=0.0
+            )
             np.testing.assert_allclose(logits[:, branch, t], np.asarray(step_logits), rtol=1e-4, atol=1e-4)
 
 
@@ -252,8 +263,11 @@ def test_onpolicy_logits_are_the_teacher_forced_logits_of_the_agents_own_path(dr
 
     config, policy, params, levels, targets = drc
     flat, unravel = ravel_pytree(params)
-    batch = {"static": jnp.asarray(targets.static), "fields": jnp.asarray(targets.fields),
-             "start": jnp.asarray(targets.positions[:, 0, 0])}
+    batch = {
+        "static": jnp.asarray(targets.static),
+        "fields": jnp.asarray(targets.fields),
+        "start": jnp.asarray(targets.positions[:, 0, 0]),
+    }
     out = rl_edit.make_onpolicy_fn(policy, unravel, horizon=12)(flat, batch)
     forced = rl_edit.make_logits_fn(policy, unravel)(flat, {"static": batch["static"], "positions": out["positions"][:, None]})
     np.testing.assert_allclose(np.asarray(out["logits"]), np.asarray(forced)[:, 0], rtol=1e-4, atol=1e-4)
@@ -282,8 +296,12 @@ def test_the_gain_family_is_the_gain_part_of_the_input_kernel(drc):
 
 
 def test_lowrank_delta_lands_in_each_kernel_in_its_own_axis_order():
-    params = {"params": {"dense": {"kernel": np.zeros((3, 5), np.float32), "bias": np.zeros(5, np.float32)},
-                         "conv": {"kernel": np.zeros((2, 2, 3, 4), np.float32)}}}
+    params = {
+        "params": {
+            "dense": {"kernel": np.zeros((3, 5), np.float32), "bias": np.zeros(5, np.float32)},
+            "conv": {"kernel": np.zeros((2, 2, 3, 4), np.float32)},
+        }
+    }
     flat, unravel = ravel_pytree(params)
     kernels = weight_kernels(params)
     family = LowRankEdit(size=flat.size, kernels=kernels, rank=1)
@@ -307,12 +325,25 @@ def test_search_lowers_the_loss_on_a_tiny_drc(drc):
     _, policy, params, _, targets = drc
     flat, unravel = ravel_pytree(params)
     arrays = {
-        "static": targets.static, "positions": targets.positions, "toward_rich": targets.toward_rich,
-        "toward_poor": targets.toward_poor, "role": targets.role, "gap": targets.gap, "rich_above": targets.rich_above, "margin_offset": np.tile(np.float32([-1.0, 1.0]), (len(targets), 1)), "rule_sign": np.tile(np.float32([-1.0, 1.0]), (len(targets), 1)), "rule_weight": np.ones(len(targets), np.float32), "gap_bin": np.zeros(len(targets), np.int32), "curve_rate": np.tile(np.float32([0.0, 1.0]), (len(targets), 1)),
+        "static": targets.static,
+        "positions": targets.positions,
+        "toward_rich": targets.toward_rich,
+        "toward_poor": targets.toward_poor,
+        "role": targets.role,
+        "gap": targets.gap,
+        "rich_above": targets.rich_above,
+        "margin_offset": np.tile(np.float32([-1.0, 1.0]), (len(targets), 1)),
+        "rule_sign": np.tile(np.float32([-1.0, 1.0]), (len(targets), 1)),
+        "rule_weight": np.ones(len(targets), np.float32),
+        "gap_bin": np.zeros(len(targets), np.int32),
+        "curve_rate": np.tile(np.float32([0.0, 1.0]), (len(targets), 1)),
     }
     family = DenseEdit(size=flat.size)
     result = search(
-        family, rl_edit.make_logits_fn(policy, unravel), flat, arrays,
+        family,
+        rl_edit.make_logits_fn(policy, unravel),
+        flat,
+        arrays,
         SearchConfig(shifts=(-2.0, 2.0), tau_base=0.0, scale=1.0, steps=30, batch=6, lr=1e-2, log_every=29, margin_slope=0.3),
         log=lambda _: None,
     )

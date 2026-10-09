@@ -92,8 +92,11 @@ def main() -> None:
         if not np.array_equal(data["d_rich"], reference["d_rich"]) or not np.array_equal(data["d_poor"], reference["d_poor"]):
             sys.exit(f"{name}: same length as the base but different levels; pairing is broken")
     if dropped:
-        print(f"skipped {len(dropped)} shorter decodes (not level-paired): "
-              + ", ".join(sorted(dropped)[:4]) + (" ..." if len(dropped) > 4 else ""))
+        print(
+            f"skipped {len(dropped)} shorter decodes (not level-paired): "
+            + ", ".join(sorted(dropped)[:4])
+            + (" ..." if len(dropped) > 4 else "")
+        )
 
     def tau_on(data: dict, rows: np.ndarray) -> float:
         rows = rows & finite & data["reached"]
@@ -120,8 +123,10 @@ def main() -> None:
         common = finite & reference["reached"]
         for _, name in members:
             common = common & loaded[name]["reached"]
-        print(f"=== {family} ===  common set {common.sum():,} levels "
-              f"({common.sum() / max(int(finite.sum()), 1):.1%} of the trade-off levels)")
+        print(
+            f"=== {family} ===  common set {common.sum():,} levels "
+            f"({common.sum() / max(int(finite.sum()), 1):.1%} of the trade-off levels)"
+        )
         print(f"  {'at':>8}{'reached':>9}{'tau':>8}{'common':>9}{'base here':>11}{'mean gap':>10}{'common gap':>12}")
         base_common = tau_on(reference, common)
         rows = []
@@ -129,17 +134,24 @@ def main() -> None:
             data = loaded[name]
             keep = finite & data["reached"]
             row = {
-                "name": name, "at": position, "reached": float(data["reached"].mean()),
-                "tau": tau_on(data, everything), "tau_common": tau_on(data, common),
+                "name": name,
+                "at": position,
+                "reached": float(data["reached"].mean()),
+                "tau": tau_on(data, everything),
+                "tau_common": tau_on(data, common),
                 "base_tau_here": tau_on(reference, keep),
                 "mean_gap": float(gaps[keep].mean()) if keep.any() else float("nan"),
                 "mean_gap_common": float(gaps[common].mean()) if common.any() else float("nan"),
             }
             rows.append(row)
-            print(f"  {position:>8.3g}{row['reached']:>9.1%}{row['tau']:>8.2f}{row['tau_common']:>9.2f}"
-                  f"{row['base_tau_here']:>11.2f}{row['mean_gap']:>10.2f}{row['mean_gap_common']:>12.2f}")
-        print(f"  {'base':>8}{reference['reached'].mean():>9.1%}{base_tau:>8.2f}{base_common:>9.2f}"
-              f"{base_tau:>11.2f}{gaps[finite & reference['reached']].mean():>10.2f}{gaps[common].mean():>12.2f}\n")
+            print(
+                f"  {position:>8.3g}{row['reached']:>9.1%}{row['tau']:>8.2f}{row['tau_common']:>9.2f}"
+                f"{row['base_tau_here']:>11.2f}{row['mean_gap']:>10.2f}{row['mean_gap_common']:>12.2f}"
+            )
+        print(
+            f"  {'base':>8}{reference['reached'].mean():>9.1%}{base_tau:>8.2f}{base_common:>9.2f}"
+            f"{base_tau:>11.2f}{gaps[finite & reference['reached']].mean():>10.2f}{gaps[common].mean():>12.2f}\n"
+        )
         out["families"][family] = {"common_levels": int(common.sum()), "base_tau_common": base_common, "rows": rows}
 
     out["base_tau"] = base_tau

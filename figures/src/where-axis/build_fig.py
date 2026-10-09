@@ -50,7 +50,9 @@ def label(x, y, text, anchor="middle", size=10.5):
 
 
 def panel_letter(x, y, letter):
-    return f'<text x="{x}" y="{y}" font-size="13" font-style="italic" fill="var(--ink)" font-family="{SERIF}">({letter})</text>'
+    return (
+        f'<text x="{x}" y="{y}" font-size="13" font-style="italic" fill="var(--ink)" font-family="{SERIF}">({letter})</text>'
+    )
 
 
 def subtitle(x, y, text):
@@ -129,10 +131,14 @@ def build():
     lx = (WIDTH - (sum(24 + est(t) for _, t in items) + 40 + 26 * len(items))) / 2
     for colour, text in items:
         svg.append(f'<rect x="{lx}" y="{ly-5}" width="16" height="10" fill="{colour}"/>')
-        svg.append(f'<text x="{lx+24}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>')
+        svg.append(
+            f'<text x="{lx+24}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>'
+        )
         lx += 24 + est(text) + 26
     svg.append(whisker(lx - 8, ly, 0, 100 * 16 / CHART_W))
-    svg.append(f'<text x="{lx+16}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">range across bases</text>')
+    svg.append(
+        f'<text x="{lx+16}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">range across bases</text>'
+    )
     height = ly + 18
 
     fragment = f"""<figure class="fig-where-axis wide" id="where-axis-fig">

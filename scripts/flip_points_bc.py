@@ -72,7 +72,7 @@ def main() -> None:
     print(header())
     print()
     print(f"First {N:,} levels of offline/demos/test.rho100; unreached counts as not-taken.")
-    print(f"Models are kept when their crossing lies in (0.5, 25) steps.\n")
+    print("Models are kept when their crossing lies in (0.5, 25) steps.\n")
 
     rng = np.random.default_rng(0)
     residuals = {}

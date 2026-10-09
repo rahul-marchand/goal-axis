@@ -88,7 +88,13 @@ def summarise(table, surface, rows):
         width[i] = fit.width(i, near_median)
         near_coef, gap_coef = fit.interaction(i)
         bands = banded_crossings(table, i, BANDS)
-        for name, value in [("tau", tau[i]), ("tilt", tilt[i]), ("width", width[i]), ("near_coef", near_coef), ("gap_coef", gap_coef)]:
+        for name, value in [
+            ("tau", tau[i]),
+            ("tilt", tilt[i]),
+            ("width", width[i]),
+            ("near_coef", near_coef),
+            ("gap_coef", gap_coef),
+        ]:
             keys.append((row["name"], name))
             out.append(value)
         for b, value in zip(BANDS, bands):
@@ -130,24 +136,39 @@ def report_base(directory: Path, resamples: int, say) -> dict:
     table = tabulate(decisions)
     surface = Surface.for_table(table)
     say(f"\n{'=' * 100}\n{base_name}   checkpoint {manifest['checkpoint']}")
-    say(f"levels {manifest['levels']} [{manifest['split']}], {manifest['episodes']:,} episodes per condition, "
-        f"{len(rows)} conditions, paired across conditions: {is_paired}")
-    say(f"surface: gap knots {surface.gap_knots[0]:g}..{surface.gap_knots[-1]:g}, d_near knots "
-        f"{surface.near_knots[0]:g}..{surface.near_knots[-1]:g}, median-ish d_near {surface.near_centre:.2f}")
+    say(
+        f"levels {manifest['levels']} [{manifest['split']}], {manifest['episodes']:,} episodes per condition, "
+        f"{len(rows)} conditions, paired across conditions: {is_paired}"
+    )
+    say(
+        f"surface: gap knots {surface.gap_knots[0]:g}..{surface.gap_knots[-1]:g}, d_near knots "
+        f"{surface.near_knots[0]:g}..{surface.near_knots[-1]:g}, median-ish d_near {surface.near_centre:.2f}"
+    )
 
     # --- field shape --------------------------------------------------------
     shape = field_shape(table, condition=0)
     lr = shape.deviance_linear - shape.deviance_free
     say("\n--- base field shape, ratio model logit = c + psi(d_rich) - psi(d_poor) ---")
-    say(f"  linear psi (exponential field): slope {shape.slope:+.3f} log-odds/step, crossing at gap {-shape.intercept / shape.slope:.2f} steps")
-    say(f"  free vs linear psi: deviance +{lr:.1f} on {shape.df} df (p {stats.chi2.sf(lr, shape.df):.2g});"
-        f" largest departure {shape.max_departure_steps:.2f} steps of distance")
+    say(
+        f"  linear psi (exponential field): slope {shape.slope:+.3f} log-odds/step, crossing at gap {-shape.intercept / shape.slope:.2f} steps"
+    )
+    say(
+        f"  free vs linear psi: deviance +{lr:.1f} on {shape.df} df (p {stats.chi2.sf(lr, shape.df):.2g});"
+        f" largest departure {shape.max_departure_steps:.2f} steps of distance"
+    )
     aic = shape.ratio_vs_surface_deviance - 2 * shape.ratio_vs_surface_df
-    say(f"  ratio model (free psi) vs the h surface (not nested): deviance +{shape.ratio_vs_surface_deviance:.1f} with "
-        f"{shape.ratio_vs_surface_df} fewer parameters; AIC(ratio) - AIC(surface) = {aic:+.1f}")
+    say(
+        f"  ratio model (free psi) vs the h surface (not nested): deviance +{shape.ratio_vs_surface_deviance:.1f} with "
+        f"{shape.ratio_vs_surface_df} fewer parameters; AIC(ratio) - AIC(surface) = {aic:+.1f}"
+    )
     linear_steps = -(shape.psi - shape.psi[np.isfinite(shape.psi)][0]) / (-shape.slope) if shape.slope else shape.psi
     say("  psi in steps (free psi / |linear slope|; a straight line of slope 1 is exponential):")
-    say("    " + "  ".join(f"d{d}:{v:5.1f}" for d, v, c in zip(shape.distances, linear_steps, shape.counts) if np.isfinite(v) and c >= 200))
+    say(
+        "    "
+        + "  ".join(
+            f"d{d}:{v:5.1f}" for d, v, c in zip(shape.distances, linear_steps, shape.counts) if np.isfinite(v) and c >= 200
+        )
+    )
 
     # --- global -----------------------------------------------------------------
     fits = {m: fit_model(table, m, surface=surface) for m in ("separable", "near", "width", "full")}
@@ -156,7 +177,9 @@ def report_base(directory: Path, resamples: int, say) -> dict:
     for m in ("near", "width", "full"):
         d = fits["separable"].deviance - fits[m].deviance
         df = c * (2 if m == "full" else 1)
-        say(f"  separable -> {m:<6} deviance -{d:8.1f} on {df:>3} df  (chi2 p {stats.chi2.sf(d, df):.2g}; clustered, optimistic)")
+        say(
+            f"  separable -> {m:<6} deviance -{d:8.1f} on {df:>3} df  (chi2 p {stats.chi2.sf(d, df):.2g}; clustered, optimistic)"
+        )
     say(f"  residual deviance of full model {fits['full'].deviance:.0f} on {len(table.n) - fits['full'].n_params} df")
 
     # --- bootstrap ----------------------------------------------------------------
@@ -177,8 +200,10 @@ def report_base(directory: Path, resamples: int, say) -> dict:
     say(f"  {'condition':<18}{'gain':>7}{'reach':>7}{'route':>7}  {'tau':^22}{'tilt':^22}{'width':^22}{'x near coef':^22}")
     for row in rows:
         gain = next(iter(row["gains"].values())) if row.get("gains") else 1.0
-        say(f"  {row['name']:<18}{gain:>7.3g}{row['reached']:>7.1%}{row['on_route']:>7.1%}  "
-            f"{fmt(row['name'], 'tau'):^22}{fmt(row['name'], 'tilt', 3):^22}{fmt(row['name'], 'width'):^22}{fmt(row['name'], 'near_coef', 3):^22}")
+        say(
+            f"  {row['name']:<18}{gain:>7.3g}{row['reached']:>7.1%}{row['on_route']:>7.1%}  "
+            f"{fmt(row['name'], 'tau'):^22}{fmt(row['name'], 'tilt', 3):^22}{fmt(row['name'], 'width'):^22}{fmt(row['name'], 'near_coef', 3):^22}"
+        )
     say("\n  banded nonparametric crossings (steps), d_near bands " + " ".join(f"{a}-{b}" for a, b in BANDS))
     for row in rows:
         say(f"  {row['name']:<18}" + "".join(f"{ci(row['name'], f'band{a}-{b}')[0]:>8.2f}" for a, b in BANDS))
@@ -187,24 +212,36 @@ def report_base(directory: Path, resamples: int, say) -> dict:
     say(f"  {'brightness':<18}{'matches':<12}{'d tau':^22}{'d tilt':^24}{'d width':^22}")
     for row in rows:
         if row["kind"] == "matched":
-            say(f"  {row['name']:<18}{row['matches']:<12}{fmt(row['name'], 'd_tau'):^22}{fmt(row['name'], 'd_tilt', 3):^24}{fmt(row['name'], 'd_width'):^22}")
+            say(
+                f"  {row['name']:<18}{row['matches']:<12}{fmt(row['name'], 'd_tau'):^22}{fmt(row['name'], 'd_tilt', 3):^24}{fmt(row['name'], 'd_width'):^22}"
+            )
 
     say("\n--- family trends: how contour tilt and width move per step of threshold ---")
     for family in ("axis", "bright_in_range", "bright", "axis-bright_in_range"):
-        say(f"  {family:<22} tilt/tau {fmt('family:' + family, 'tilt_per_tau', 3):<26} width/tau {fmt('family:' + family, 'width_per_tau', 3)}")
+        say(
+            f"  {family:<22} tilt/tau {fmt('family:' + family, 'tilt_per_tau', 3):<26} width/tau {fmt('family:' + family, 'width_per_tau', 3)}"
+        )
 
     result = {
         "base": base_name,
         "paired": is_paired,
         "conditions": rows,
         "field_shape": {
-            "slope": shape.slope, "intercept": shape.intercept, "lr_free_vs_linear": lr, "df": shape.df,
-            "max_departure_steps": shape.max_departure_steps, "ratio_vs_surface_deviance": shape.ratio_vs_surface_deviance,
-            "ratio_vs_surface_df": shape.ratio_vs_surface_df, "psi": shape.psi.tolist(), "counts": shape.counts.tolist(),
+            "slope": shape.slope,
+            "intercept": shape.intercept,
+            "lr_free_vs_linear": lr,
+            "df": shape.df,
+            "max_departure_steps": shape.max_departure_steps,
+            "ratio_vs_surface_deviance": shape.ratio_vs_surface_deviance,
+            "ratio_vs_surface_df": shape.ratio_vs_surface_df,
+            "psi": shape.psi.tolist(),
+            "counts": shape.counts.tolist(),
         },
         "global": {m: {"deviance": f.deviance, "n_params": f.n_params} for m, f in fits.items()},
-        "stats": [{"condition": k[0], "quantity": k[1], "point": float(point[j]), "low": float(low[j]), "high": float(high[j])}
-                  for j, k in enumerate(keys)],
+        "stats": [
+            {"condition": k[0], "quantity": k[1], "point": float(point[j]), "low": float(low[j]), "high": float(high[j])}
+            for j, k in enumerate(keys)
+        ],
         "bands": BANDS,
     }
     return result

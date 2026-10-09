@@ -58,34 +58,44 @@ def main() -> None:
         payload = root / f"{base}.json"
         table = tables / f"e14-{base}.txt"
         if not payload.exists():
-            parts.append("Not finished; see the .err file.\n" if not table.exists()
-                         else "```\n" + table.read_text()[-4000:] + "\n```\n")
+            parts.append(
+                "Not finished; see the .err file.\n" if not table.exists() else "```\n" + table.read_text()[-4000:] + "\n```\n"
+            )
             continue
         data = json.loads(payload.read_text())
-        parts.append(f"Levels {data['levels']}, train fraction {data['train_frac']}, "
-                     f"measured threshold **{data['tau']:.2f}** "
-                     f"[{data['tau_low']:.2f}, {data['tau_high']:.2f}], reached {data['reached']:.1%}.\n")
+        parts.append(
+            f"Levels {data['levels']}, train fraction {data['train_frac']}, "
+            f"measured threshold **{data['tau']:.2f}** "
+            f"[{data['tau_low']:.2f}, {data['tau_high']:.2f}], reached {data['reached']:.1%}.\n"
+        )
         readouts = [r for r in data["rows"] if r["analysis"] == "readout"]
         controls = {(r["site"], r["readout"]): r for r in data["rows"] if r["analysis"] == "control"}
         parts.append("\n| site | readout | AUC | corr with gap | crossing | n |")
         parts.append("|---|---|---|---|---|---|")
         for row in readouts:
-            parts.append(f"| {row['site']} | {row['readout']} | {row['auc']:.3f} | {row['corr']:+.3f} "
-                         f"| {row['crossing']:+.2f} | {row['n']} |")
+            parts.append(
+                f"| {row['site']} | {row['readout']} | {row['auc']:.3f} | {row['corr']:+.3f} "
+                f"| {row['crossing']:+.2f} | {row['n']} |"
+            )
         parts.append("\n### Controls\n")
-        parts.append("| site | random: mean AUC | random: best AUC | random: median crossing | "
-                     "shuffled AUC | shuffled crossing |")
+        parts.append(
+            "| site | random: mean AUC | random: best AUC | random: median crossing | " "shuffled AUC | shuffled crossing |"
+        )
         parts.append("|---|---|---|---|---|---|")
-        sites = sorted({s for s, _ in controls}, key=lambda s: [r["site"] for r in readouts].index(s)
-                       if s in [r["site"] for r in readouts] else 99)
+        sites = sorted(
+            {s for s, _ in controls},
+            key=lambda s: [r["site"] for r in readouts].index(s) if s in [r["site"] for r in readouts] else 99,
+        )
         for site in sites:
             rand = controls.get((site, "random"), {})
             shuffled = controls.get((site, "shuffled"), {})
-            parts.append(f"| {site} | {rand.get('auc_mean', float('nan')):.3f} | "
-                         f"{rand.get('auc_best', float('nan')):.3f} | "
-                         f"{rand.get('crossing_median', float('nan')):+.2f} | "
-                         f"{shuffled.get('auc', float('nan')):.3f} | "
-                         f"{shuffled.get('crossing', float('nan')):+.2f} |")
+            parts.append(
+                f"| {site} | {rand.get('auc_mean', float('nan')):.3f} | "
+                f"{rand.get('auc_best', float('nan')):.3f} | "
+                f"{rand.get('crossing_median', float('nan')):+.2f} | "
+                f"{shuffled.get('auc', float('nan')):.3f} | "
+                f"{shuffled.get('crossing', float('nan')):+.2f} |"
+            )
         direction = [r for r in data["rows"] if r["analysis"] == "direction"]
         if direction:
             parts.append("\n### What the direction is\n")

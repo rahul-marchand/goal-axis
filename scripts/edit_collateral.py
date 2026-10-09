@@ -96,7 +96,9 @@ def main() -> None:
     def run(flat, static, start):
         reached, steps = [], []
         for s in range(0, len(static), 1024):
-            r, t = rollout(jnp.asarray(flat, dtype=jnp.float32), jnp.asarray(static[s : s + 1024]), jnp.asarray(start[s : s + 1024]), ones)
+            r, t = rollout(
+                jnp.asarray(flat, dtype=jnp.float32), jnp.asarray(static[s : s + 1024]), jnp.asarray(start[s : s + 1024]), ones
+            )
             reached.append(np.asarray(r))
             steps.append(np.asarray(t))
         return np.concatenate(reached), np.concatenate(steps)
@@ -123,10 +125,18 @@ def main() -> None:
         )
 
     columns = f"  {'condition':<22}{'target':>7}{'tau':>7} {'95% interval':<13}{'reach':>7}{'route':>7}{'away':>8}{'R ok':>7}{'R opt':>7}{'P ok':>7}{'P opt':>7}"
-    legend = (f"  away = accuracy on levels >= {args.margin:g} steps from the condition's own threshold; "
-              "R/P = only the richer/poorer objective left: success and shortest-route rate")
+    legend = (
+        f"  away = accuracy on levels >= {args.margin:g} steps from the condition's own threshold; "
+        "R/P = only the richer/poorer objective left: success and shortest-route rate"
+    )
 
-    out: dict = {"run": str(args.run), "levels": args.levels, "n_eval": len(targets), "margin": args.margin, "shifts": args.shifts}
+    out: dict = {
+        "run": str(args.run),
+        "levels": args.levels,
+        "n_eval": len(targets),
+        "margin": args.margin,
+        "shifts": args.shifts,
+    }
     print("=== base ===")
     print(legend)
     print(columns)
@@ -144,14 +154,21 @@ def main() -> None:
         directions[name] = np.mean([np.asarray(npz[k], dtype=np.float64) for k in seeds], axis=0)
 
     rows = np.random.default_rng(0).choice(len(targets), size=min(128, len(targets)), replace=False)
-    arrays = {k: np.asarray(getattr(targets, k)[rows]) for k in ("static", "positions", "toward_rich", "toward_poor", "role", "gap", "rich_above")}
+    arrays = {
+        k: np.asarray(getattr(targets, k)[rows])
+        for k in ("static", "positions", "toward_rich", "toward_poor", "role", "gap", "rich_above")
+    }
 
     out["edits"] = {}
     print("\n=== searched edits, written at each dose (steps of threshold) ===")
     print(columns)
     for name, delta in directions.items():
-        entry = {"norm_per_step": float(np.linalg.norm(delta)), "relative_per_step": relative_change(delta, base, groups, order),
-                 "weight_cos_v": float(cosine(delta, v_step)), "doses": []}
+        entry = {
+            "norm_per_step": float(np.linalg.norm(delta)),
+            "relative_per_step": relative_change(delta, base, groups, order),
+            "weight_cos_v": float(cosine(delta, v_step)),
+            "doses": [],
+        }
         for shift in args.shifts:
             row = measure(base + shift * delta, tau_base + shift)
             row["shift"] = shift
@@ -181,14 +198,19 @@ def main() -> None:
         for module in frozen:
             movable[groups[module]] = False
         row = measure(base + diff)
-        row.update({
-            "offset": offset, "checkpoint": str(checkpoints[-1]), "frozen": frozen,
-            "frozen_norm": float(np.linalg.norm(diff[~movable])), "norm": float(np.linalg.norm(diff)),
-            "relative": relative_change(diff, base, groups, order),
-            "weight_cos_v": float(cosine(diff, v_step)),
-            "weight_cos_v_movable": float(cosine(diff[movable], v_step[movable])),
-            "v_share_in_frozen": float(v_step[~movable] @ v_step[~movable] / (v_step @ v_step)),
-        })
+        row.update(
+            {
+                "offset": offset,
+                "checkpoint": str(checkpoints[-1]),
+                "frozen": frozen,
+                "frozen_norm": float(np.linalg.norm(diff[~movable])),
+                "norm": float(np.linalg.norm(diff)),
+                "relative": relative_change(diff, base, groups, order),
+                "weight_cos_v": float(cosine(diff, v_step)),
+                "weight_cos_v_movable": float(cosine(diff[movable], v_step[movable])),
+                "v_share_in_frozen": float(v_step[~movable] @ v_step[~movable] / (v_step @ v_step)),
+            }
+        )
         show(name, row)
         out["arms"][name] = row
         directions[f"arm:{name}"] = diff
@@ -204,18 +226,30 @@ def main() -> None:
         taus = np.array([out["arms"][n]["tau"] for n in names])
         slope = float(np.polyfit(offsets, taus, 1)[0])
         directions[f"axis:{family}"] = axis / slope if abs(slope) > 1e-9 else axis
-        out["fitted"][family] = {"arms": names, "offsets": offsets.tolist(), "taus": taus.tolist(), "slope_steps_per_unit": slope,
-                                 "weight_cos_v": float(cosine(axis, v_step)),
-                                 "modules": compare.per_module(axis / np.linalg.norm(axis), v_step, groups, order)}
-        print(f"\nfitted {family} axis from {len(names)} arms: threshold slope {slope:+.2f} steps per unit value, cos(axis, v) {out['fitted'][family]['weight_cos_v']:+.3f}")
+        out["fitted"][family] = {
+            "arms": names,
+            "offsets": offsets.tolist(),
+            "taus": taus.tolist(),
+            "slope_steps_per_unit": slope,
+            "weight_cos_v": float(cosine(axis, v_step)),
+            "modules": compare.per_module(axis / np.linalg.norm(axis), v_step, groups, order),
+        }
+        print(
+            f"\nfitted {family} axis from {len(names)} arms: threshold slope {slope:+.2f} steps per unit value, cos(axis, v) {out['fitted'][family]['weight_cos_v']:+.3f}"
+        )
     if {"frozen", "free"} <= set(out["fitted"]):
         fa, ra = directions["axis:frozen"], directions["axis:free"]
         frozen = out["arms"][out["fitted"]["frozen"]["arms"][0]]["frozen"]
         movable = np.ones(len(base), dtype=bool)
         for module in frozen:
             movable[groups[module]] = False
-        out["fitted"]["frozen_vs_free"] = {"cos": float(cosine(fa, ra)), "cos_movable": float(cosine(fa[movable], ra[movable]))}
-        print(f"cos(frozen axis, free axis) {out['fitted']['frozen_vs_free']['cos']:+.3f}; on the coordinates both could move {out['fitted']['frozen_vs_free']['cos_movable']:+.3f}")
+        out["fitted"]["frozen_vs_free"] = {
+            "cos": float(cosine(fa, ra)),
+            "cos_movable": float(cosine(fa[movable], ra[movable])),
+        }
+        print(
+            f"cos(frozen axis, free axis) {out['fitted']['frozen_vs_free']['cos']:+.3f}; on the coordinates both could move {out['fitted']['frozen_vs_free']['cos_movable']:+.3f}"
+        )
 
     # --- function space ---------------------------------------------------------------------
     tangents = compare.function_tangents(logits_fn, base, arrays, directions)

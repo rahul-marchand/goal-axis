@@ -253,7 +253,16 @@ def test_an_arm_that_reached_its_length_is_left_alone(volume: Path) -> None:
 
 def run_sweep(root: Path, tag: str, *extra: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(REPO / "scripts" / "value_axis_sweep.py"), "--data", str(root), "--agent", tag, "--dry-run", *extra],
+        [
+            sys.executable,
+            str(REPO / "scripts" / "value_axis_sweep.py"),
+            "--data",
+            str(root),
+            "--agent",
+            tag,
+            "--dry-run",
+            *extra,
+        ],
         capture_output=True,
         text=True,
         cwd=REPO,

@@ -85,12 +85,23 @@ def test_demonstrations_can_pin_colours_too(tmp_path) -> None:
     dataset = LevelDataset.generate(sampler, n_levels=8, seed=0, block_size=8)
 
     keyed = demos_module.demonstrate_block(
-        dataset, np.arange(len(dataset)), rho=1.0, seed=0,
-        step_penalty=0.05, step_limit=120, max_actions=64, colour_keyed=True,
+        dataset,
+        np.arange(len(dataset)),
+        rho=1.0,
+        seed=0,
+        step_penalty=0.05,
+        step_limit=120,
+        max_actions=64,
+        colour_keyed=True,
     )
     correlated = demos_module.demonstrate_block(
-        dataset, np.arange(len(dataset)), rho=1.0, seed=0,
-        step_penalty=0.05, step_limit=120, max_actions=64,
+        dataset,
+        np.arange(len(dataset)),
+        rho=1.0,
+        seed=0,
+        step_penalty=0.05,
+        step_limit=120,
+        max_actions=64,
     )
     richest = np.argmax(keyed["values"], axis=1)
     rows = np.arange(len(dataset))

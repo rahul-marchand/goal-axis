@@ -54,8 +54,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def permute_planes(observations: np.ndarray, channel_axis: int, gains: dict[int, float] | None = None,
-                   swap: bool = False) -> np.ndarray:
+def permute_planes(
+    observations: np.ndarray, channel_axis: int, gains: dict[int, float] | None = None, swap: bool = False
+) -> np.ndarray:
     """Copy of ``observations`` with the two colour planes optionally exchanged, then scaled."""
     out = np.array(observations, dtype=np.float32, copy=True)
     moved = np.moveaxis(out, channel_axis, -1)
@@ -84,12 +85,20 @@ def main() -> None:
     lengths = {c: float(np.linalg.norm(whole[kernel.plane(c)])) for c in COLOUR}
     ratio = lengths[COLOUR[0]] / lengths[COLOUR[1]]
     print(f"base   {checkpoint}, values {values}")
-    print(f"input  {kernel.path} {kernel.shape}; |K0| {lengths[COLOUR[0]]:.3f}, |K1| {lengths[COLOUR[1]]:.3f}, "
-          f"ratio {ratio:.3f}\n")
+    print(
+        f"input  {kernel.path} {kernel.shape}; |K0| {lengths[COLOUR[0]]:.3f}, |K1| {lengths[COLOUR[1]]:.3f}, "
+        f"ratio {ratio:.3f}\n"
+    )
 
     greedy = Greedy.of(base)
-    out: dict = {"run": str(args.run), "checkpoint": str(checkpoint), "values": list(values),
-                 "lengths": {str(k): v for k, v in lengths.items()}, "ratio": ratio, "rows": []}
+    out: dict = {
+        "run": str(args.run),
+        "checkpoint": str(checkpoint),
+        "values": list(values),
+        "lengths": {str(k): v for k, v in lengths.items()},
+        "ratio": ratio,
+        "rows": [],
+    }
 
     def measure(label: str, swap: bool, gains: dict[int, float] | None = None) -> None:
         found = greedy.threshold(
@@ -99,9 +108,18 @@ def main() -> None:
         reached = found.reached
         route = on_shortest_route(outcomes)
         print(f"  {label:>28}{point:>9.2f}  [{low:6.1f},{high:6.1f}]{reached:>9.1%}{route:>9.1%}", flush=True)
-        out["rows"].append({"label": label, "swap": swap, "steps": float(point), "low": float(low),
-                            "high": float(high), "reached": float(reached), "on_route": float(route),
-                            "gains": {str(k): v for k, v in (gains or {}).items()}})
+        out["rows"].append(
+            {
+                "label": label,
+                "swap": swap,
+                "steps": float(point),
+                "low": float(low),
+                "high": float(high),
+                "reached": float(reached),
+                "on_route": float(route),
+                "gains": {str(k): v for k, v in (gains or {}).items()},
+            }
+        )
 
     print(f"  {'':>28}{'steps':>9}  {'95% interval':^15}{'reached':>9}{'route':>9}")
     measure("base", swap=False)

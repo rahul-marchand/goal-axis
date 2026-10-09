@@ -54,10 +54,14 @@ def pava_decreasing(y, w):
     """Weighted least-squares fit, constrained non-increasing."""
     vals, wts, sizes = [], [], []
     for yi, wi in zip(y, w):
-        vals.append(float(yi)); wts.append(float(wi)); sizes.append(1)
+        vals.append(float(yi))
+        wts.append(float(wi))
+        sizes.append(1)
         while len(vals) > 1 and vals[-2] < vals[-1]:
             v = (vals[-2] * wts[-2] + vals[-1] * wts[-1]) / (wts[-2] + wts[-1])
-            vals[-2:] = [v]; wts[-2:] = [wts[-2] + wts[-1]]; sizes[-2:] = [sizes[-2] + sizes[-1]]
+            vals[-2:] = [v]
+            wts[-2:] = [wts[-2] + wts[-1]]
+            sizes[-2:] = [sizes[-2] + sizes[-1]]
     return np.concatenate([np.full(n, v) for v, n in zip(vals, sizes)])
 
 
@@ -91,7 +95,8 @@ for sweep in ("o0", "o1"):
         for off in OFFSETS:
             th, _, _ = quartiles(path_of("written", seed, sweep, off))
             if np.isfinite(th) and th > 0:
-                offs.append(off); ths.append(th)
+                offs.append(off)
+                ths.append(th)
         offs, ths = np.array(offs), np.array(ths)
         r2a, ca = r2_and_slope(offs, np.log(ths))
         keep = ths <= 20
@@ -118,9 +123,11 @@ for label, kw, cap in [
                         continue
                     if cap is not None and th > cap:
                         continue
-                    lo.append(q25 / th); hi.append(q75 / th)
+                    lo.append(q25 / th)
+                    hi.append(q75 / th)
                 if len(lo) >= 5:
-                    lo_stats.append((np.mean(lo), np.std(lo))); hi_stats.append((np.mean(hi), np.std(hi)))
+                    lo_stats.append((np.mean(lo), np.std(lo)))
+                    hi_stats.append((np.mean(hi), np.std(hi)))
     lm, ls = np.array(lo_stats).mean(0)
     hm, hs = np.array(hi_stats).mean(0)
     print(f"  {label:<34} q25/t {lm:.2f} ± {ls:.3f}    q75/t {hm:.2f} ± {hs:.3f}   ({len(lo_stats)} series)")

@@ -22,7 +22,7 @@ import pathlib
 SRC = pathlib.Path(__file__).resolve().parent
 DATA = json.loads((SRC / "data.json").read_text())
 
-CELL = 15.0         # one cell size everywhere: the panels must weigh the same
+CELL = 15.0  # one cell size everywhere: the panels must weigh the same
 PLAN_CELL = 15.0
 
 SANS = "'IBM Plex Sans', system-ui, sans-serif"
@@ -59,9 +59,7 @@ def grid(x, y, cell, walls, fills, rx=1.0, border=True, lattice=False):
             if ch == "1":
                 out.append(f'<rect x="{x+c*cell}" y="{y+r*cell}" width="{cell}" height="{cell}" fill="var(--wall)"/>')
     for (r, c), fill in fills.items():
-        out.append(
-            f'<rect x="{x+c*cell+0.5}" y="{y+r*cell+0.5}" width="{cell-1}" height="{cell-1}" fill="{fill}" rx="{rx}"/>'
-        )
+        out.append(f'<rect x="{x+c*cell+0.5}" y="{y+r*cell+0.5}" width="{cell-1}" height="{cell-1}" fill="{fill}" rx="{rx}"/>')
     if border:
         out.append(
             f'<rect x="{x-0.5}" y="{y-0.5}" width="{cell*11+1}" height="{cell*11+1}" fill="none" '
@@ -175,7 +173,7 @@ def build():
             svg.append(
                 f'<text x="{x + w / 2}" y="{y + w + 14 + j * 14}" text-anchor="middle" '
                 f'font-size="11" font-weight="{weight}" fill="{colour}" font-family="{MONO}">'
-                f'{value} − 0.05×{d} = {utility:+.2f}</text>'
+                f"{value} − 0.05×{d} = {utility:+.2f}</text>"
             )
 
     width = b_x + block_w + 24

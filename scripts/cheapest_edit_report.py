@@ -48,7 +48,12 @@ def summarise(rows: list[dict], base: dict, trained: set[float]) -> dict:
     ok = [r for r in rows if competent(r, base)] + [base]
     # Contingent control: the threshold should move up by the shift where the richer goal is above and down where
     # it is below, so half the difference between the two readouts should track the shift.
-    split = np.array([(r["tau_rich_above"] - r["tau_rich_below"]) / 2 - (base["tau_rich_above"] - base["tau_rich_below"]) / 2 for r in train])
+    split = np.array(
+        [
+            (r["tau_rich_above"] - r["tau_rich_below"]) / 2 - (base["tau_rich_above"] - base["tau_rich_below"]) / 2
+            for r in train
+        ]
+    )
     split_gain = float(x @ split / (x @ x)) if len(x) else float("nan")
     return {
         "split": split_gain,

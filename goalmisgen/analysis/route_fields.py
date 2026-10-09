@@ -125,9 +125,16 @@ def profile(field: np.ndarray, distance: np.ndarray, mask: np.ndarray, max_dista
         means.append(float(size[rows].mean()) if rows.any() else float("nan"))
     means = np.asarray(means)
     good = np.isfinite(means) & (np.asarray(counts) >= 20) & (means > 0)
-    out = {"means": means.tolist(), "counts": counts, "log_slope": float("nan"), "log_r2": float("nan"),
-           "linear_slope": float("nan"), "linear_r2": float("nan"), "half_distance": float("nan"),
-           "cells": int(usable.sum())}
+    out = {
+        "means": means.tolist(),
+        "counts": counts,
+        "log_slope": float("nan"),
+        "log_r2": float("nan"),
+        "linear_slope": float("nan"),
+        "linear_r2": float("nan"),
+        "half_distance": float("nan"),
+        "cells": int(usable.sum()),
+    }
     if good.sum() < 3:
         return out
     d = np.arange(max_distance + 1)[good]
@@ -147,7 +154,14 @@ def profile(field: np.ndarray, distance: np.ndarray, mask: np.ndarray, max_dista
 
 
 __all__ = [
-    "BOTH", "NEITHER", "POOR_ONLY", "RICH_ONLY",
-    "cell_grids", "erasure_observations", "grid_distance_from",
-    "objective_channels", "profile", "scale_objective",
+    "BOTH",
+    "NEITHER",
+    "POOR_ONLY",
+    "RICH_ONLY",
+    "cell_grids",
+    "erasure_observations",
+    "grid_distance_from",
+    "objective_channels",
+    "profile",
+    "scale_objective",
 ]

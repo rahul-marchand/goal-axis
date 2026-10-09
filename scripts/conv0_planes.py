@@ -59,10 +59,17 @@ def main() -> None:
             by_plane /= by_plane.sum()
             # alignment of each plane's change with the base kernel's same plane: + = amplify, - = attenuate
             align = [
-                float((axis[:, :, p, :] * base_k[:, :, p, :]).sum() / np.sqrt((axis[:, :, p, :] ** 2).sum() * (base_k[:, :, p, :] ** 2).sum()))
+                float(
+                    (axis[:, :, p, :] * base_k[:, :, p, :]).sum()
+                    / np.sqrt((axis[:, :, p, :] ** 2).sum() * (base_k[:, :, p, :] ** 2).sum())
+                )
                 for p in range(4)
             ]
-            out[base_name][f"o{sweep}"] = {"share_by_plane": by_plane.tolist(), "cos_with_base_by_plane": align, "n_arms": len(offs)}
+            out[base_name][f"o{sweep}"] = {
+                "share_by_plane": by_plane.tolist(),
+                "cos_with_base_by_plane": align,
+                "n_arms": len(offs),
+            }
             print(
                 f"{base_name} sweep o{sweep} ({len(offs)} arms): share of conv-0 axis by input plane "
                 + ", ".join(f"{n} {s:.0%}" for n, s in zip(PLANES, by_plane))

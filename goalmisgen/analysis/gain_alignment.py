@@ -65,7 +65,9 @@ class Site:
 
 def sites_of(cfg: ConvLSTMConfig) -> list[Site]:
     """Every readable site, in the order :func:`make_step` visits them."""
-    out = [Site("input conv" if i == 0 else f"conv {i}", "input conv" if i == 0 else f"conv {i}") for i in range(len(cfg.embed))]
+    out = [
+        Site("input conv" if i == 0 else f"conv {i}", "input conv" if i == 0 else f"conv {i}") for i in range(len(cfg.embed))
+    ]
     for tick in range(cfg.repeats_per_step):
         for depth in range(cfg.n_recurrent):
             out.append(Site(f"cell {depth} tick {tick}", f"cell {depth}"))
@@ -175,7 +177,9 @@ def make_moments_fn(policy, unravel, eps: float = 0.05):
         n_inputs = static.shape[-1]
         bright = jnp.asarray(brightness_gains(n_inputs, eps))
         batch, steps = positions.shape[:2]
-        carry = policy.apply(base, jax.random.PRNGKey(0), (batch, n_inputs, static.shape[1], static.shape[2]), method=policy.initialize_carry)
+        carry = policy.apply(
+            base, jax.random.PRNGKey(0), (batch, n_inputs, static.shape[1], static.shape[2]), method=policy.initialize_carry
+        )
         stack = lambda tree, n: jax.tree.map(lambda z: jnp.broadcast_to(z, (n,) + z.shape), tree)  # noqa: E731
         n_var = flats.shape[0]
 
@@ -203,8 +207,15 @@ def make_moments_fn(policy, unravel, eps: float = 0.05):
                 dd = vsum(d * d)
                 hh = sum_(s_base[k] ** 2)
                 old = acc[k]
-                new.append({"cc": old["cc"] + cc, "dc": old["dc"] + dc, "dd": old["dd"] + dd, "hh": old["hh"] + hh,
-                            "n": old["n"] + m.sum()})
+                new.append(
+                    {
+                        "cc": old["cc"] + cc,
+                        "dc": old["dc"] + dc,
+                        "dd": old["dd"] + dd,
+                        "hh": old["hh"] + hh,
+                        "n": old["n"] + m.sum(),
+                    }
+                )
             return (c_base, c_bright, c_var, new), None
 
         # Shapes of every site, for the zero accumulators.
@@ -212,8 +223,15 @@ def make_moments_fn(policy, unravel, eps: float = 0.05):
         acc = []
         for site in probe:
             k = site.shape[-1]
-            acc.append({"cc": jnp.zeros((3, k)), "dc": jnp.zeros((n_var // 2, 2, k)), "dd": jnp.zeros((n_var // 2, k)),
-                        "hh": jnp.zeros((k,)), "n": jnp.zeros(())})
+            acc.append(
+                {
+                    "cc": jnp.zeros((3, k)),
+                    "dc": jnp.zeros((n_var // 2, 2, k)),
+                    "dd": jnp.zeros((n_var // 2, k)),
+                    "hh": jnp.zeros((k,)),
+                    "n": jnp.zeros(()),
+                }
+            )
         state = (carry, stack(carry, 4), stack(carry, n_var), acc)
         inputs = (positions.transpose(1, 0, 2), jnp.arange(steps) == 0, mask.T)
         (_, _, _, acc), _ = jax.lax.scan(body, state, inputs)
@@ -319,8 +337,14 @@ def make_mediation_rollout(policy, unravel, step_limit: int = 120, eps: float = 
             return (c_main, c_ref, c_write, c_bright, position, done, steps, reached, jnp.zeros_like(first)), None
 
         state = (
-            carry, carry, carry, stack(carry, 4), start,
-            jnp.zeros(batch, dtype=bool), jnp.zeros(batch, dtype=jnp.int32), jnp.full(batch, -1, dtype=jnp.int32),
+            carry,
+            carry,
+            carry,
+            stack(carry, 4),
+            start,
+            jnp.zeros(batch, dtype=bool),
+            jnp.zeros(batch, dtype=jnp.int32),
+            jnp.full(batch, -1, dtype=jnp.int32),
             jnp.ones(batch, dtype=bool),
         )
         (_, _, _, _, _, _, steps, reached, _), _ = jax.lax.scan(body, state, None, length=step_limit)

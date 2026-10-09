@@ -121,7 +121,15 @@ def test_pairs_round_trip_through_disk(tmp_path):
         type(
             "M",
             (),
-            {"name": "late", "plus": a_plus, "minus": a_minus, "scale": 0.5, "shift": 6.0, "target": 6.0, "history": [(0.5, 6.0)]},
+            {
+                "name": "late",
+                "plus": a_plus,
+                "minus": a_minus,
+                "scale": 0.5,
+                "shift": 6.0,
+                "target": 6.0,
+                "history": [(0.5, 6.0)],
+            },
         )()
     ]
     save_pairs(tmp_path / "pairs.npz", matched, meta={"base": "unit-test"})

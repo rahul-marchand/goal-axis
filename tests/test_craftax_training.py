@@ -70,8 +70,13 @@ def test_smoke_training_learns_routes_the_engine_accepts(demos, tmp_path):
     model = RoutePrefixLM(TINY)
     on_seen, decoded, outcomes = evaluate(model, params, demos, seen)
     print(f"\nuntrained (held out): {rows[0][1]}\ntrained (held out):   {rows[-1][1]}\ntrained (seen):       {on_seen}")
-    assert on_seen.behaviour.reached_objective > 0.5
-    assert on_seen.legal > 0.5 and on_seen.emitted_eos > 0.9
+    # The bar is wiring, not learning speed: an untrained model reaches 0% and
+    # emits 1% legal routes, so a head with the wrong action ids or a misplaced DO
+    # stays near zero. It was 0.5 until the expert became engine-optimal
+    # (e2d45a8), whose routes this 2-layer, 32-wide model imitates more slowly:
+    # 1k steps reach 39.5% (97.5% of them to the optimal objective), 8k reach 60%.
+    assert on_seen.behaviour.reached_objective > 0.25
+    assert on_seen.legal > 0.25 and on_seen.emitted_eos > 0.9
     assert rows[-1][1].behaviour.reached_objective > rows[0][1].behaviour.reached_objective
     # Every emitted route was executed by the engine, and the engine's extras are present.
     assert all("walls_mined" in o and "positions" in o for o in outcomes)

@@ -46,7 +46,9 @@ def label(x, y, text, anchor="middle", size=10.5, rotate=None):
 
 
 def panel_letter(x, y, letter):
-    return f'<text x="{x}" y="{y}" font-size="13" font-style="italic" fill="var(--ink)" font-family="{SERIF}">({letter})</text>'
+    return (
+        f'<text x="{x}" y="{y}" font-size="13" font-style="italic" fill="var(--ink)" font-family="{SERIF}">({letter})</text>'
+    )
 
 
 def subtitle(x, y, text):
@@ -73,16 +75,22 @@ class Chart:
         ]
         for d in doses:
             px = self.px(d)
-            out.append(f'<line x1="{px}" y1="{self.y+CHART_H}" x2="{px}" y2="{self.y+CHART_H+4}" stroke="var(--ink-soft)" stroke-width="1"/>')
+            out.append(
+                f'<line x1="{px}" y1="{self.y+CHART_H}" x2="{px}" y2="{self.y+CHART_H+4}" stroke="var(--ink-soft)" stroke-width="1"/>'
+            )
             if xlabels:
-                out.append(f'<text x="{px}" y="{self.y+CHART_H+16}" text-anchor="middle" font-size="10" fill="var(--ink-soft)" font-family="{MONO}">×{d:g}</text>')
+                out.append(
+                    f'<text x="{px}" y="{self.y+CHART_H+16}" text-anchor="middle" font-size="10" fill="var(--ink-soft)" font-family="{MONO}">×{d:g}</text>'
+                )
         for v in (0.1, 1, 10):
             if v > 10 ** self.ly[1]:
                 continue
             py = self.py(v)
             out.append(f'<line x1="{self.x-4}" y1="{py}" x2="{self.x}" y2="{py}" stroke="var(--ink-soft)" stroke-width="1"/>')
             if ylabels:
-                out.append(f'<text x="{self.x-8}" y="{py+3.5}" text-anchor="end" font-size="10" fill="var(--ink-soft)" font-family="{MONO}">{v:g}</text>')
+                out.append(
+                    f'<text x="{self.x-8}" y="{py+3.5}" text-anchor="end" font-size="10" fill="var(--ink-soft)" font-family="{MONO}">{v:g}</text>'
+                )
         return "".join(out)
 
 
@@ -117,7 +125,9 @@ def build():
         svg.append(f'<g clip-path="url(#clip{i})">')
         for m in reversed(ranked):
             ys = panel["tensors"][m]["mean"]
-            path = " ".join(f"{'M' if k == 0 else 'L'}{chart.px(d):.1f},{chart.py(v):.1f}" for k, (d, v) in enumerate(zip(doses, ys)))
+            path = " ".join(
+                f"{'M' if k == 0 else 'L'}{chart.px(d):.1f},{chart.py(v):.1f}" for k, (d, v) in enumerate(zip(doses, ys))
+            )
             if m in top:
                 colour = COLOURS[top.index(m)]
                 svg.append(f'<path d="{path}" fill="none" stroke="{colour}" stroke-width="1.8"/>')
@@ -148,10 +158,16 @@ def build():
     lx = (WIDTH - (sum(24 + est(t) for _, t in items) + 26)) / 2
     for kind, text in items:
         if kind == "dash":
-            svg.append(f'<line x1="{lx}" y1="{ly}" x2="{lx+16}" y2="{ly}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="4 3"/>')
+            svg.append(
+                f'<line x1="{lx}" y1="{ly}" x2="{lx+16}" y2="{ly}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="4 3"/>'
+            )
         else:
-            svg.append(f'<line x1="{lx}" y1="{ly+5}" x2="{lx+16}" y2="{ly-5}" stroke="var(--line)" stroke-width="1.4" stroke-dasharray="2 3"/>')
-        svg.append(f'<text x="{lx+24}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>')
+            svg.append(
+                f'<line x1="{lx}" y1="{ly+5}" x2="{lx+16}" y2="{ly-5}" stroke="var(--line)" stroke-width="1.4" stroke-dasharray="2 3"/>'
+            )
+        svg.append(
+            f'<text x="{lx+24}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>'
+        )
         lx += 24 + est(text) + 26
     height = ly + 18
 

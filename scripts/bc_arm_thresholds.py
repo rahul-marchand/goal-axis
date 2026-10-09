@@ -63,9 +63,7 @@ def main() -> None:
         model, params = load_checkpoint(checkpoint)
         _, _, outcomes = evaluate(model, params, demos, indices, decoder=greedy_decode_cached, indifference=False)
         reached = np.array([bool(o.get("reached_objective")) for o in outcomes])
-        reached_fid = np.array(
-            [-1 if o.get("reached_feature_id") is None else int(o["reached_feature_id"]) for o in outcomes]
-        )
+        reached_fid = np.array([-1 if o.get("reached_feature_id") is None else int(o["reached_feature_id"]) for o in outcomes])
         gaps = (d_rich - d_poor)[reached]
         took_richer = (reached_fid == colour_of_rich)[reached].astype(float)
         point = indifference_point(gaps, took_richer)

@@ -33,7 +33,15 @@ def curves(run: dict) -> tuple[dict[str, list[float]], float]:
         if m == "other":
             continue
         out[m] = [
-            float(np.mean([(w["steps"] - base) * sign[w["offset"]] for w in run["writes"] if w["kind"] == "dose" and w["module"] == m and w["dose"] == d]))
+            float(
+                np.mean(
+                    [
+                        (w["steps"] - base) * sign[w["offset"]]
+                        for w in run["writes"]
+                        if w["kind"] == "dose" and w["module"] == m and w["dose"] == d
+                    ]
+                )
+            )
             for d in run["doses"]
         ]
     return out, float(np.mean([abs(v) for v in full.values()]))
@@ -42,7 +50,10 @@ def curves(run: dict) -> tuple[dict[str, list[float]], float]:
 def main() -> None:
     panels = []
     for title, family in FAMILIES:
-        runs = [json.loads(pathlib.Path(f).read_text()) for f in sorted(glob.glob(str(ROOT / "data" / "restricted" / f"{family}.*.dose.json")))]
+        runs = [
+            json.loads(pathlib.Path(f).read_text())
+            for f in sorted(glob.glob(str(ROOT / "data" / "restricted" / f"{family}.*.dose.json")))
+        ]
         if not runs:
             panels.append({"title": title, "family": family, "pending": True})
             continue

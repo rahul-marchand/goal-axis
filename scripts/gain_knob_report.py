@@ -99,7 +99,9 @@ def main() -> None:
     print("slide predicts q25-t, q75-t invariant; stretch predicts q25/t, q75/t invariant")
     print(f"\nwritten o0 s1:  {'offset':>7} {'theta':>6} | {'q25-t':>6} {'q75-t':>6} | {'q25/t':>6} {'q75/t':>6}")
     for offset, theta, q25, q75 in series(args.data, "written", 1, "o0"):
-        print(f"{'':16}{offset:>7.2f} {theta:>6.2f} | {q25 - theta:>6.2f} {q75 - theta:>6.2f} | {q25 / theta:>6.3f} {q75 / theta:>6.3f}")
+        print(
+            f"{'':16}{offset:>7.2f} {theta:>6.2f} | {q25 - theta:>6.2f} {q75 - theta:>6.2f} | {q25 / theta:>6.3f} {q75 / theta:>6.3f}"
+        )
 
     stats: dict[str, list] = {"q25-t": [], "q75-t": [], "q25/t": [], "q75/t": []}
     for folder in ("arms", "written"):
@@ -109,7 +111,12 @@ def main() -> None:
                 if len(rows) < 5:
                     continue
                 _, theta, q25, q75 = map(np.array, zip(*rows))
-                for key, values in (("q25-t", q25 - theta), ("q75-t", q75 - theta), ("q25/t", q25 / theta), ("q75/t", q75 / theta)):
+                for key, values in (
+                    ("q25-t", q25 - theta),
+                    ("q75-t", q75 - theta),
+                    ("q25/t", q25 / theta),
+                    ("q75/t", q75 / theta),
+                ):
                     stats[key].append((values.mean(), values.std()))
     print("\nacross the 12 series (mean of the statistic, then its sd across models):")
     for key, pairs in stats.items():
@@ -144,7 +151,9 @@ def main() -> None:
             forward = int((~took_b[:n][both] & took_w[:n][both]).sum())
             backward = int((took_b[:n][both] & ~took_w[:n][both]).sum())
             (theta,) = crossings(path)
-            print(f"s{seed} {tag('o0', offset):<9} {theta:>6.2f} {int(both.sum()):>12,} {forward:>8,} {backward:>9,} {backward / max(forward, 1):>9.3f}")
+            print(
+                f"s{seed} {tag('o0', offset):<9} {theta:>6.2f} {int(both.sum()):>12,} {forward:>8,} {backward:>9,} {backward / max(forward, 1):>9.3f}"
+            )
 
 
 if __name__ == "__main__":

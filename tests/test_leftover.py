@@ -40,8 +40,15 @@ COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
 @pytest.fixture(scope="module")
 def drc():
     config = MazeConfig(
-        max_episode_steps=40, num_envs=2, min_size=SIZE, max_size=SIZE, asynchronous=False, value_encoding="none",
-        colour_is_the_only_value_cue=True, objective_values=(1.0, 0.5), feature_value_correlation=1.0,
+        max_episode_steps=40,
+        num_envs=2,
+        min_size=SIZE,
+        max_size=SIZE,
+        asynchronous=False,
+        value_encoding="none",
+        colour_is_the_only_value_cue=True,
+        objective_values=(1.0, 0.5),
+        feature_value_correlation=1.0,
     )
     args = maze_drc33(min_size=SIZE, max_size=SIZE)
     net = dataclasses.replace(args.net, n_recurrent=2, repeats_per_step=2)
@@ -123,8 +130,17 @@ def test_change_moments_collapse_when_nothing_is_erased(drc):
     positions = targets.positions.reshape(n * 2, targets.steps, 2)
     static = np.repeat(targets.static, 2, axis=0)
     mask = targets.role.reshape(n * 2, targets.steps) != PAD
-    acc = add_moments(None, moments_fn(jnp.asarray(flat), jnp.asarray(write[None]), jnp.asarray(static), jnp.asarray(static),
-                                       jnp.asarray(positions), jnp.asarray(mask)))
+    acc = add_moments(
+        None,
+        moments_fn(
+            jnp.asarray(flat),
+            jnp.asarray(write[None]),
+            jnp.asarray(static),
+            jnp.asarray(static),
+            jnp.asarray(positions),
+            jnp.asarray(mask),
+        ),
+    )
     for site, m in zip(sites_of(policy.cfg), acc):
         assert m["ff"][0] > 0, site.name
         np.testing.assert_allclose(m["nn"][0], m["ff"][0], rtol=1e-4)
@@ -145,8 +161,17 @@ def test_a_gain_on_colour_1_has_no_change_left_once_colour_1_is_erased(drc):
     static = np.repeat(targets.static, 2, axis=0)
     mask = targets.role.reshape(n * 2, targets.steps) != PAD
     writes = np.stack([gain_write.astype(np.float32)])
-    acc = add_moments(None, moments_fn(jnp.asarray(flat, dtype=jnp.float32), jnp.asarray(writes), jnp.asarray(static),
-                                       jnp.asarray(erase(static, [COLOUR[1]])), jnp.asarray(positions), jnp.asarray(mask)))
+    acc = add_moments(
+        None,
+        moments_fn(
+            jnp.asarray(flat, dtype=jnp.float32),
+            jnp.asarray(writes),
+            jnp.asarray(static),
+            jnp.asarray(erase(static, [COLOUR[1]])),
+            jnp.asarray(positions),
+            jnp.asarray(mask),
+        ),
+    )
     for site, m in zip(sites_of(policy.cfg), acc):
         assert m["ff"][0] > 0, site.name
         assert m["nn"][0] / m["ff"][0] < 1e-6, (site.name, m["nn"][0] / m["ff"][0])
@@ -166,12 +191,32 @@ def test_objective_signal_is_zero_without_erasure_and_linear_in_the_gain_at_the_
     no_0 = erase(static, [COLOUR[0]])
     no_1 = erase(static, [COLOUR[1]])
 
-    same = add_moments(None, signals_fn(jnp.asarray(flat), jnp.asarray(gains), jnp.asarray(static), jnp.asarray(static),
-                                        jnp.asarray(static), jnp.asarray(positions), jnp.asarray(mask)))
+    same = add_moments(
+        None,
+        signals_fn(
+            jnp.asarray(flat),
+            jnp.asarray(gains),
+            jnp.asarray(static),
+            jnp.asarray(static),
+            jnp.asarray(static),
+            jnp.asarray(positions),
+            jnp.asarray(mask),
+        ),
+    )
     assert np.allclose(same[0]["s0"], 0) and np.allclose(same[0]["s1"], 0)
 
-    acc = add_moments(None, signals_fn(jnp.asarray(flat), jnp.asarray(gains), jnp.asarray(static), jnp.asarray(no_0),
-                                       jnp.asarray(no_1), jnp.asarray(positions), jnp.asarray(mask)))
+    acc = add_moments(
+        None,
+        signals_fn(
+            jnp.asarray(flat),
+            jnp.asarray(gains),
+            jnp.asarray(static),
+            jnp.asarray(no_0),
+            jnp.asarray(no_1),
+            jnp.asarray(positions),
+            jnp.asarray(mask),
+        ),
+    )
     # The input convolution is linear, so erasing colour 1 removes exactly g * (its kernel
     # contribution): the signal's norm is proportional to the gain, and colour 0's is untouched.
     s1 = np.sqrt(acc[0]["s1"])

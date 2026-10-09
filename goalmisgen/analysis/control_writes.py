@@ -142,4 +142,6 @@ def load_pairs(path: Path) -> dict[str, tuple[np.ndarray, np.ndarray]]:
     """``{name: (plus, minus)}`` as written by :func:`save_pairs`."""
     with np.load(Path(path)) as z:
         names = [str(n) for n in z["names"]]
-        return {n: (np.asarray(z[f"{n}|plus"], dtype=np.float64), np.asarray(z[f"{n}|minus"], dtype=np.float64)) for n in names}
+        return {
+            n: (np.asarray(z[f"{n}|plus"], dtype=np.float64), np.asarray(z[f"{n}|minus"], dtype=np.float64)) for n in names
+        }

@@ -312,9 +312,7 @@ def run_patch(model, params, demos, indices, observations, targets, depth, args,
     grid = rewrite.patch_edit(before, after, cells)
 
     patched = greedy_decode(model, params, observations, edit=grid, edit_depth=depth)
-    entry = summarise(
-        records_from(replay_all(demos, indices, patched), [None] * len(observations), targets), seed=args.seed
-    )
+    entry = summarise(records_from(replay_all(demos, indices, patched), [None] * len(observations), targets), seed=args.seed)
     interval = f"[{entry['switched_ci'][0]:.3f},{entry['switched_ci'][1]:.3f}]"
     print(
         f"\npatch ({kind} swapped, {args.patch_cells} cells): switched {entry['switched']:.1%} {interval}  "
@@ -369,7 +367,10 @@ def main() -> None:
     print(f"{sum(t is None for t in targets)} of {len(targets)} levels dropped as ties")
 
     edits = {arm: build_edits(arm, observations, outcomes, targets, args.seed) for arm in args.arms}
-    print("cells written  " + "  ".join(f"{arm} {np.mean([0 if e is None else len(e) for e in edits[arm]]):.1f}" for arm in args.arms))
+    print(
+        "cells written  "
+        + "  ".join(f"{arm} {np.mean([0 if e is None else len(e) for e in edits[arm]]):.1f}" for arm in args.arms)
+    )
 
     # The probe the propagation check is read with: the top of the stack, where
     # 025 finds the route most decodable and where nothing can be written.
@@ -430,9 +431,7 @@ def main() -> None:
         for alpha in args.alphas:
             if alpha == 0.0:
                 continue
-            back = rewrite.written_classes(
-                measured, edits[diagnostic_arm], weights, mean, std, directions, alpha * typical
-            )
+            back = rewrite.written_classes(measured, edits[diagnostic_arm], weights, mean, std, directions, alpha * typical)
             grid = rewrite.delta_grid(edits[diagnostic_arm], directions, cfg.size, alpha * typical)
             top_after = cell_residuals(model, params, observations, edit=grid, edit_depth=depth)[read_depth]
             _, carried = rewrite.propagation(top_before, top_after, edits[diagnostic_arm], *top_probe)
@@ -506,8 +505,7 @@ def main() -> None:
             "write_back": {f"{alpha:.2f}": values for alpha, values in write_back.items()},
             "unedited_read": unedited_read,
             "arms": {
-                arm: [{k: v for k, v in entry.items() if k != "records"} for entry in rows]
-                for arm, rows in depth_rows.items()
+                arm: [{k: v for k, v in entry.items() if k != "records"} for entry in rows] for arm, rows in depth_rows.items()
             },
         }
         if args.patch:

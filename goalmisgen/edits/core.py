@@ -130,7 +130,19 @@ def margin_loss(logits, base_logits, toward_rich, toward_poor, role, offset, slo
     return nav_weight * nav + fork_weight * fork, {"nav": nav, "fork": fork, "fork_error": jnp.mean(jnp.abs(fork_steps))}
 
 
-def sign_loss(logits, base_logits, toward_rich, toward_poor, role, y, weight, margin=0.25, sharpness=4.0, fork_weight=1.0, nav_weight=10.0):
+def sign_loss(
+    logits,
+    base_logits,
+    toward_rich,
+    toward_poor,
+    role,
+    y,
+    weight,
+    margin=0.25,
+    sharpness=4.0,
+    fork_weight=1.0,
+    nav_weight=10.0,
+):
     """Make each fork decide ``y`` (+1 rich, -1 poor), leaving the size of the margin free.
 
     Greedy behaviour reads only the sign of the fork margin, and the fine-tuned
@@ -157,7 +169,21 @@ def sign_loss(logits, base_logits, toward_rich, toward_poor, role, y, weight, ma
     return nav_weight * nav + fork_weight * fork, {"nav": nav, "fork": fork, "fork_error": wrong}
 
 
-def curve_loss(logits, base_logits, toward_rich, toward_poor, role, gap_bin, target_rate, n_bins, temperature=0.25, fork_weight=1.0, nav_weight=10.0, valid=None, hard=True):
+def curve_loss(
+    logits,
+    base_logits,
+    toward_rich,
+    toward_poor,
+    role,
+    gap_bin,
+    target_rate,
+    n_bins,
+    temperature=0.25,
+    fork_weight=1.0,
+    nav_weight=10.0,
+    valid=None,
+    hard=True,
+):
     """Match the population's choice curve, not any level's choice.
 
     A threshold is a statistic of the psychometric curve -- P(rich) against the
@@ -203,9 +229,19 @@ def onpolicy_loss(onpolicy_fn, logits_fn, base, flat, batch, index, config: "Sea
         logits_fn(base, {"static": batch["static"], "positions": jax.lax.stop_gradient(trajectory["positions"])[:, None]})
     )
     loss, metrics = curve_loss(
-        trajectory["logits"][:, None], base_logits, trajectory["toward_rich"][:, None], trajectory["toward_poor"][:, None],
-        trajectory["role"][:, None], batch["gap_bin"], batch["curve_rate"][:, index], config.n_bins, config.temperature,
-        config.fork_weight, config.nav_weight, valid=trajectory["committed"], hard=config.hard,
+        trajectory["logits"][:, None],
+        base_logits,
+        trajectory["toward_rich"][:, None],
+        trajectory["toward_poor"][:, None],
+        trajectory["role"][:, None],
+        batch["gap_bin"],
+        batch["curve_rate"][:, index],
+        config.n_bins,
+        config.temperature,
+        config.fork_weight,
+        config.nav_weight,
+        valid=trajectory["committed"],
+        hard=config.hard,
     )
     # Levels that never commit drop out of the rate, so an edit could buy rate error by making the agent dither.
     # Charge the shortfall against the base's own commitment rate, measured on the same batch.
@@ -229,7 +265,11 @@ def choice_curve(gaps: np.ndarray, decided_rich: np.ndarray, width: float = 1.0)
     while i < len(blocks) - 1:
         if blocks[i][0] < blocks[i + 1][0]:
             w = blocks[i][1] + blocks[i + 1][1]
-            blocks[i] = [(blocks[i][0] * blocks[i][1] + blocks[i + 1][0] * blocks[i + 1][1]) / w, w, blocks[i][2] + blocks[i + 1][2]]
+            blocks[i] = [
+                (blocks[i][0] * blocks[i][1] + blocks[i + 1][0] * blocks[i + 1][1]) / w,
+                w,
+                blocks[i][2] + blocks[i + 1][2],
+            ]
             del blocks[i + 1]
             i = max(i - 1, 0)
         else:
@@ -554,18 +594,41 @@ def shift_loss(logits, base_logits, batch, shift, index, config: "SearchConfig")
     signed = signed_shifts(batch, shift, config.rule)
     if config.target == "margin":
         return margin_loss(
-            logits, base_logits, batch["toward_rich"], batch["toward_poor"], batch["role"], batch["margin_offset"][:, index],
-            config.margin_slope, config.fork_weight, config.nav_weight,
+            logits,
+            base_logits,
+            batch["toward_rich"],
+            batch["toward_poor"],
+            batch["role"],
+            batch["margin_offset"][:, index],
+            config.margin_slope,
+            config.fork_weight,
+            config.nav_weight,
         )
     if config.target == "curve":
         return curve_loss(
-            logits, base_logits, batch["toward_rich"], batch["toward_poor"], batch["role"], batch["gap_bin"],
-            batch["curve_rate"][:, index], config.n_bins, config.temperature, config.fork_weight, config.nav_weight,
+            logits,
+            base_logits,
+            batch["toward_rich"],
+            batch["toward_poor"],
+            batch["role"],
+            batch["gap_bin"],
+            batch["curve_rate"][:, index],
+            config.n_bins,
+            config.temperature,
+            config.fork_weight,
+            config.nav_weight,
         )
     if config.target == "sign":
         return sign_loss(
-            logits, base_logits, batch["toward_rich"], batch["toward_poor"], batch["role"], batch["rule_sign"][:, index],
-            batch["rule_weight"], fork_weight=config.fork_weight, nav_weight=config.nav_weight,
+            logits,
+            base_logits,
+            batch["toward_rich"],
+            batch["toward_poor"],
+            batch["role"],
+            batch["rule_sign"][:, index],
+            batch["rule_weight"],
+            fork_weight=config.fork_weight,
+            nav_weight=config.nav_weight,
         )
     if config.target == "soft":
         p = threshold_targets(batch["gap"] - signed + shift, config.tau_base + shift, config.scale)
@@ -676,7 +739,9 @@ def _jitted_loss(logits_fn, config: "SearchConfig", onpolicy_fn=None):
     return _LOSS_CACHE[key]
 
 
-def behaviour_loss(delta, logits_fn, base_flat, targets, config: SearchConfig, rows: np.ndarray, onpolicy_fn=None) -> dict[str, float]:
+def behaviour_loss(
+    delta, logits_fn, base_flat, targets, config: SearchConfig, rows: np.ndarray, onpolicy_fn=None
+) -> dict[str, float]:
     """The search's objective without its penalty, for any direction, on fixed levels.
 
     The yardstick that makes "cheapest" checkable: the fine-tuned axis, rescaled
@@ -690,7 +755,9 @@ def behaviour_loss(delta, logits_fn, base_flat, targets, config: SearchConfig, r
     for start in range(0, len(rows), config.batch):
         batch = {k: jnp.asarray(v[rows[start : start + config.batch]]) for k, v in targets.items()}
         for index, shift in enumerate(config.shifts):
-            loss, metrics = _jitted_loss(logits_fn, config, onpolicy_fn)(base, base + shift * direction, batch, jnp.float32(shift), index)
+            loss, metrics = _jitted_loss(logits_fn, config, onpolicy_fn)(
+                base, base + shift * direction, batch, jnp.float32(shift), index
+            )
             weight = len(batch["gap"]) / (len(rows) * len(config.shifts))
             totals["loss"] += float(loss) * weight
             for k in ("nav", "fork", "fork_error"):

@@ -65,7 +65,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--write-offset", type=float, default=0.4, help="Offset to write when testing behaviour.")
     parser.add_argument("--episodes", type=int, default=2048)
     parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
+    parser.add_argument(
+        "--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept)."
+    )
     parser.add_argument("--at", type=int, default=-1)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--skip-behaviour", action="store_true")

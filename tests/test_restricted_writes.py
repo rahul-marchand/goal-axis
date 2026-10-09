@@ -21,7 +21,13 @@ def test_drc_paths_group_into_named_modules_in_forward_order():
     for path, module in paths.items():
         assert module_of(path) == module, path
     assert forward_order(set(paths.values())) == [
-        "input conv", "conv 1", "cell 0 input", "cell 0 recurrent", "cell 2 input", "dense", "heads",
+        "input conv",
+        "conv 1",
+        "cell 0 input",
+        "cell 0 recurrent",
+        "cell 2 input",
+        "dense",
+        "heads",
     ]
 
 
@@ -43,7 +49,11 @@ def test_resnet_vit_and_bc_paths_group_too():
     assert module_of("params/ln_final/scale") == "head"
     assert module_of("params/head/kernel") == "head"
     assert forward_order({"embed", "block 1 mlp", "block 0 attention", "block 0 mlp", "head"}) == [
-        "embed", "block 0 attention", "block 0 mlp", "block 1 mlp", "head",
+        "embed",
+        "block 0 attention",
+        "block 0 mlp",
+        "block 1 mlp",
+        "head",
     ]
 
 

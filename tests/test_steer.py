@@ -19,9 +19,7 @@ TINY = ModelConfig(size=7, n_channels=4, max_actions=16, d_model=32, n_layers=2,
 def setup():
     model = RoutePrefixLM(TINY)
     params = initial_params(model, jax.random.PRNGKey(0))
-    observations = np.asarray(
-        np.random.default_rng(0).random((12, TINY.size, TINY.size, TINY.n_channels)), dtype=np.float32
-    )
+    observations = np.asarray(np.random.default_rng(0).random((12, TINY.size, TINY.size, TINY.n_channels)), dtype=np.float32)
     return model, params, observations
 
 

@@ -108,8 +108,15 @@ def make_leftover_rollout(policy, unravel, step_limit: int = 120):
             return (c_main, c_ref, c_write, c_ref_n, c_write_n, position, done, steps, reached, jnp.zeros_like(first)), None
 
         state = (
-            carry, carry, carry, carry, carry, start,
-            jnp.zeros(batch, dtype=bool), jnp.zeros(batch, dtype=jnp.int32), jnp.full(batch, -1, dtype=jnp.int32),
+            carry,
+            carry,
+            carry,
+            carry,
+            carry,
+            start,
+            jnp.zeros(batch, dtype=bool),
+            jnp.zeros(batch, dtype=jnp.int32),
+            jnp.full(batch, -1, dtype=jnp.int32),
             jnp.ones(batch, dtype=bool),
         )
         (*_, steps, reached, _), _ = jax.lax.scan(body, state, None, length=step_limit)
@@ -156,16 +163,22 @@ def make_change_moments_fn(policy, unravel):
                 weigh = lambda x: (x * m.reshape((1, -1) + (1,) * (x.ndim - 2))).reshape(n_var, -1)  # noqa: E731
                 f, n = weigh(full), weigh(null)
                 old = acc[k]
-                new.append({
-                    "ff": old["ff"] + (f * f).sum(-1), "nn": old["nn"] + (n * n).sum(-1), "fn": old["fn"] + (f * n).sum(-1),
-                    "hh": old["hh"] + ((s_ref[k] * m.reshape((-1,) + (1,) * (s_ref[k].ndim - 1))) ** 2).sum(),
-                    "n": old["n"] + m.sum(),
-                })
+                new.append(
+                    {
+                        "ff": old["ff"] + (f * f).sum(-1),
+                        "nn": old["nn"] + (n * n).sum(-1),
+                        "fn": old["fn"] + (f * n).sum(-1),
+                        "hh": old["hh"] + ((s_ref[k] * m.reshape((-1,) + (1,) * (s_ref[k].ndim - 1))) ** 2).sum(),
+                        "n": old["n"] + m.sum(),
+                    }
+                )
             return (c_ref, c_ref_n, c_var, c_var_n, new), None
 
         _, _, probe = jax.eval_shape(lambda: step(base, carry, draw_agent(static, positions[:, 0]), jnp.ones((batch,), bool)))
-        acc = [{"ff": jnp.zeros(n_var), "nn": jnp.zeros(n_var), "fn": jnp.zeros(n_var), "hh": jnp.zeros(()), "n": jnp.zeros(())}
-               for _ in probe]
+        acc = [
+            {"ff": jnp.zeros(n_var), "nn": jnp.zeros(n_var), "fn": jnp.zeros(n_var), "hh": jnp.zeros(()), "n": jnp.zeros(())}
+            for _ in probe
+        ]
         state = (carry, carry, stack(carry, n_var), stack(carry, n_var), acc)
         inputs = (positions.transpose(1, 0, 2), jnp.arange(steps) == 0, mask.T)
         (*_, acc), _ = jax.lax.scan(body, state, inputs)
@@ -212,8 +225,14 @@ def make_signal_fn(policy, unravel):
                 d0 = h - weigh(s_no0[k])
                 d1 = h - weigh(s_no1[k])
                 old = acc[k]
-                new.append({"s0": old["s0"] + (d0 * d0).sum(-1), "s1": old["s1"] + (d1 * d1).sum(-1),
-                            "hh": old["hh"] + (h * h).sum(-1), "n": old["n"] + m.sum()})
+                new.append(
+                    {
+                        "s0": old["s0"] + (d0 * d0).sum(-1),
+                        "s1": old["s1"] + (d1 * d1).sum(-1),
+                        "hh": old["hh"] + (h * h).sum(-1),
+                        "n": old["n"] + m.sum(),
+                    }
+                )
             return (c_plain, c_no0, c_no1, new), None
 
         _, _, probe = jax.eval_shape(lambda: step(base, carry, draw_agent(static, positions[:, 0]), jnp.ones((batch,), bool)))

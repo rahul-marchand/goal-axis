@@ -83,8 +83,17 @@ for colour, offset in zip(RAMP, SHOWN):
     ax[1].plot(xs / theta, ys, "-", color=colour, lw=2, zorder=4)
 # A column in the panel's empty corner; on the curves themselves the labels collide.
 for row, (theta, colour) in enumerate(sorted(thetas, reverse=True)):
-    ax[0].text(46, 0.99 - 0.075 * row, f"$\\bar\\theta$ = {theta:.0f}", color=colour, fontsize=9, ha="right", va="top", zorder=6)
-ax[0].text(-14.5, 0.10, "each curve: one model\n(base + offset $\\times$ axis),\nsame 20k mazes", color=INK2, fontsize=8.5, va="bottom")
+    ax[0].text(
+        46, 0.99 - 0.075 * row, f"$\\bar\\theta$ = {theta:.0f}", color=colour, fontsize=9, ha="right", va="top", zorder=6
+    )
+ax[0].text(
+    -14.5,
+    0.10,
+    "each curve: one model\n(base + offset $\\times$ axis),\nsame 20k mazes",
+    color=INK2,
+    fontsize=8.5,
+    va="bottom",
+)
 ax[1].axvline(1.0, color=INK2, lw=0.8, ls=":", zorder=1)
 ax[0].set_xlim(-16, 48)
 ax[0].set_xlabel("$\\Delta d$, extra steps to the richer objective", color=INK2, fontsize=10)
@@ -140,7 +149,14 @@ A.text(0.62, 22, "colour 0 raised", color=O0, fontsize=8.5)
 A.text(-1.26, 22, "colour 1 raised", color=O1, fontsize=8.5, ha="left")
 A.text(-0.43, 0.55, "expert optimum $\\theta^*$", color=INK2, fontsize=8.5)
 A.text(-0.42, 7.5, "$\\bar\\theta \\propto e^{2.1\\,\\cdot\\, \\mathrm{offset}}$", color=INK, fontsize=9.5, ha="center")
-A.text(-1.26, 0.72, "beyond the range, writes fall under\nthe extended fit; $\\bar\\theta \\to 0$ by $-1.5$", color=INK2, fontsize=8.5, va="bottom")
+A.text(
+    -1.26,
+    0.72,
+    "beyond the range, writes fall under\nthe extended fit; $\\bar\\theta \\to 0$ by $-1.5$",
+    color=INK2,
+    fontsize=8.5,
+    va="bottom",
+)
 
 fig.suptitle(
     "Figure 4 — The threshold is a gain, not a stored count   ·   written models, A/B one series, C all six plus deep writes",

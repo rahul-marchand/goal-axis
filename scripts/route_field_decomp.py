@@ -59,10 +59,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sweep", type=str, default="o1")
     parser.add_argument("--steps-tag", type=int, default=1000)
     parser.add_argument("--offset", type=float, default=0.30)
-    parser.add_argument("--scale", type=float, default=1.5,
-                        help="Objective-scaling control: the poorer objective's cell times this, and its reciprocal.")
-    parser.add_argument("--differ", type=int, default=3,
-                        help="Routing vs blur: keep cells where |BFS - grid| is at least this.")
+    parser.add_argument(
+        "--scale",
+        type=float,
+        default=1.5,
+        help="Objective-scaling control: the poorer objective's cell times this, and its reciprocal.",
+    )
+    parser.add_argument(
+        "--differ", type=int, default=3, help="Routing vs blur: keep cells where |BFS - grid| is at least this."
+    )
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
 
@@ -100,7 +105,7 @@ def main() -> None:
     if len(indices) < args.n_levels:
         print(f"note   only {len(indices)} usable levels in {args.split}")
     targets = route_targets([demos.level(int(i)) for i in indices], size=cfg.size, n_channels=demos.n_channels)
-    bfs = np.asarray(targets.fields)                    # (B, 2, S, S), 0 = rich
+    bfs = np.asarray(targets.fields)  # (B, 2, S, S), 0 = rich
     gap = np.asarray(targets.gap)
     mask = free_cells(demos.observations(np.asarray(indices)))
     rich, poor = objective_channels(demos, indices)
@@ -113,7 +118,7 @@ def main() -> None:
     print(f"threshold {tau_base:.2f} steps on these levels\n")
 
     residuals_fn = _prefix_residuals_fn(cfg)
-    statics = erasure_observations(demos, indices)       # (4, B, S, S, C)
+    statics = erasure_observations(demos, indices)  # (4, B, S, S, C)
 
     def grids(params, observations: np.ndarray) -> np.ndarray:
         """``(4, B, S, S, C) -> (depths, 4, B, S, S, W)``, in chunks."""
@@ -127,8 +132,9 @@ def main() -> None:
             per_variant.append(cell_grids(streams, cfg.size))
         return np.stack(per_variant, axis=1)
 
-    written = {sign: base.unravel(np.asarray(base.flat + sign * args.offset * axis, dtype=np.float32))
-               for sign in (+1.0, -1.0)}
+    written = {
+        sign: base.unravel(np.asarray(base.flat + sign * args.offset * axis, dtype=np.float32)) for sign in (+1.0, -1.0)
+    }
     variants: dict[str, np.ndarray] = {}
     variants["base"] = grids(base.params, statics)
     print("  ran base", flush=True)
@@ -141,9 +147,16 @@ def main() -> None:
 
     depths = variants["base"].shape[0]
     names = ["embed"] + [f"block {i}" for i in range(depths - 1)]
-    report: dict = {"run": str(args.run), "levels": int(len(indices)), "offset": args.offset,
-                    "scale": args.scale, "axis_norm": float(np.linalg.norm(axis)), "tau_base": tau_base,
-                    "depths": names, "rows": []}
+    report: dict = {
+        "run": str(args.run),
+        "levels": int(len(indices)),
+        "offset": args.offset,
+        "scale": args.scale,
+        "axis_norm": float(np.linalg.norm(axis)),
+        "tau_base": tau_base,
+        "depths": names,
+        "rows": [],
+    }
 
     print("=== how off-distribution is the 'neither' baseline? rms(h_neither - h_both) / rms(h_both) ===\n")
     for d, name in enumerate(names):
@@ -175,35 +188,47 @@ def main() -> None:
         for variant in ("axis +", "axis -", "scale +", "scale -"):
             here, moved = variants["base"][d], variants[variant][d]
             base_parts, moved_parts = decompose(here), decompose(moved)
-            terms = {"neither": moved[NEITHER] - here[NEITHER],
-                     "rich": moved_parts[0] - base_parts[0],
-                     "poor": moved_parts[1] - base_parts[1],
-                     "interaction": moved_parts[3] - base_parts[3]}
+            terms = {
+                "neither": moved[NEITHER] - here[NEITHER],
+                "rich": moved_parts[0] - base_parts[0],
+                "poor": moved_parts[1] - base_parts[1],
+                "interaction": moved_parts[3] - base_parts[3],
+            }
             shares = {k: weigh(v) for k, v in terms.items()}
             denominator = max(sum(shares.values()), 1e-30)
-            row = {"analysis": "value", "depth": name, "variant": variant,
-                   **{k: v / denominator for k, v in shares.items()},
-                   "rms": float(np.sqrt(((moved[0] - here[0]) ** 2).mean()))}
-            print(f"  {name:>10} {variant:>9} {row['neither']:8.3f} {row['rich']:8.3f} {row['poor']:8.3f} "
-                  f"{row['interaction']:8.3f} {row['rms']:8.4f}")
+            row = {
+                "analysis": "value",
+                "depth": name,
+                "variant": variant,
+                **{k: v / denominator for k, v in shares.items()},
+                "rms": float(np.sqrt(((moved[0] - here[0]) ** 2).mean())),
+            }
+            print(
+                f"  {name:>10} {variant:>9} {row['neither']:8.3f} {row['rich']:8.3f} {row['poor']:8.3f} "
+                f"{row['interaction']:8.3f} {row['rms']:8.4f}"
+            )
             report["rows"].append(row)
 
     print("\n=== field shape and propagation: A_rich against distance from the rich objective ===")
-    print("    'differ' columns keep only cells where |BFS - grid| >= "
-          f"{args.differ}, where routing and blur disagree\n")
-    print(f"  {'depth':>10} {'log slope':>10} {'log R^2':>8} {'lin slope':>10} {'lin R^2':>8} {'half d':>7} "
-          f"{'BFS R^2':>8} {'grid R^2':>8} {'cells':>7}")
+    print("    'differ' columns keep only cells where |BFS - grid| >= " f"{args.differ}, where routing and blur disagree\n")
+    print(
+        f"  {'depth':>10} {'log slope':>10} {'log R^2':>8} {'lin slope':>10} {'lin R^2':>8} {'half d':>7} "
+        f"{'BFS R^2':>8} {'grid R^2':>8} {'cells':>7}"
+    )
     differ = mask & (np.abs(bfs[:, 0].astype(np.int64) - grid[:, 0].astype(np.int64)) >= args.differ) & (bfs[:, 0] < 10_000)
     for d, name in enumerate(names):
         a_rich = decompose(variants["base"][d])[0]
         by_bfs = profile(a_rich, bfs[:, 0], mask)
         bfs_differ = profile(a_rich, bfs[:, 0], differ)
         grid_differ = profile(a_rich, grid[:, 0], differ)
-        print(f"  {name:>10} {by_bfs['log_slope']:10.3f} {by_bfs['log_r2']:8.3f} {by_bfs['linear_slope']:10.4f} "
-              f"{by_bfs['linear_r2']:8.3f} {by_bfs['half_distance']:7.1f} {bfs_differ['log_r2']:8.3f} "
-              f"{grid_differ['log_r2']:8.3f} {bfs_differ['cells']:7d}")
-        report["rows"].append({"analysis": "profile", "depth": name, "bfs": by_bfs,
-                               "bfs_differ": bfs_differ, "grid_differ": grid_differ})
+        print(
+            f"  {name:>10} {by_bfs['log_slope']:10.3f} {by_bfs['log_r2']:8.3f} {by_bfs['linear_slope']:10.4f} "
+            f"{by_bfs['linear_r2']:8.3f} {by_bfs['half_distance']:7.1f} {bfs_differ['log_r2']:8.3f} "
+            f"{grid_differ['log_r2']:8.3f} {bfs_differ['cells']:7d}"
+        )
+        report["rows"].append(
+            {"analysis": "profile", "depth": name, "bfs": by_bfs, "bfs_differ": bfs_differ, "grid_differ": grid_differ}
+        )
 
     print("\n=== bridge: the two fields at the agent's own cell, against the level's gap ===\n")
     rows = np.arange(len(indices))
@@ -219,10 +244,20 @@ def main() -> None:
         slope, intercept = np.polyfit(gap[good], delta, 1)
         correlation = float(np.corrcoef(gap[good], delta)[0, 1])
         crossing = float(-intercept / slope) if abs(slope) > 1e-9 else float("nan")
-        print(f"  {name:>10}   corr {correlation:+.3f}   slope {slope:+.4f} per step   "
-              f"zero at gap {crossing:+.2f}   n {int(good.sum())}   (threshold {tau_base:.2f})")
-        report["rows"].append({"analysis": "bridge", "depth": name, "corr": correlation, "slope": float(slope),
-                               "crossing": crossing, "n": int(good.sum())})
+        print(
+            f"  {name:>10}   corr {correlation:+.3f}   slope {slope:+.4f} per step   "
+            f"zero at gap {crossing:+.2f}   n {int(good.sum())}   (threshold {tau_base:.2f})"
+        )
+        report["rows"].append(
+            {
+                "analysis": "bridge",
+                "depth": name,
+                "corr": correlation,
+                "slope": float(slope),
+                "crossing": crossing,
+                "n": int(good.sum()),
+            }
+        )
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)

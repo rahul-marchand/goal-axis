@@ -47,7 +47,9 @@ from typing import Iterable, Iterator
 # never silently collide with the arm it re-runs. Composition arms that move
 # several values at once do not have a single offset and are named separately;
 # see ``is_composition_arm``.
-_ARM = re.compile(r"^(?P<sweep>[a-z][a-z0-9]*)(?P<sign>[+-])(?P<offset>\d{3})@(?P<steps>\d+[kM])(?:\.r(?P<replicate>[2-9]\d*))?$")
+_ARM = re.compile(
+    r"^(?P<sweep>[a-z][a-z0-9]*)(?P<sign>[+-])(?P<offset>\d{3})@(?P<steps>\d+[kM])(?:\.r(?P<replicate>[2-9]\d*))?$"
+)
 
 
 # Which sweep families exist, and whether their arms enter the fitted axis.
@@ -314,9 +316,7 @@ def dataset_dirname(values: Iterable[float], n_levels: int) -> str:
     return f"{values_tag(values)}@{_round_tag(n_levels, 'a number of levels')}"
 
 
-def iter_arms(
-    arms: Path, sweep: str, steps: int | None = None, replicate: int = 1
-) -> Iterator[tuple[ArmName, Path]]:
+def iter_arms(arms: Path, sweep: str, steps: int | None = None, replicate: int = 1) -> Iterator[tuple[ArmName, Path]]:
     """Every arm directory of one sweep, in listing order, with its parsed name.
 
     The one place that decides which directories belong to a sweep, so every

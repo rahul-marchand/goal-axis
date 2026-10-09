@@ -67,6 +67,8 @@ def test_cell_token_parts_rebuild_the_embedding():
     tree = params["params"]
     rows = np.arange(size * size) // size
     cols = np.arange(size * size) % size
-    expected = cells @ tree["cell_in"]["kernel"] + tree["cell_in"]["bias"] + tree["row_embedding"][rows] + tree["col_embedding"][cols]
+    expected = (
+        cells @ tree["cell_in"]["kernel"] + tree["cell_in"]["bias"] + tree["row_embedding"][rows] + tree["col_embedding"][cols]
+    )
     assert np.allclose(sum(parts.values()), expected)
     assert np.allclose(parts["colour"], cells[..., 2:] @ tree["cell_in"]["kernel"][2:])

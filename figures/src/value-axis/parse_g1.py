@@ -105,6 +105,7 @@ def series(results: Path, run: str, sweep: str) -> tuple[list[dict], list[dict]]
     out_written = [{"dv": round(v - value, 2), **{k: r[k] for k in ("steps", "lo", "hi")}} for v, r in written.items()]
     # The unedited agent is the written series' own zero: nothing was written.
     out_written.append({"dv": 0.0, "steps": base["steps"], "lo": base["lo"], "hi": base["hi"]})
+
     def order(rows):
         return sorted((r for r in rows if abs(r["dv"]) <= PLOT_LIMIT), key=lambda r: r["dv"])
 
@@ -130,6 +131,7 @@ def limit_series(results: Path, run: str, sweep: str) -> tuple[list[dict], list[
     out_trained = [{"dv": round(v - value, 2), **{k: r[k] for k in ("steps", "lo", "hi")}} for v, r in trained.items()]
     out_written = [{"dv": round(v - value, 2), **{k: r[k] for k in ("steps", "lo", "hi")}} for v, r in written.items()]
     out_written.append({"dv": 0.0, "steps": base["steps"], "lo": base["lo"], "hi": base["hi"]})
+
     def order(rows):
         return sorted(rows, key=lambda r: r["dv"])
 
@@ -164,6 +166,7 @@ def bc_panel(bc: Path, results: Path) -> dict:
                 written.append({"dv": dv, "steps": row["written"]["indifference"]})
             trained.append({"dv": 0.0, "steps": behaviour["null"]["indifference"]})
             written.append({"dv": 0.0, "steps": behaviour["base"]["indifference"]})
+
             def keep(rows):
                 return [r for r in rows if any(abs(r["dv"] - g) < 1e-9 for g in EVEN_GRID)]
 
@@ -188,11 +191,13 @@ def bc_panel(bc: Path, results: Path) -> dict:
                     continue
                 written.append({"dv": dv, "steps": row["indifference"]})
 
-            sweeps[sweep].append({
-                "name": f"s{seed}",
-                "trained": sorted(trained, key=lambda r: r["dv"]),
-                "written": sorted(written, key=lambda r: r["dv"]),
-            })
+            sweeps[sweep].append(
+                {
+                    "name": f"s{seed}",
+                    "trained": sorted(trained, key=lambda r: r["dv"]),
+                    "written": sorted(written, key=lambda r: r["dv"]),
+                }
+            )
     return {"key": "bc", "title": "BC transformer", "sweeps": sweeps}
 
 
@@ -216,7 +221,6 @@ def main() -> None:
                 sweeps[sweep].append({"name": seed, "trained": trained, "written": written})
         panels.append({"key": key, "title": title, "sweeps": sweeps})
     panels.append(bc_panel(args.bc, args.results))
-
 
     payload = json.loads(args.out.read_text()) if args.out.is_file() else {}
     payload["step_penalty"] = payload.get("step_penalty", 0.05)

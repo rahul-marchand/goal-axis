@@ -277,9 +277,7 @@ def population_stats(outcomes) -> dict:
     # the agent itself chose. Near zero at every alpha = the edit moves the
     # preference, not the ability to execute it.
     fid_column = {fid: i for i, fid in enumerate(fids)}
-    chosen_distance = np.array(
-        [distances[row, fid_column[fid]] if fid >= 0 else -1 for row, fid in zip(rows, reached_fid)]
-    )
+    chosen_distance = np.array([distances[row, fid_column[fid]] if fid >= 0 else -1 for row, fid in zip(rows, reached_fid)])
     valid = reached & (chosen_distance >= 0)
     return {
         "n": len(outcomes),
@@ -316,8 +314,10 @@ def main() -> None:
     fields = distance_fields(level)
     starts = usable_starts(level, fields, config.max_episode_steps)
     rich = int(np.argmax([o.value for o in level.objectives]))
-    print(f"level seed {level_seed}: {len(starts)} starts, rich objective {rich} "
-          f"(colour {level.objectives[rich].feature_id})")
+    print(
+        f"level seed {level_seed}: {len(starts)} starts, rich objective {rich} "
+        f"(colour {level.objectives[rich].feature_id})"
+    )
 
     greedy = Greedy.of(base)
     get_action = greedy.get_action
@@ -357,9 +357,7 @@ def main() -> None:
         "step_penalty": config.step_penalty,
         "level_seed": level_seed,
         "walls": level.walls.astype(int).tolist(),
-        "objectives": [
-            {"position": list(o.position), "value": o.value, "feature_id": o.feature_id} for o in level.objectives
-        ],
+        "objectives": [{"position": list(o.position), "value": o.value, "feature_id": o.feature_id} for o in level.objectives],
         "distance_fields": [np.where(f == UNREACHABLE, -1, f).astype(int).tolist() for f in fields],
         "starts": [list(s) for s in starts],
         "alphas": alphas.round(4).tolist(),

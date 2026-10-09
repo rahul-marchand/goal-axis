@@ -47,8 +47,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("run", type=Path)
     parser.add_argument("--levels", type=str, required=True)
     parser.add_argument("--split", type=str, default="test")
-    parser.add_argument("--alphas", type=float, nargs="+",
-                        default=[0.0, 0.1, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 1.0])
+    parser.add_argument(
+        "--alphas", type=float, nargs="+", default=[0.0, 0.1, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 1.0]
+    )
     parser.add_argument("--episodes", type=int, default=4096)
     parser.add_argument("--num-envs", type=int, default=256)
     parser.add_argument("--seed", type=int, default=0)
@@ -102,17 +103,27 @@ def main() -> None:
 
     print(f"  {'alpha':>6}{'steps':>9}  {'95% interval':^15}{'width':>8}{'reached':>9}{'route':>9}")
     for alpha in args.alphas:
-        found = greedy.threshold(params, args.episodes, args.seed, transform=partial(blend_planes, alpha=alpha, channel_axis=1))
+        found = greedy.threshold(
+            params, args.episodes, args.seed, transform=partial(blend_planes, alpha=alpha, channel_axis=1)
+        )
         point, low, high, outcomes = found.point, found.low, found.high, found.outcomes
         gaps, took_richer, _ = value_distance_decisions(outcomes)
         width = logistic_width(gaps, took_richer)
         reached = found.reached
         route = on_shortest_route(outcomes)
-        print(f"  {alpha:>6.2f}{point:>9.2f}  [{low:6.1f},{high:6.1f}]{width:>8.2f}{reached:>9.1%}{route:>9.1%}",
-              flush=True)
-        out["rows"].append({"alpha": float(alpha), "steps": float(point), "low": float(low), "high": float(high),
-                            "width": float(width), "reached": float(reached), "on_route": float(route),
-                            "decisions": int(len(gaps))})
+        print(f"  {alpha:>6.2f}{point:>9.2f}  [{low:6.1f},{high:6.1f}]{width:>8.2f}{reached:>9.1%}{route:>9.1%}", flush=True)
+        out["rows"].append(
+            {
+                "alpha": float(alpha),
+                "steps": float(point),
+                "low": float(low),
+                "high": float(high),
+                "width": float(width),
+                "reached": float(reached),
+                "on_route": float(route),
+                "decisions": int(len(gaps)),
+            }
+        )
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)

@@ -21,7 +21,7 @@ from pathlib import Path
 
 import numpy as np
 
-from goalmisgen.craftax import closed_loop, engine
+from goalmisgen.craftax import closed_loop
 from goalmisgen.craftax.craft import CraftDemoSet
 from goalmisgen.offline.demonstrations import load_demonstrations
 from goalmisgen.offline.train import list_checkpoints, load_checkpoint

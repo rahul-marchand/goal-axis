@@ -124,7 +124,6 @@ def table_row(decompositions: dict[str, SweepDecomposition], magnitude: float = 
     }
 
 
-
 # --- reading the tables back ---------------------------------------------------
 #
 # The ladder is a few hundred ``014`` / ``arm_thresholds`` tables read down a

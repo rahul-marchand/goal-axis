@@ -25,7 +25,12 @@ def test_rows_keep_file_order_signed_values_and_trailing_columns() -> None:
     ]
     negative = found[1]
     assert (negative.value, negative.kind, negative.point, negative.low, negative.high, negative.reach) == (
-        -0.5, "written (unseen)", -3.2, -3.9, -2.6, 97.5,
+        -0.5,
+        "written (unseen)",
+        -3.2,
+        -3.9,
+        -2.6,
+        97.5,
     )
     assert found[4].kind == "written, held out" and found[4].reach == 100.0
 

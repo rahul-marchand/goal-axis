@@ -76,7 +76,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("run", type=Path)
     parser.add_argument("--demos", type=Path, required=True)
     parser.add_argument("--step", type=int, default=None, help="Checkpoint step; default the last.")
-    parser.add_argument("--train-episodes", type=int, default=1024, help="A scalar probe reads d_model features from this many rows, not from tens of thousands of cells.")
+    parser.add_argument(
+        "--train-episodes",
+        type=int,
+        default=1024,
+        help="A scalar probe reads d_model features from this many rows, not from tens of thousands of cells.",
+    )
     parser.add_argument("--test-episodes", type=int, default=1024)
     parser.add_argument("--depths", type=int, nargs="*", default=None, help="Default every depth.")
     parser.add_argument("--sites", nargs="+", choices=("cells", "sep"), default=["cells", "sep"])
@@ -179,7 +184,9 @@ def check_scalar_rig(scores: dict) -> str:
 def cells_site(fit_rollouts, score_rollouts, label: str, results: dict) -> None:
     """The field probe, one row per objective per arm - the DRC's table."""
     activations = Feature("residual", operator.attrgetter("features"))
-    print(f"\n{'site':>8}{'target':>10}{'arm':>34}{'partial':>9}{'within':>8}{'hard shape':>11}{'hard R2':>9}{'MAE':>7}{'n_hard':>9}")
+    print(
+        f"\n{'site':>8}{'target':>10}{'arm':>34}{'partial':>9}{'within':>8}{'hard shape':>11}{'hard R2':>9}{'MAE':>7}{'n_hard':>9}"
+    )
 
     for feature in range(N_FEATURES):
         target = targets.DistanceToObjective(targets.fixed(feature), name=f"d->f{feature}", n_features=N_FEATURES)
@@ -252,17 +259,13 @@ def sep_site(
             predictions[feature] = apply_linear(score_x, weights, mean, std)
             truths[feature] = score_y
         results.setdefault("sep", {})[f"{feature}"] = {
-            name: {"r2": r.r2, "partial_r": r.partial_r, "mae": r.mae, "slope": r.slope}
-            for name, r in scores.items()
+            name: {"r2": r.r2, "partial_r": r.partial_r, "mae": r.mae, "slope": r.slope} for name, r in scores.items()
         }
         print(f"{'':>10}{check_scalar_rig(scores)}\n")
 
     reached = np.array([r.info.get("reached_feature_id", -1) for r in score_rollouts])
     own, other, (low, high) = summary.own_and_other(predictions, truths, reached, seed=seed)
-    print(
-        f"own {own:.2f} cells of error, other {other:.2f}, difference {other - own:+.2f} "
-        f"[{low:+.2f}, {high:+.2f}]"
-    )
+    print(f"own {own:.2f} cells of error, other {other:.2f}, difference {other - own:+.2f} " f"[{low:+.2f}, {high:+.2f}]")
     print(
         "Positive means the objective it went to is held more precisely than the one it passed up:\n"
         "a target chosen first and measured second. An interval spanning zero says both distances\n"
@@ -340,8 +343,17 @@ def main() -> None:
             cells_site(fit_rollouts, score_rollouts, label, at_depth)
         if "sep" in args.sites:
             sep_site(
-                model, params, untrained, demos, fit_indices, score_indices,
-                fit_rollouts, score_rollouts, depth, at_depth, args.seed,
+                model,
+                params,
+                untrained,
+                demos,
+                fit_indices,
+                score_indices,
+                fit_rollouts,
+                score_rollouts,
+                depth,
+                at_depth,
+                args.seed,
             )
         results["depths"][str(depth)] = at_depth
 

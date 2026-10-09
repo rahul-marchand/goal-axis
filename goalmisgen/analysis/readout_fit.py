@@ -47,8 +47,9 @@ def unit(vector: np.ndarray) -> np.ndarray:
     return np.asarray(vector, dtype=np.float64) / norm if norm > 1e-12 else np.asarray(vector, dtype=np.float64)
 
 
-def logistic_direction(x: np.ndarray, y: np.ndarray, ridge: float = 1e-3, intercept: bool = False,
-                       iterations: int = 100) -> tuple[np.ndarray, float]:
+def logistic_direction(
+    x: np.ndarray, y: np.ndarray, ridge: float = 1e-3, intercept: bool = False, iterations: int = 100
+) -> tuple[np.ndarray, float]:
     """IRLS logistic fit of ``y`` on ``x``; returns a unit direction and its bias.
 
     The direction is normalised afterwards, so the bias is on the scale of the
@@ -111,8 +112,11 @@ def crossing_in_gap(score: np.ndarray, gap: np.ndarray) -> dict:
     if len(score) < 10 or np.std(gap) < 1e-9 or np.std(score) < 1e-12:
         return {"slope": float("nan"), "crossing": float("nan"), "corr": float("nan")}
     slope, intercept = np.polyfit(gap, score, 1)
-    return {"slope": float(slope), "corr": float(np.corrcoef(gap, score)[0, 1]),
-            "crossing": float(-intercept / slope) if abs(slope) > 1e-12 else float("nan")}
+    return {
+        "slope": float(slope),
+        "corr": float(np.corrcoef(gap, score)[0, 1]),
+        "crossing": float(-intercept / slope) if abs(slope) > 1e-12 else float("nan"),
+    }
 
 
 def evaluate_readout(score: np.ndarray, took_rich: np.ndarray, gap: np.ndarray) -> dict:

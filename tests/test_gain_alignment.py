@@ -37,8 +37,15 @@ SIZE = 7
 
 def tiny_drc():
     config = MazeConfig(
-        max_episode_steps=40, num_envs=2, min_size=SIZE, max_size=SIZE, asynchronous=False, value_encoding="none",
-        colour_is_the_only_value_cue=True, objective_values=(1.0, 0.5), feature_value_correlation=1.0,
+        max_episode_steps=40,
+        num_envs=2,
+        min_size=SIZE,
+        max_size=SIZE,
+        asynchronous=False,
+        value_encoding="none",
+        colour_is_the_only_value_cue=True,
+        objective_values=(1.0, 0.5),
+        feature_value_correlation=1.0,
     )
     args = maze_drc33(min_size=SIZE, max_size=SIZE)
     net = dataclasses.replace(args.net, n_recurrent=2, repeats_per_step=2)
@@ -113,7 +120,9 @@ def test_brightness_fits_the_gain_reference_exactly_and_a_random_write_does_not(
     positions = targets.positions.reshape(n * 2, targets.steps, 2)
     static = np.repeat(targets.static, 2, axis=0)
     mask = targets.role.reshape(n * 2, targets.steps) != PAD
-    acc = add_moments(None, moments_fn(jnp.asarray(flat), flats, gains, jnp.asarray(static), jnp.asarray(positions), jnp.asarray(mask)))
+    acc = add_moments(
+        None, moments_fn(jnp.asarray(flat), flats, gains, jnp.asarray(static), jnp.asarray(positions), jnp.asarray(mask))
+    )
     for site, moments in zip(sites_of(policy.cfg), acc):
         bright = fit_site(moments, 0)
         assert bright.r2_global > 0.999, (site.name, bright)
@@ -133,8 +142,12 @@ def test_patched_rollout_is_the_base_unpatched_and_the_write_when_patched_at_the
     plain = closed_loop.make_rollout_fn(policy, unravel, step_limit=30)
     static, start, ones = jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0]), jnp.ones(4)
     zeros = jnp.zeros(len(sites))
-    _, _, probe = make_step(policy)(params, policy.apply(params, jax.random.PRNGKey(0), (1, 4, SIZE, SIZE), method=policy.initialize_carry),
-                                    static[:1], jnp.ones((1,), bool))
+    _, _, probe = make_step(policy)(
+        params,
+        policy.apply(params, jax.random.PRNGKey(0), (1, 4, SIZE, SIZE), method=policy.initialize_carry),
+        static[:1],
+        jnp.ones((1,), bool),
+    )
     coef = [jnp.zeros(s.shape[-1]) for s in probe]
 
     base_r, base_s = plain(flat, static, start, ones)

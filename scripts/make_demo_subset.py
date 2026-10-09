@@ -87,8 +87,7 @@ def main() -> None:
     available = np.flatnonzero(keep)
     if args.n > len(available):
         raise SystemExit(
-            f"{args.demos} leaves {len(available):,} demonstrations after exclusions, "
-            f"fewer than the {args.n:,} asked for"
+            f"{args.demos} leaves {len(available):,} demonstrations after exclusions, " f"fewer than the {args.n:,} asked for"
         )
     indices = available[: args.n]
 

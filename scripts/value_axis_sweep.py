@@ -191,11 +191,7 @@ def main() -> None:
     else:
         if args.family is not None:
             sys.exit("--family names a held-out family for --values arms; the symmetric grid is always 'o'")
-        arms = [
-            arm
-            for objective in objectives
-            for arm in sweep_arms(objective, offsets=offsets, replicate=args.replicate)
-        ]
+        arms = [arm for objective in objectives for arm in sweep_arms(objective, offsets=offsets, replicate=args.replicate)]
     problems = check_no_preference_flip(base_values, arms)
     if problems and args.allow_reorder:
         print(f"  {len(problems)} arms reorder the objectives, allowed explicitly")

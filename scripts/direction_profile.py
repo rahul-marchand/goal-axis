@@ -104,10 +104,13 @@ def survival_table(rows: list[dict], key: str) -> list[dict]:
     out = []
     for before, after in zip(rows, rows[1:]):
         upstream = before.get(key, float("nan"))
-        out.append({
-            "from": before["state"], "to": after["state"],
-            "survival": (after.get(key, float("nan")) / upstream) if upstream and upstream > 0 else float("nan"),
-        })
+        out.append(
+            {
+                "from": before["state"],
+                "to": after["state"],
+                "survival": (after.get(key, float("nan")) / upstream) if upstream and upstream > 0 else float("nan"),
+            }
+        )
     return out
 
 
@@ -132,12 +135,20 @@ def main() -> None:
     for channel in COLOUR:
         rows = kernel.plane(channel)
         gain_delta[rows] = args.gain * base_flat[rows] * (1 if channel == COLOUR[1] else -1)
-    family = RotationEdit(size=base_flat.size, planes=colour_planes(kernel, COLOUR), partners=partner_map(COLOUR), base_flat=base_flat)
+    family = RotationEdit(
+        size=base_flat.size, planes=colour_planes(kernel, COLOUR), partners=partner_map(COLOUR), base_flat=base_flat
+    )
     turn_delta = np.asarray(family.delta({"t": jnp.array([-args.turn, args.turn])}), dtype=np.float64)
 
     deltas = {"gain": gain_delta, "turn": turn_delta}
-    out = {"run": str(args.run), "offline": args.offline, "states": names, "gain": args.gain, "turn": args.turn,
-           "input_kernel": {"path": kernel.path, "shape": list(kernel.shape)}}
+    out = {
+        "run": str(args.run),
+        "offline": args.offline,
+        "states": names,
+        "gain": args.gain,
+        "turn": args.turn,
+        "input_kernel": {"path": kernel.path, "shape": list(kernel.shape)},
+    }
 
     if not args.no_axis:
         axis = load_axis()
@@ -170,8 +181,10 @@ def main() -> None:
         print("\n=== share of the axis's change explained (R^2) ===")
         print(f"  {'state':<18}{'gain':>10}{'turn':>10}{'both':>10}{'random':>10}")
         for row in result["states"]:
-            print(f"  {row['state']:<18}" + "".join(
-                f"{row.get(key, float('nan')):>10.3f}" for key in ("r2_gain", "r2_turn", "r2_both", "r2_random")))
+            print(
+                f"  {row['state']:<18}"
+                + "".join(f"{row.get(key, float('nan')):>10.3f}" for key in ("r2_gain", "r2_turn", "r2_both", "r2_random"))
+            )
 
     if norm_params is not None:
         tokens, scale_p, bias_p = norm_params(base_flat)
@@ -181,11 +194,17 @@ def main() -> None:
             parts = decompose(tokens, perturbed - tokens)
             before = relative_change(tokens, perturbed)
             after = relative_change(layer_norm(tokens, scale_p, bias_p), layer_norm(perturbed, scale_p, bias_p))
-            print(f"  {label:<6} ones {parts.ones:6.3f}  magnitude {parts.magnitude:6.3f}  direction {parts.direction:6.3f}"
-                  f"   |dh|/|h| before {before:.3e} after {after:.3e}   survival {after / before if before > 0 else float('nan'):.3f}")
+            print(
+                f"  {label:<6} ones {parts.ones:6.3f}  magnitude {parts.magnitude:6.3f}  direction {parts.direction:6.3f}"
+                f"   |dh|/|h| before {before:.3e} after {after:.3e}   survival {after / before if before > 0 else float('nan'):.3f}"
+            )
             out.setdefault("first_norm", {})[label] = {
-                "ones": parts.ones, "magnitude": parts.magnitude, "direction": parts.direction,
-                "before": before, "after": after, "survival": after / before if before > 0 else float("nan"),
+                "ones": parts.ones,
+                "magnitude": parts.magnitude,
+                "direction": parts.direction,
+                "before": before,
+                "after": after,
+                "survival": after / before if before > 0 else float("nan"),
             }
 
     if args.json:
@@ -237,6 +256,7 @@ def rl_setup(args):
     first_norm = find_first_layer_norm(base.params)
     norm_params = None
     if first_norm is not None:
+
         def norm_params(flat_params):
             """The embedding grid, and the first block's LayerNorm scale and bias."""
             tree = unravel(jnp.asarray(flat_params, dtype=jnp.float32))

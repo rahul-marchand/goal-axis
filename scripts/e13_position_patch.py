@@ -47,8 +47,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--levels", type=int, default=2048)
     parser.add_argument("--depths", type=int, nargs="+", default=None, help="Default: 0 and every block but the last.")
     parser.add_argument("--doses", type=float, nargs="+", default=[-0.3, 0.3], help="Value offsets to write.")
-    parser.add_argument("--chunk", type=int, default=256,
-                        help="Levels per forward pass when reading residuals; d512l4 OOMs at 2048.")
+    parser.add_argument(
+        "--chunk", type=int, default=256, help="Levels per forward pass when reading residuals; d512l4 OOMs at 2048."
+    )
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
 
@@ -104,8 +105,13 @@ def main() -> None:
         behaviour = summary.behaviour
         return float(summary.indifference), float(behaviour.reached_objective), float(behaviour.chose_optimal)
 
-    out: dict = {"run": str(args.run), "sweep": args.sweep, "levels": int(len(indices)),
-                 "axis_norm": float(np.linalg.norm(axis)), "rows": []}
+    out: dict = {
+        "run": str(args.run),
+        "sweep": args.sweep,
+        "levels": int(len(indices)),
+        "axis_norm": float(np.linalg.norm(axis)),
+        "rows": [],
+    }
 
     tau_base, reached_base, route_base = threshold(base.params)
     print(f"  {'condition':>26}{'depth':>7}{'tau':>9}{'reached':>9}{'route':>9}{'share':>8}")
@@ -117,12 +123,21 @@ def main() -> None:
         tau_w, reached_w, route_w = threshold(written)
         shift = tau_w - tau_base
         print(f"  {f'weight write @ {dose:+.2f}':>26}{'-':>7}{tau_w:9.2f}{reached_w:9.1%}{route_w:9.1%}{1.0:8.2f}")
-        out["rows"].append({"condition": "weight write", "dose": dose, "tau": tau_w, "reached": reached_w,
-                            "on_route": route_w, "shift": shift, "share": 1.0})
+        out["rows"].append(
+            {
+                "condition": "weight write",
+                "dose": dose,
+                "tau": tau_w,
+                "reached": reached_w,
+                "on_route": route_w,
+                "shift": shift,
+                "share": 1.0,
+            }
+        )
         for depth in depths:
             parts = []
             for start in range(0, len(observations), args.chunk):
-                window = observations[start:start + args.chunk]
+                window = observations[start : start + args.chunk]
                 streams_base = np.asarray(residuals_fn(base.params, window))[depth]
                 streams_written = np.asarray(residuals_fn(written, window))[depth]
                 parts.append(streams_written - streams_base)
@@ -131,10 +146,19 @@ def main() -> None:
                 edit = delta * mask[..., None]
                 tau, reached, route = threshold(base.params, edit=edit.astype(np.float32), depth=depth)
                 share = (tau - tau_base) / shift if abs(shift) > 1e-6 else float("nan")
-                print(f"  {f'{name} @ {dose:+.2f}':>26}{depth:7d}{tau:9.2f}{reached:9.1%}{route:9.1%}{share:8.2f}",
-                      flush=True)
-                out["rows"].append({"condition": name, "dose": dose, "depth": int(depth), "tau": tau,
-                                    "reached": reached, "on_route": route, "shift": tau - tau_base, "share": share})
+                print(f"  {f'{name} @ {dose:+.2f}':>26}{depth:7d}{tau:9.2f}{reached:9.1%}{route:9.1%}{share:8.2f}", flush=True)
+                out["rows"].append(
+                    {
+                        "condition": name,
+                        "dose": dose,
+                        "depth": int(depth),
+                        "tau": tau,
+                        "reached": reached,
+                        "on_route": route,
+                        "shift": tau - tau_base,
+                        "share": share,
+                    }
+                )
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)

@@ -55,15 +55,25 @@ def main() -> None:
     matrix("weight-space cosine", lambda a, b: cosine(directions[a], directions[b]))
     matrix("function-space cosine, all route steps", lambda a, b: cosine(tangents[a], tangents[b]))
     matrix("function-space cosine, forks only", lambda a, b: cosine(forks[a], forks[b]))
-    print("\nnorms: " + ", ".join(f"{n} |d| {np.linalg.norm(directions[n]):.3f} |J d| {np.linalg.norm(tangents[n]):.2f} "
-                                  f"|J d| fork {np.linalg.norm(forks[n]):.2f}" for n in names))
+    print(
+        "\nnorms: "
+        + ", ".join(
+            f"{n} |d| {np.linalg.norm(directions[n]):.3f} |J d| {np.linalg.norm(tangents[n]):.2f} "
+            f"|J d| fork {np.linalg.norm(forks[n]):.2f}"
+            for n in names
+        )
+    )
 
     groups, order = module_groups(backend.params)
     print(f"\nper-module share of |d|^2\n  {'module':<20}" + "".join(f"{n[:12]:>13}" for n in names))
     for module in order:
-        print(f"  {module:<20}" + "".join(
-            f"{100 * float(directions[n][groups[module]] @ directions[n][groups[module]]) / float(directions[n] @ directions[n]):>12.1f}%"
-            for n in names))
+        print(
+            f"  {module:<20}"
+            + "".join(
+                f"{100 * float(directions[n][groups[module]] @ directions[n][groups[module]]) / float(directions[n] @ directions[n]):>12.1f}%"
+                for n in names
+            )
+        )
 
 
 if __name__ == "__main__":

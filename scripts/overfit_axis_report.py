@@ -51,7 +51,9 @@ def main() -> None:
     gaps = {run: load(args.results / f"overfit.gap.{run}.json") for run in args.runs}
 
     print("=== how much of each base's competence is memory ===")
-    print(f"  {'run':<20}{'levels':>9}{'own acc':>10}{'held acc':>10}{'own opt.':>10}{'held opt.':>11}{'own indiff':>12}{'held indiff':>13}")
+    print(
+        f"  {'run':<20}{'levels':>9}{'own acc':>10}{'held acc':>10}{'own opt.':>10}{'held opt.':>11}{'own indiff':>12}{'held indiff':>13}"
+    )
     for run in args.runs:
         gap = gaps.get(run)
         if not gap:

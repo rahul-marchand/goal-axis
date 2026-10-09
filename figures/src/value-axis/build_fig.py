@@ -48,10 +48,7 @@ def panel_letter(x, y, letter):
 
 
 def subtitle(x, y, text):
-    return (
-        f'<text x="{x}" y="{y}" font-size="13" font-weight="600" fill="var(--ink)" '
-        f'font-family="{SANS}">{text}</text>'
-    )
+    return f'<text x="{x}" y="{y}" font-size="13" font-weight="600" fill="var(--ink)" ' f'font-family="{SANS}">{text}</text>'
 
 
 class Chart:
@@ -88,9 +85,7 @@ class Chart:
                 )
         for t in yticks:
             py = self.py(t)
-            out.append(
-                f'<line x1="{self.x-4}" y1="{py}" x2="{self.x}" y2="{py}" stroke="var(--ink-soft)" stroke-width="1"/>'
-            )
+            out.append(f'<line x1="{self.x-4}" y1="{py}" x2="{self.x}" y2="{py}" stroke="var(--ink-soft)" stroke-width="1"/>')
             if ylabels:
                 out.append(
                     f'<text x="{self.x-8}" y="{py+3.5}" text-anchor="end" font-size="10" '
@@ -135,7 +130,9 @@ def marker(chart, v, m, colour, filled, square):
 def draw_series(chart, stats, colour, filled, dashed, square_beyond=None):
     out = []
     band_path = (
-        " ".join(f"{'M' if i == 0 else 'L'}{chart.px(v)},{chart.py(chart.clip(hi))}" for i, (v, _, (lo, hi)) in enumerate(stats))
+        " ".join(
+            f"{'M' if i == 0 else 'L'}{chart.px(v)},{chart.py(chart.clip(hi))}" for i, (v, _, (lo, hi)) in enumerate(stats)
+        )
         + " "
         + " ".join(f"L{chart.px(v)},{chart.py(chart.clip(lo))}" for v, _, (lo, hi) in reversed(stats))
         + " Z"
@@ -171,7 +168,9 @@ def build(sweeps=("o0",), name="value-axis"):
         left = i % 2 == 0
         svg.append(panel_letter(cx - 46 if left else cx - 40, cy - 12, letters[i]))
         svg.append(subtitle(cx - 20 if left else cx - 14, cy - 12, panel["title"]))
-        svg.append(chart.frame((-0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6), (-10, -5, 0, 5, 10, 15, 20, 25), xlabels=bottom, ylabels=left))
+        svg.append(
+            chart.frame((-0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6), (-10, -5, 0, 5, 10, 15, 20, 25), xlabels=bottom, ylabels=left)
+        )
 
         # preference reversal. Above the line the agent still crosses the maze
         # for the richer goal; below it, it walks past the goal it used to
@@ -232,7 +231,9 @@ def build(sweeps=("o0",), name="value-axis"):
             svg.append(f'<circle cx="{lx+8}" cy="{ly}" r="2.6" fill="var(--panel)" stroke="{colour}" stroke-width="1.5"/>')
         else:
             svg.append(f'<circle cx="{lx+8}" cy="{ly}" r="2.6" fill="{colour}"/>')
-        svg.append(f'<text x="{lx+22}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>')
+        svg.append(
+            f'<text x="{lx+22}" y="{ly+3.5}" font-size="10.5" fill="var(--ink-soft)" font-family="{SANS}">{text}</text>'
+        )
         lx += 22 + est(text) + gap
     svg.append(
         f'<text x="26" y="{(row_y[0]+row_y[1]+chart_h)/2}" text-anchor="middle" font-size="10.5" '
@@ -241,7 +242,6 @@ def build(sweeps=("o0",), name="value-axis"):
     )
 
     height = row_y[1] + chart_h + 72
-
 
     # Caption lives in the post markdown (::: {.figcap for=value-axis}); the empty
     # figcaption below is the splice anchor.
@@ -279,5 +279,5 @@ def build(sweeps=("o0",), name="value-axis"):
 
 
 if __name__ == "__main__":
-    build()                                          # main: 1.0-goal sweep only
-    build(("o0", "o1"), name="value-axis-both")      # appendix: both sweeps
+    build()  # main: 1.0-goal sweep only
+    build(("o0", "o1"), name="value-axis-both")  # appendix: both sweeps

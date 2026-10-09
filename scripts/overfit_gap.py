@@ -84,7 +84,9 @@ def main() -> None:
     )
 
     rows = {}
-    print(f"\n  {'set':<14}{'levels':>8}{'loss':>9}{'token acc':>11}{'optimal':>9}{'matched':>9}{'reached':>9}{'legal':>8}{'indiff.':>9}")
+    print(
+        f"\n  {'set':<14}{'levels':>8}{'loss':>9}{'token acc':>11}{'optimal':>9}{'matched':>9}{'reached':>9}{'legal':>8}{'indiff.':>9}"
+    )
     for item in args.sets:
         name, _, path = item.partition("=")
         if not path:

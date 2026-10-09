@@ -64,7 +64,13 @@ def main() -> None:
     demos = DemoSet.load(args.demos, hide_values=base.hide_values)
     indices = np.arange(min(args.levels, len(demos)))
     observations = demos.observations(indices)
-    out: dict = {"run": str(args.run), "checkpoint": f"step {base.step}", "values": list(base.values), "kernel": kernel.path, "rows": []}
+    out: dict = {
+        "run": str(args.run),
+        "checkpoint": f"step {base.step}",
+        "values": list(base.values),
+        "kernel": kernel.path,
+        "rows": [],
+    }
 
     def measure(flat: np.ndarray, label: str, gains: dict[int, float] | None = None, **tags) -> dict:
         params = base.unravel(np.asarray(flat, dtype=np.float32))
@@ -73,8 +79,14 @@ def main() -> None:
         point, reached = float(summary.indifference), float(summary.behaviour.reached_objective)
         route = on_shortest_route(outcomes)
         print(f"  {label:>52}{point:>8.2f}{reached:>9.1%}{route:>9.1%}", flush=True)
-        row = {"label": label, "steps": point, "reached": reached, "on_route": route,
-               "gains": {str(k): v for k, v in (gains or {}).items()}, **tags}
+        row = {
+            "label": label,
+            "steps": point,
+            "reached": reached,
+            "on_route": route,
+            "gains": {str(k): v for k, v in (gains or {}).items()},
+            **tags,
+        }
         out["rows"].append(row)
         return row
 
@@ -89,7 +101,9 @@ def main() -> None:
     print()
     for contrast in args.contrasts:
         gains = {COLOUR[0]: 1 + contrast, COLOUR[1]: 1 - contrast}
-        measure(base.flat, f"colour 0 x{1 + contrast:g}, colour 1 x{1 - contrast:g}", gains, kind="contrast", contrast=contrast)
+        measure(
+            base.flat, f"colour 0 x{1 + contrast:g}, colour 1 x{1 - contrast:g}", gains, kind="contrast", contrast=contrast
+        )
 
     if args.no_axis:
         finish(args, out)
@@ -119,9 +133,13 @@ def main() -> None:
         kernel_cosines={str(k): v for k, v in cosines.items()},
     )
     print(f"\nsweep  {args.sweep}: {len(offsets)} arms; |axis| {np.linalg.norm(axis):.3g}")
-    print(f"       cell_in kernel holds {100 * out['input_share']:.2f}% of ||axis||^2; its gain part {100 * out['gain_share_of_input']:.1f}% of that")
+    print(
+        f"       cell_in kernel holds {100 * out['input_share']:.2f}% of ||axis||^2; its gain part {100 * out['gain_share_of_input']:.1f}% of that"
+    )
     print("       cos(axis, base kernel) per input channel: " + ", ".join(f"{c}: {v:+.2f}" for c, v in cosines.items()))
-    print("       gain per unit offset: " + ", ".join(f"colour {k - FIRST_FEATURE_CHANNEL}: {v:+.3f}" for k, v in betas.items()))
+    print(
+        "       gain per unit offset: " + ", ".join(f"colour {k - FIRST_FEATURE_CHANNEL}: {v:+.3f}" for k, v in betas.items())
+    )
 
     print(f"\n=== the {args.sweep} axis and its parts, written at the base values ===\n")
     print(columns)
@@ -132,8 +150,15 @@ def main() -> None:
         measure(base.flat + offset * gain, f"gain part, in the weights @ {offset:+.2f}", kind="gain", offset=offset)
         equivalent = {channel: 1 + offset * beta for channel, beta in betas.items()}
         measure(base.flat, f"gain part, as brightness @ {offset:+.2f}", equivalent, kind="gain as brightness", offset=offset)
-        measure(base.flat + offset * (input_slice - gain), f"cell_in minus gain @ {offset:+.2f}", kind="input minus gain", offset=offset)
-        measure(base.flat + offset * (axis - gain), f"full axis minus gain @ {offset:+.2f}", kind="full minus gain", offset=offset)
+        measure(
+            base.flat + offset * (input_slice - gain),
+            f"cell_in minus gain @ {offset:+.2f}",
+            kind="input minus gain",
+            offset=offset,
+        )
+        measure(
+            base.flat + offset * (axis - gain), f"full axis minus gain @ {offset:+.2f}", kind="full minus gain", offset=offset
+        )
     finish(args, out)
 
 

@@ -80,9 +80,7 @@ def main() -> None:
             lines.append(f"| {cell} | {params} | pending | pending | pending |")
             continue
         colour = payload["shares"]["colour"]
-        lines.append(
-            f"| {cell} | {params} | {colour['norm']:.4f} | {colour['variation']:.4f} | {colour['after_norm']:.3f} |"
-        )
+        lines.append(f"| {cell} | {params} | {colour['norm']:.4f} | {colour['variation']:.4f} | {colour['after_norm']:.3f} |")
     lines += [
         "",
         "**Dilution, as posed, is falsified.** The colour channels' share of a cell token does not fall as",

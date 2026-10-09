@@ -118,9 +118,15 @@ def bc_series(bc: Path, results: Path, seed: int, sweep: str) -> dict | None:
         if not any(abs(dv - g) < 1e-9 for g in EVEN_GRID):
             continue
         trained.append({"dv": dv, "steps": row["arm"]["indifference"], "reach": 100.0 * row["arm"].get("reached", 1.0)})
-        written.append({"dv": dv, "steps": row["written"]["indifference"], "reach": 100.0 * row["written"].get("reached", 1.0)})
-    trained.append({"dv": 0.0, "steps": behaviour["null"]["indifference"], "reach": 100.0 * behaviour["null"].get("reached", 1.0)})
-    written.append({"dv": 0.0, "steps": behaviour["base"]["indifference"], "reach": 100.0 * behaviour["base"].get("reached", 1.0)})
+        written.append(
+            {"dv": dv, "steps": row["written"]["indifference"], "reach": 100.0 * row["written"].get("reached", 1.0)}
+        )
+    trained.append(
+        {"dv": 0.0, "steps": behaviour["null"]["indifference"], "reach": 100.0 * behaviour["null"].get("reached", 1.0)}
+    )
+    written.append(
+        {"dv": 0.0, "steps": behaviour["base"]["indifference"], "reach": 100.0 * behaviour["base"].get("reached", 1.0)}
+    )
 
     crossing, _, _ = read_rows_keep_reach(results / f"g1-bcnv11.s{seed}-{crossing_family}.txt")
     trained.extend(offset_rows(crossing, BASE_VALUE[crossing_family]))

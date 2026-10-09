@@ -102,7 +102,9 @@ def expert_line(payloads: list[dict]) -> tuple[np.ndarray, np.ndarray]:
     return np.asarray(xs), np.asarray(ys)
 
 
-def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float], goals=("richer goal", "poorer goal"), stats: bool = True) -> None:
+def draw_panel(
+    ax, panel: dict, title: str, ylim: tuple[float, float], goals=("richer goal", "poorer goal"), stats: bool = True
+) -> None:
     sweeps = panel["sweeps"]
     ax.axhline(0, color=INK2, lw=0.8, alpha=0.55)
     ax.grid(True, axis="y")
@@ -123,9 +125,7 @@ def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float], goals=("r
             if len(payloads) > 1:
                 ax.fill_between(x, lo, hi, color=colour, alpha=0.13, lw=0)
             ax.plot(x, m, color=colour, lw=1.6, ls=(0, (4, 3)) if dashed else "-", zorder=3)
-            ax.plot(
-                x, m, ls="none", marker="o", ms=4.2, mfc=colour if filled else SURFACE, mec=colour, mew=1.3, zorder=4
-            )
+            ax.plot(x, m, ls="none", marker="o", ms=4.2, mfc=colour if filled else SURFACE, mec=colour, mew=1.3, zorder=4)
     ax.set_xlim(-0.55, 0.55)
     ax.set_ylim(*ylim)
     ax.set_xticks([-0.4, -0.2, 0, 0.2, 0.4])
@@ -151,7 +151,9 @@ def draw_panel(ax, panel: dict, title: str, ylim: tuple[float, float], goals=("r
         cos = [g["cos"] for g in panel["gaps"] if g.get("cos") is not None]
         if cos:
             text.append(f"cos(axis_0, axis_1) = {np.mean(cos):+.2f}")
-    ax.text(0.03, 0.03, "\n".join(text), transform=ax.transAxes, va="bottom", ha="left", fontsize=7.0, color=INK2, linespacing=1.4)
+    ax.text(
+        0.03, 0.03, "\n".join(text), transform=ax.transAxes, va="bottom", ha="left", fontsize=7.0, color=INK2, linespacing=1.4
+    )
     ax.set_title(title, loc="left", fontsize=9.5, x=0.055)
 
 
@@ -162,7 +164,9 @@ def main() -> None:
     parser.add_argument("--layout", choices=("single", "all"), default="single")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
-    out = args.out or Path(__file__).parent / "craftax" / ("fig_craftax_value_axis" if args.layout == "single" else "fig_craftax_value_axis_all")
+    out = args.out or Path(__file__).parent / "craftax" / (
+        "fig_craftax_value_axis" if args.layout == "single" else "fig_craftax_value_axis_all"
+    )
     if args.layout == "single":
         draw_single(load_panel(args.data / "craft", "cxcraft15t"), out)
         return
@@ -180,7 +184,9 @@ def main() -> None:
     fig, axes = plt.subplots(2, 2, figsize=(9.6, 6.6), sharex=True, sharey=True, gridspec_kw={"hspace": 0.32, "wspace": 0.12})
     for k, (ax, (title, panel)) in enumerate(zip(axes.ravel(), panels)):
         draw_panel(ax, panel, title, ylim)
-        ax.text(-0.01, 1.02, f"({'abcd'[k]})", transform=ax.transAxes, fontsize=11, fontstyle="italic", va="bottom", ha="right")
+        ax.text(
+            -0.01, 1.02, f"({'abcd'[k]})", transform=ax.transAxes, fontsize=11, fontstyle="italic", va="bottom", ha="right"
+        )
     for ax in axes[1]:
         ax.set_xlabel("change in the swept goal's value")
     fig.supylabel("threshold τ: extra actions the policy spends for the richer goal", fontsize=9, color=INK2, x=0.04)
@@ -188,7 +194,18 @@ def main() -> None:
         Line2D([], [], color=RICH, lw=1.6, label="richer goal's value moved"),
         Line2D([], [], color=POOR, lw=1.6, label="poorer goal's value moved"),
         Line2D([], [], color=INK2, lw=1.6, marker="o", ms=4.2, label="fine-tuned at that value"),
-        Line2D([], [], color=INK2, lw=1.6, ls=(0, (4, 3)), marker="o", ms=4.2, mfc=SURFACE, mew=1.3, label="written along the axis, arm held out"),
+        Line2D(
+            [],
+            [],
+            color=INK2,
+            lw=1.6,
+            ls=(0, (4, 3)),
+            marker="o",
+            ms=4.2,
+            mfc=SURFACE,
+            mew=1.3,
+            label="written along the axis, arm held out",
+        ),
         Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert's exchange rate"),
     ]
     fig.legend(handles=handles, loc="lower center", ncol=5, fontsize=7.8, bbox_to_anchor=(0.5, -0.02), columnspacing=1.6)
@@ -211,10 +228,30 @@ def draw_single(panel: dict, out: Path) -> None:
     ax.tick_params(labelsize=7.5)
     handles = [
         Line2D([], [], color=RICH, lw=1.6, marker="o", ms=4, label="fine-tuned at that value"),
-        Line2D([], [], color=RICH, lw=1.6, ls=(0, (4, 3)), marker="o", ms=4, mfc=SURFACE, mew=1.2, label="written along the axis, arm held out"),
+        Line2D(
+            [],
+            [],
+            color=RICH,
+            lw=1.6,
+            ls=(0, (4, 3)),
+            marker="o",
+            ms=4,
+            mfc=SURFACE,
+            mew=1.2,
+            label="written along the axis, arm held out",
+        ),
         Line2D([], [], color=LINE, lw=1.3, ls=(0, (4, 3)), label="expert's exchange rate"),
     ]
-    fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=6.8, bbox_to_anchor=(0.55, -0.1), columnspacing=1.6, handlelength=2.2, frameon=False)
+    fig.legend(
+        handles=handles,
+        loc="lower center",
+        ncol=3,
+        fontsize=6.8,
+        bbox_to_anchor=(0.55, -0.1),
+        columnspacing=1.6,
+        handlelength=2.2,
+        frameon=False,
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
         fig.savefig(f"{out}.{ext}", bbox_inches="tight", pad_inches=0.08)

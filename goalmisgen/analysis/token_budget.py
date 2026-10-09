@@ -102,7 +102,9 @@ def cell_token_parts(params, cells: np.ndarray, size: int, colour: tuple[int, ..
 
     mask = np.zeros(cells.shape[-1], dtype=bool)
     mask[list(colour)] = True
-    position = np.asarray(tree["row_embedding"], dtype=np.float64)[rows] + np.asarray(tree["col_embedding"], dtype=np.float64)[cols]
+    position = (
+        np.asarray(tree["row_embedding"], dtype=np.float64)[rows] + np.asarray(tree["col_embedding"], dtype=np.float64)[cols]
+    )
     parts = {
         "colour": cells[..., mask] @ kernel[mask],
         "other content": cells[..., ~mask] @ kernel[~mask] + np.asarray(tree["cell_in"].get("bias", 0.0), dtype=np.float64),

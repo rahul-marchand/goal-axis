@@ -112,10 +112,15 @@ def main() -> None:
             label = "all" if layer is None else ("embed" if layer == 0 else f"block {layer}")
             train = capture(model, params, demos, train_idx, layer, decoded=decoded_train)
             test = capture(model, params, demos, test_idx, layer, decoded=decoded_test)
-            for name, rollouts in (("own route", (train, test)), ("untaken", (relabel(train, "untaken"), relabel(test, "untaken")))):
+            for name, rollouts in (
+                ("own route", (train, test)),
+                ("untaken", (relabel(train, "untaken"), relabel(test, "untaken"))),
+            ):
                 result = probe(rollouts[0], rollouts[1], source="features")
                 low, high = auc_interval(rollouts[0], rollouts[1], source="features")
-                print(f"{label:>8}{name:>14}{result.auc:>9.3f}{f'[{low:.3f}, {high:.3f}]':>18}{result.balanced_accuracy:>10.3f}")
+                print(
+                    f"{label:>8}{name:>14}{result.auc:>9.3f}{f'[{low:.3f}, {high:.3f}]':>18}{result.balanced_accuracy:>10.3f}"
+                )
         print(
             "Both labellings are real routes through the same maze from the same cell. The gap between\n"
             "them is what is specific to the route this model will actually walk; without it, an AUC over\n"

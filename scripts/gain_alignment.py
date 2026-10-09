@@ -43,8 +43,13 @@ from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
 from goalmisgen.provenance import header
 
 COLOUR = (FIRST_FEATURE_CHANNEL, FIRST_FEATURE_CHANNEL + 1)
-MODES = {"full": (1.0, 0.0, None), "gain": (0.0, 1.0, "pc"), "residual": (1.0, -1.0, "pc"),
-         "gain, global": (0.0, 1.0, "global"), "residual, global": (1.0, -1.0, "global")}
+MODES = {
+    "full": (1.0, 0.0, None),
+    "gain": (0.0, 1.0, "pc"),
+    "residual": (1.0, -1.0, "pc"),
+    "gain, global": (0.0, 1.0, "global"),
+    "residual, global": (1.0, -1.0, "global"),
+}
 """Mediation patches: (weight on the write's change, weight on its gain component, which coefficients)."""
 
 
@@ -62,11 +67,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--chunk", type=int, default=32, help="levels per teacher-forced batch")
     parser.add_argument("--eval-chunk", type=int, default=1024)
     parser.add_argument("--step-limit", type=int, default=80)
-    parser.add_argument("--mediate", nargs="*", default=["full axis", "all but input conv", "brightness colour 1, tau-matched"])
+    parser.add_argument(
+        "--mediate", nargs="*", default=["full axis", "all but input conv", "brightness colour 1, tau-matched"]
+    )
     parser.add_argument("--match-gains", type=float, nargs="+", default=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--extra-writes", type=Path, default=None,
-                        help="npz of threshold-matched non-gain knobs from scripts/control_writes.py.")
+    parser.add_argument(
+        "--extra-writes",
+        type=Path,
+        default=None,
+        help="npz of threshold-matched non-gain knobs from scripts/control_writes.py.",
+    )
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
 
@@ -105,8 +116,10 @@ def main() -> None:
     input_slice = restrict(axis, groups, "input conv")
     gain = gain_part(axis, base, kernel, COLOUR)
     betas = gain_coefficients(axis, base, kernel, COLOUR)
-    print(f"sweep  {args.sweep}: {len(offsets)} arms; |axis| {np.linalg.norm(axis):.3g}; gain per unit offset "
-          + ", ".join(f"colour {c - FIRST_FEATURE_CHANNEL}: {b:+.3f}" for c, b in betas.items()))
+    print(
+        f"sweep  {args.sweep}: {len(offsets)} arms; |axis| {np.linalg.norm(axis):.3g}; gain per unit offset "
+        + ", ".join(f"colour {c - FIRST_FEATURE_CHANNEL}: {b:+.3f}" for c, b in betas.items())
+    )
 
     rng = np.random.default_rng(args.seed)
     random_matched = np.zeros_like(axis)
@@ -130,7 +143,10 @@ def main() -> None:
     variants: dict[str, tuple[np.ndarray, np.ndarray]] = {
         "full axis": (axis, zero_gain),
         "gain part, in weights": (gain, zero_gain),
-        "gain part, as brightness": (np.zeros_like(axis), np.where(np.isin(np.arange(n_inputs), list(betas)), as_brightness, 0.0)),
+        "gain part, as brightness": (
+            np.zeros_like(axis),
+            np.where(np.isin(np.arange(n_inputs), list(betas)), as_brightness, 0.0),
+        ),
         "input conv minus gain": (input_slice - gain, zero_gain),
         "full minus gain": (axis - gain, zero_gain),
         "all but input conv": (axis - input_slice, zero_gain),
@@ -150,8 +166,12 @@ def main() -> None:
         reached, steps = [], []
         for start in range(0, len(eval_targets), args.eval_chunk):
             rows = slice(start, start + args.eval_chunk)
-            r, s = plain(jnp.asarray(flat, dtype=jnp.float32), jnp.asarray(eval_targets.static[rows]),
-                         jnp.asarray(eval_targets.positions[rows, 0, 0]), jnp.asarray(gains, dtype=jnp.float32))
+            r, s = plain(
+                jnp.asarray(flat, dtype=jnp.float32),
+                jnp.asarray(eval_targets.static[rows]),
+                jnp.asarray(eval_targets.positions[rows, 0, 0]),
+                jnp.asarray(gains, dtype=jnp.float32),
+            )
             reached.append(np.asarray(r))
             steps.append(np.asarray(s))
         return read_outcomes(eval_targets, np.concatenate(reached), np.concatenate(steps), resamples=20).tau
@@ -168,8 +188,11 @@ def main() -> None:
     matched = np.zeros(n_inputs)
     matched[COLOUR[1]] = sign * g_match / args.offset
     variants["brightness colour 1, tau-matched"] = (np.zeros_like(axis), matched)
-    print(f"match  axis threshold shift over +-{args.offset}: {axis_shift:+.2f}; colour-1 brightness +-g: "
-          + ", ".join(f"{g:g}: {v:+.2f}" for g, v in shifts.items()) + f"  -> {sign * g_match:+g}")
+    print(
+        f"match  axis threshold shift over +-{args.offset}: {axis_shift:+.2f}; colour-1 brightness +-g: "
+        + ", ".join(f"{g:g}: {v:+.2f}" for g, v in shifts.items())
+        + f"  -> {sign * g_match:+g}"
+    )
 
     # Knobs that are not a gain, already scaled to the axis's own threshold shift
     # (scripts/control_writes.py). They are stored as the two writes rather than as
@@ -189,13 +212,25 @@ def main() -> None:
             plus, minus = extra_pairs[name]
             return (plus if sign > 0 else minus).astype(np.float32), np.ones(n_inputs, dtype=np.float32)
         direction, slope = variants[name]
-        return (base + sign * args.offset * direction).astype(np.float32), (1.0 + sign * args.offset * slope).astype(np.float32)
+        return (base + sign * args.offset * direction).astype(np.float32), (1.0 + sign * args.offset * slope).astype(
+            np.float32
+        )
 
     out: dict = {
-        "axis_shift": axis_shift, "brightness_shifts": {str(g): v for g, v in shifts.items()}, "matched_gain": sign * g_match,
-        "run": str(args.run), "checkpoint": str(checkpoint), "values": list(values), "sweep": args.sweep,
-        "offset": args.offset, "eps": args.eps, "betas": {str(c - FIRST_FEATURE_CHANNEL): b for c, b in betas.items()},
-        "sites": [s.name for s in sites], "variants": names, "profile": {}, "mediation": [],
+        "axis_shift": axis_shift,
+        "brightness_shifts": {str(g): v for g, v in shifts.items()},
+        "matched_gain": sign * g_match,
+        "run": str(args.run),
+        "checkpoint": str(checkpoint),
+        "values": list(values),
+        "sweep": args.sweep,
+        "offset": args.offset,
+        "eps": args.eps,
+        "betas": {str(c - FIRST_FEATURE_CHANNEL): b for c, b in betas.items()},
+        "sites": [s.name for s in sites],
+        "variants": names,
+        "profile": {},
+        "mediation": [],
     }
 
     # --- profile ------------------------------------------------------------------
@@ -211,12 +246,17 @@ def main() -> None:
         rows = np.arange(start, min(start + args.chunk, n_fit))
         sub = fit_targets.subset(rows)
         steps = sub.steps
-        acc = ga.add_moments(acc, moments_fn(
-            jnp.asarray(flat32), flats, gains,
-            jnp.asarray(np.repeat(sub.static, 2, axis=0)),
-            jnp.asarray(sub.positions.reshape(-1, steps, 2)),
-            jnp.asarray(sub.role.reshape(-1, steps) != PAD),
-        ))
+        acc = ga.add_moments(
+            acc,
+            moments_fn(
+                jnp.asarray(flat32),
+                flats,
+                gains,
+                jnp.asarray(np.repeat(sub.static, 2, axis=0)),
+                jnp.asarray(sub.positions.reshape(-1, steps, 2)),
+                jnp.asarray(sub.role.reshape(-1, steps) != PAD),
+            ),
+        )
         if start == 0:
             print(f"\nprofile: first chunk {time.time() - started:.0f}s (incl. compile)", flush=True)
     print(f"profile: {n_fit} levels in {time.time() - started:.0f}s")
@@ -225,12 +265,20 @@ def main() -> None:
     fits = {name: [ga.fit_site(acc[k], v) for k in range(len(sites))] for v, name in enumerate(names)}
     for name in names:
         out["profile"][name] = [
-            {"site": s.name, "r2_per_channel": f.r2_per_channel, "r2_global": f.r2_global, "change": f.change,
-             "coef_global": f.coef_global.tolist()}
+            {
+                "site": s.name,
+                "r2_per_channel": f.r2_per_channel,
+                "r2_global": f.r2_global,
+                "change": f.change,
+                "coef_global": f.coef_global.tolist(),
+            }
             for s, f in zip(sites, fits[name])
         ]
-    for key, label in (("r2_per_channel", "R^2, two coefficients per channel"), ("r2_global", "R^2, two coefficients overall"),
-                       ("change", "RMS change / RMS base activation")):
+    for key, label in (
+        ("r2_per_channel", "R^2, two coefficients per channel"),
+        ("r2_global", "R^2, two coefficients overall"),
+        ("change", "RMS change / RMS base activation"),
+    ):
         print(f"\n=== gain alignment: {label}; rows = sites in forward order ===\n")
         width = 9
         print(f"  {'site':<18}" + "".join(f"{i:>{width}}" for i in range(len(names))))
@@ -259,9 +307,17 @@ def main() -> None:
         for start in range(0, len(eval_targets), args.eval_chunk):
             rows = slice(start, start + args.eval_chunk)
             r, s = rollout(
-                jnp.asarray(main), jnp.asarray(flat32), jnp.asarray(write), jnp.asarray(write_gains),
-                jnp.asarray(eval_targets.static[rows]), jnp.asarray(eval_targets.positions[rows, 0, 0]),
-                jnp.asarray(mix), jnp.asarray(full_w), jnp.asarray(gain_w), coef_a, coef_b,
+                jnp.asarray(main),
+                jnp.asarray(flat32),
+                jnp.asarray(write),
+                jnp.asarray(write_gains),
+                jnp.asarray(eval_targets.static[rows]),
+                jnp.asarray(eval_targets.positions[rows, 0, 0]),
+                jnp.asarray(mix),
+                jnp.asarray(full_w),
+                jnp.asarray(gain_w),
+                coef_a,
+                coef_b,
             )
             reached.append(np.asarray(r))
             steps.append(np.asarray(s))
@@ -271,8 +327,10 @@ def main() -> None:
     zeros = np.zeros(n_sites, dtype=np.float32)
     started = time.time()
     base_readout = tau(flat32, flat32, np.ones(n_inputs, np.float32), zeros, zeros, zeros, zero_coef, zero_coef)
-    print(f"\nmediation on {len(eval_targets)} test levels; base threshold {base_readout.tau:.2f} "
-          f"(reached {base_readout.reached:.1%}; {time.time() - started:.0f}s incl. compile)")
+    print(
+        f"\nmediation on {len(eval_targets)} test levels; base threshold {base_readout.tau:.2f} "
+        f"(reached {base_readout.reached:.1%}; {time.time() - started:.0f}s incl. compile)"
+    )
     out["base_tau"] = base_readout.tau
     for name in args.mediate:
         if name not in names:
@@ -289,11 +347,19 @@ def main() -> None:
                 in_group = np.array([s.group == group for s in sites], dtype=np.float32)
                 for mode, (w_full, w_gain, which) in MODES.items():
                     if which == "pc":
-                        coef_a = [jnp.asarray(sign * fits[name][k].coef_per_channel[0], dtype=jnp.float32) for k in range(n_sites)]
-                        coef_b = [jnp.asarray(sign * fits[name][k].coef_per_channel[1], dtype=jnp.float32) for k in range(n_sites)]
+                        coef_a = [
+                            jnp.asarray(sign * fits[name][k].coef_per_channel[0], dtype=jnp.float32) for k in range(n_sites)
+                        ]
+                        coef_b = [
+                            jnp.asarray(sign * fits[name][k].coef_per_channel[1], dtype=jnp.float32) for k in range(n_sites)
+                        ]
                     elif which == "global":
-                        coef_a = [jnp.full(widths[k], sign * fits[name][k].coef_global[0], dtype=jnp.float32) for k in range(n_sites)]
-                        coef_b = [jnp.full(widths[k], sign * fits[name][k].coef_global[1], dtype=jnp.float32) for k in range(n_sites)]
+                        coef_a = [
+                            jnp.full(widths[k], sign * fits[name][k].coef_global[0], dtype=jnp.float32) for k in range(n_sites)
+                        ]
+                        coef_b = [
+                            jnp.full(widths[k], sign * fits[name][k].coef_global[1], dtype=jnp.float32) for k in range(n_sites)
+                        ]
                     else:
                         coef_a = coef_b = zero_coef
                     coef_a = [jnp.nan_to_num(c) for c in coef_a]
@@ -302,15 +368,24 @@ def main() -> None:
                     row[f"{group}|{mode}"] = readout.tau
             per_sign[sign] = row
             out["mediation"].append(row)
-            print(f"  {name} @ {sign * args.offset:+.2f}: write threshold {row['write_tau']:.2f} ({time.time() - started:.0f}s)", flush=True)
+            print(
+                f"  {name} @ {sign * args.offset:+.2f}: write threshold {row['write_tau']:.2f} ({time.time() - started:.0f}s)",
+                flush=True,
+            )
         plus_row, minus_row = per_sign[+1], per_sign[-1]
-        print(f"\n=== mediation: {name}; fraction of its threshold shift ({plus_row['write_tau']:.2f} vs "
-              f"{minus_row['write_tau']:.2f}) carried by a patch at each site group ===\n")
+        print(
+            f"\n=== mediation: {name}; fraction of its threshold shift ({plus_row['write_tau']:.2f} vs "
+            f"{minus_row['write_tau']:.2f}) carried by a patch at each site group ===\n"
+        )
         print(f"  {'site group':<14}" + "".join(f"{mode:>18}" for mode in MODES))
         summary = {}
         for group in group_names:
-            fractions = {mode: ga.fraction_carried(plus_row[f"{group}|{mode}"], minus_row[f"{group}|{mode}"],
-                                                   plus_row["write_tau"], minus_row["write_tau"]) for mode in MODES}
+            fractions = {
+                mode: ga.fraction_carried(
+                    plus_row[f"{group}|{mode}"], minus_row[f"{group}|{mode}"], plus_row["write_tau"], minus_row["write_tau"]
+                )
+                for mode in MODES
+            }
             summary[group] = fractions
             print(f"  {group:<14}" + "".join(f"{fractions[mode]:>18.2f}" for mode in MODES))
         out.setdefault("fractions", {})[name] = summary

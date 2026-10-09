@@ -59,17 +59,26 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fit-window", type=float, default=0.45)
     parser.add_argument("--offset", type=float, default=0.3, help="Dose the axis is written at; sets the target shift.")
     parser.add_argument("--edits", nargs="*", default=[], help="NAME=PATH.npz:KEY, a direction in per-step units.")
-    parser.add_argument("--split-match", nargs="*", default=[],
-                        help="Knobs scaled by their contingent split rather than their pooled shift: a contingent "
-                             "edit moves the two thresholds opposite ways, so its pooled shift is ~0 at any dose.")
+    parser.add_argument(
+        "--split-match",
+        nargs="*",
+        default=[],
+        help="Knobs scaled by their contingent split rather than their pooled shift: a contingent "
+        "edit moves the two thresholds opposite ways, so its pooled shift is ~0 at any dose.",
+    )
     parser.add_argument("--rotation", type=Path, default=None, help="A cheapest_edit rotation json; read turns_per_step.")
     parser.add_argument("--rotation-name", type=str, default="rotation")
     parser.add_argument("--n-eval", type=int, default=2048)
     parser.add_argument("--eval-chunk", type=int, default=1024)
     parser.add_argument("--step-limit", type=int, default=80)
     parser.add_argument("--rounds", type=int, default=2, help="Matching rounds per knob.")
-    parser.add_argument("--match-gains", type=float, nargs="+", default=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                        help="Colour-1 brightness grid the tau-matched brightness is chosen from.")
+    parser.add_argument(
+        "--match-gains",
+        type=float,
+        nargs="+",
+        default=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+        help="Colour-1 brightness grid the tau-matched brightness is chosen from.",
+    )
     parser.add_argument("--pairs", type=Path, default=None, help="npz of the matched writes, for the other two tests.")
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
@@ -116,8 +125,12 @@ def main() -> None:
         reached, steps = [], []
         for start in range(0, len(eval_targets), args.eval_chunk):
             rows = slice(start, start + args.eval_chunk)
-            r, s = plain(jnp.asarray(flat, dtype=jnp.float32), eval_static[rows], eval_start[rows],
-                         jnp.asarray(ones if gains is None else gains, dtype=jnp.float32))
+            r, s = plain(
+                jnp.asarray(flat, dtype=jnp.float32),
+                eval_static[rows],
+                eval_start[rows],
+                jnp.asarray(ones if gains is None else gains, dtype=jnp.float32),
+            )
             reached.append(np.asarray(r))
             steps.append(np.asarray(s))
         return read_outcomes(eval_targets, np.concatenate(reached), np.concatenate(steps), resamples=50)
@@ -127,8 +140,10 @@ def main() -> None:
     axis_plus, axis_minus = linear_pair(base, axis, args.offset)
     plus_row, minus_row = readout(axis_plus), readout(axis_minus)
     target = plus_row.tau - minus_row.tau
-    print(f"\nbase threshold {base_row.tau:.2f} (reached {base_row.reached:.1%}, on route {base_row.on_route:.1%}; "
-          f"{time.time() - started:.0f}s incl. compile)")
+    print(
+        f"\nbase threshold {base_row.tau:.2f} (reached {base_row.reached:.1%}, on route {base_row.on_route:.1%}; "
+        f"{time.time() - started:.0f}s incl. compile)"
+    )
     print(f"axis  @ +-{args.offset}: {plus_row.tau:.2f} vs {minus_row.tau:.2f}  -> target shift {target:+.2f} steps")
 
     def shift_fn(plus, minus):
@@ -154,22 +169,45 @@ def main() -> None:
             direction = np.asarray(z[key or "seed0"], dtype=np.float64)
         on_split = name in args.split_match
         # Saved edits are per step of threshold shift, so half the target is the first guess.
-        m = match_scale(lambda s, d=direction: linear_pair(base, d, s), split_fn if on_split else shift_fn,
-                        target=target, scale0=per_step, name=name, rounds=args.rounds)
+        m = match_scale(
+            lambda s, d=direction: linear_pair(base, d, s),
+            split_fn if on_split else shift_fn,
+            target=target,
+            scale0=per_step,
+            name=name,
+            rounds=args.rounds,
+        )
         matched.append(m)
-        print(f"match  {name}{' (on split)' if on_split else ''}: "
-              + ", ".join(f"scale {s:.3g} -> {v:+.2f}" for s, v in m.history)
-              + f"  (kept {m.scale:.3g}, {m.shift:+.2f}, error {m.error:.2f})", flush=True)
+        print(
+            f"match  {name}{' (on split)' if on_split else ''}: "
+            + ", ".join(f"scale {s:.3g} -> {v:+.2f}" for s, v in m.history)
+            + f"  (kept {m.scale:.3g}, {m.shift:+.2f}, error {m.error:.2f})",
+            flush=True,
+        )
 
     if args.rotation:
         turns = np.asarray(json.loads(args.rotation.read_text())["runs"][0]["turns_per_step"], dtype=np.float64)
-        family = RotationEdit(size=base.size, planes=colour_planes(kernel, COLOUR), partners=partner_map(COLOUR),
-                              base_flat=base.astype(np.float32))
-        m = match_scale(lambda s: rotation_pair(family, base, turns, s), shift_fn, target=target, scale0=per_step,
-                        name=args.rotation_name, rounds=args.rounds)
+        family = RotationEdit(
+            size=base.size,
+            planes=colour_planes(kernel, COLOUR),
+            partners=partner_map(COLOUR),
+            base_flat=base.astype(np.float32),
+        )
+        m = match_scale(
+            lambda s: rotation_pair(family, base, turns, s),
+            shift_fn,
+            target=target,
+            scale0=per_step,
+            name=args.rotation_name,
+            rounds=args.rounds,
+        )
         matched.append(m)
-        print(f"match  {args.rotation_name}: " + ", ".join(f"scale {s:.3g} -> {v:+.2f}" for s, v in m.history)
-              + f"  (kept {m.scale:.3g}, {m.shift:+.2f}, error {m.error:.2f})", flush=True)
+        print(
+            f"match  {args.rotation_name}: "
+            + ", ".join(f"scale {s:.3g} -> {v:+.2f}" for s, v in m.history)
+            + f"  (kept {m.scale:.3g}, {m.shift:+.2f}, error {m.error:.2f})",
+            flush=True,
+        )
 
     # The gain reference at the same threshold shift, chosen the way E1 chooses it.
     shifts = {}
@@ -182,8 +220,9 @@ def main() -> None:
     bright_up, bright_down = ones.copy(), ones.copy()
     bright_up[COLOUR[1]] = 1 + sign * g_match
     bright_down[COLOUR[1]] = 1 - sign * g_match
-    print("match  brightness colour 1: " + ", ".join(f"{g:g}: {v:+.2f}" for g, v in shifts.items())
-          + f"  -> {sign * g_match:+g}")
+    print(
+        "match  brightness colour 1: " + ", ".join(f"{g:g}: {v:+.2f}" for g, v in shifts.items()) + f"  -> {sign * g_match:+g}"
+    )
 
     rows = {
         "base": (base_row, None),
@@ -197,21 +236,34 @@ def main() -> None:
         rows[f"{m.name} -"] = (readout(m.minus), None)
 
     print("\n=== what each knob does, every knob at the axis's own threshold shift ===\n")
-    print(f"  {'write':<16}{'tau':>8}{'reached':>10}{'on route':>10}{'took rich':>11}{'tau above':>11}{'tau below':>11}{'split':>8}")
+    print(
+        f"  {'write':<16}{'tau':>8}{'reached':>10}{'on route':>10}{'took rich':>11}{'tau above':>11}{'tau below':>11}{'split':>8}"
+    )
     table = {}
     for name, (r, _) in rows.items():
         split = r.tau_rich_above - r.tau_rich_below
         table[name] = {**r.as_row(), "split": split}
-        print(f"  {name:<16}{r.tau:>8.2f}{r.reached:>10.1%}{r.on_route:>10.1%}{r.took_rich:>11.1%}"
-              f"{r.tau_rich_above:>11.2f}{r.tau_rich_below:>11.2f}{split:>8.2f}")
+        print(
+            f"  {name:<16}{r.tau:>8.2f}{r.reached:>10.1%}{r.on_route:>10.1%}{r.took_rich:>11.1%}"
+            f"{r.tau_rich_above:>11.2f}{r.tau_rich_below:>11.2f}{split:>8.2f}"
+        )
     print(f"\n  split = tau(rich above) - tau(rich below); the base's is {base_split:+.2f}. A value knob keeps it,")
     print("  a contingent edit pulls it apart, which is what makes it the cleanest distractor.")
 
     out = {
-        "run": str(args.run), "checkpoint": str(checkpoint), "values": list(values), "sweep": args.sweep,
-        "offset": args.offset, "target_shift": target, "axis_norm": float(np.linalg.norm(axis)),
-        "matched_gain": sign * g_match, "brightness_shifts": {str(g): v for g, v in shifts.items()},
-        "behaviour": table, "argv": sys.argv[1:], "base_split": base_split, "split_matched": list(args.split_match),
+        "run": str(args.run),
+        "checkpoint": str(checkpoint),
+        "values": list(values),
+        "sweep": args.sweep,
+        "offset": args.offset,
+        "target_shift": target,
+        "axis_norm": float(np.linalg.norm(axis)),
+        "matched_gain": sign * g_match,
+        "brightness_shifts": {str(g): v for g, v in shifts.items()},
+        "behaviour": table,
+        "argv": sys.argv[1:],
+        "base_split": base_split,
+        "split_matched": list(args.split_match),
         "matching": {m.name: {"scale": m.scale, "shift": m.shift, "error": m.error, "history": m.history} for m in matched},
     }
     if args.json:

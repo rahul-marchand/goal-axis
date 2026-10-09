@@ -145,7 +145,14 @@ def main() -> None:
         for name in order:
             part = restrict(axis, groups, name)
             share = float(part @ part) / float(axis @ axis)
-            measure(base.flat + offset * part, f"only {name} @ {offset:+.2f}", kind="alone", module=name, offset=offset, axis_share=share)
+            measure(
+                base.flat + offset * part,
+                f"only {name} @ {offset:+.2f}",
+                kind="alone",
+                module=name,
+                offset=offset,
+                axis_share=share,
+            )
             norm = float(np.linalg.norm(part))
             if norm > 0:
                 scale = axis_norm / norm
@@ -157,7 +164,13 @@ def main() -> None:
                     offset=offset,
                     scale=scale,
                 )
-            measure(base.flat + offset * (axis - part), f"all but {name} @ {offset:+.2f}", kind="without", module=name, offset=offset)
+            measure(
+                base.flat + offset * (axis - part),
+                f"all but {name} @ {offset:+.2f}",
+                kind="without",
+                module=name,
+                offset=offset,
+            )
         for count in range(1, min(args.cumulative, len(ranking)) + 1):
             keep = ranking[:count]
             part = restrict(axis, groups, keep)

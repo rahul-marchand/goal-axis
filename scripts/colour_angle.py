@@ -43,8 +43,10 @@ def report(run: Path, offline: bool) -> None:
     k, planes = slices(params)
     a, b = list(planes.values())
     cos = float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b)))
-    print(f"{run.name:28s} {k.path:52s} n={a.size:5d}  |K0|={np.linalg.norm(a):7.3f} |K1|={np.linalg.norm(b):7.3f}"
-          f"  cos={cos:+.3f}  angle={np.degrees(np.arccos(np.clip(cos, -1, 1))):6.2f} deg")
+    print(
+        f"{run.name:28s} {k.path:52s} n={a.size:5d}  |K0|={np.linalg.norm(a):7.3f} |K1|={np.linalg.norm(b):7.3f}"
+        f"  cos={cos:+.3f}  angle={np.degrees(np.arccos(np.clip(cos, -1, 1))):6.2f} deg"
+    )
 
 
 def main() -> None:

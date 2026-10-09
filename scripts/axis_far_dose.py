@@ -62,8 +62,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bright-gains", type=float, nargs="+", default=[1.5, 2.0, 3.0, 4.0, 5.0])
     parser.add_argument("--coarse-gains-1", type=float, nargs="+", default=[0.8, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5, 8.0])
     parser.add_argument("--coarse-gains-0", type=float, nargs="+", default=[1.25, 0.8, 0.6, 0.45, 0.35, 0.25, 0.18, 0.12])
-    parser.add_argument("--coarse-s", type=float, nargs="+", default=[-0.2, 0.2, 0.4, 0.7, 1.0, 1.3, 1.6, 2.0, 2.5],
-                        help="Two-plane log gain of colour 1; colour 0 follows at beta_0 / beta_1 of it.")
+    parser.add_argument(
+        "--coarse-s",
+        type=float,
+        nargs="+",
+        default=[-0.2, 0.2, 0.4, 0.7, 1.0, 1.3, 1.6, 2.0, 2.5],
+        help="Two-plane log gain of colour 1; colour 0 follows at beta_0 / beta_1 of it.",
+    )
     parser.add_argument("--random-draws", type=int, default=3)
     parser.add_argument("--module-draws", type=int, default=2)
     parser.add_argument("--episodes", type=int, default=16_384)
@@ -89,8 +94,18 @@ def main() -> None:
 
     base = load_base(args.run, args.levels, split=args.split, num_envs=args.num_envs, seed=args.seed)
     checkpoint, values, base_flat = base.checkpoint, base.values, base.flat
-    manifest.update(run=str(args.run), checkpoint=str(checkpoint), values=list(values), levels=args.levels, split=args.split,
-                    seed=args.seed, num_envs=args.num_envs, episodes=args.episodes, sweep=args.sweep, argv=sys.argv[1:])
+    manifest.update(
+        run=str(args.run),
+        checkpoint=str(checkpoint),
+        values=list(values),
+        levels=args.levels,
+        split=args.split,
+        seed=args.seed,
+        num_envs=args.num_envs,
+        episodes=args.episodes,
+        sweep=args.sweep,
+        argv=sys.argv[1:],
+    )
     print(f"base {checkpoint}, values {values}")
     greedy = Greedy.of(base)
 
@@ -108,13 +123,22 @@ def main() -> None:
         np.savez(args.out / f"{name}.npz", **decision_arrays(outcomes, steps=True, value_tie=True))
         gaps, took, _ = value_distance_decisions(outcomes)
         tau = indifference_point(gaps, took)
-        row = {"name": name, "tau": float(tau), "episodes": episodes, "reached": float(summarise(outcomes).reached_objective),
-               "on_route": float(on_shortest_route(outcomes)), "seconds": seconds,
-               "gains": {str(k - FIRST_FEATURE_CHANNEL): g for k, g in (gains or {}).items()}, **tags}
+        row = {
+            "name": name,
+            "tau": float(tau),
+            "episodes": episodes,
+            "reached": float(summarise(outcomes).reached_objective),
+            "on_route": float(on_shortest_route(outcomes)),
+            "seconds": seconds,
+            "gains": {str(k - FIRST_FEATURE_CHANNEL): g for k, g in (gains or {}).items()},
+            **tags,
+        }
         manifest["conditions"][name] = row
         save()
-        print(f"  {name:>30}  tau {tau:6.2f}  reached {row['reached']:.1%}  route {row['on_route']:.1%}  {episodes / seconds:,.0f} eps/s",
-              flush=True)
+        print(
+            f"  {name:>30}  tau {tau:6.2f}  reached {row['reached']:.1%}  route {row['on_route']:.1%}  {episodes / seconds:,.0f} eps/s",
+            flush=True,
+        )
         return row
 
     print("\n=== base ===")
@@ -131,58 +155,148 @@ def main() -> None:
     beta0, beta1 = betas[COLOUR[0]], betas[COLOUR[1]]
     axis_norm = float(np.linalg.norm(axis))
     rescale = axis_norm / float(np.linalg.norm(input_slice))
-    manifest.update(axis_norm=axis_norm, offsets_fitted=offsets.tolist(), betas={"0": beta0, "1": beta1},
-                    input_rescale=rescale, fit_window=args.fit_window)
+    manifest.update(
+        axis_norm=axis_norm,
+        offsets_fitted=offsets.tolist(),
+        betas={"0": beta0, "1": beta1},
+        input_rescale=rescale,
+        fit_window=args.fit_window,
+    )
     save()
-    print(f"|axis| {axis_norm:.3g}; gain per unit offset colour 0 {beta0:+.3f}, colour 1 {beta1:+.3f}; input conv rescale x{rescale:.2f}")
+    print(
+        f"|axis| {axis_norm:.3g}; gain per unit offset colour 0 {beta0:+.3f}, colour 1 {beta1:+.3f}; input conv rescale x{rescale:.2f}"
+    )
 
     def two_plane(s: float) -> dict[int, float]:
         return {COLOUR[1]: float(np.exp(s)), COLOUR[0]: float(np.exp(s * beta0 / beta1))}
 
     print("\n=== axis writes ===")
-    writes = [decode(f"axis{dv:+.2f}", base_flat + dv * axis, None, args.episodes, kind="axis", offset=dv) for dv in args.axis_offsets]
+    writes = [
+        decode(f"axis{dv:+.2f}", base_flat + dv * axis, None, args.episodes, kind="axis", offset=dv)
+        for dv in args.axis_offsets
+    ]
 
     print("\n=== colour-1 brightness ===")
     for g in args.bright_gains:
         decode(f"bright-c1x{g:g}", base_flat, {COLOUR[1]: g}, args.episodes, kind="bright", plane=1, gain=g)
 
     print("\n=== coarse curves ===")
-    coarse: dict[str, list[tuple[float, float]]] = {"c1": [(0.0, base_row["tau"])], "c0": [(0.0, base_row["tau"])], "two": [(0.0, base_row["tau"])]}
+    coarse: dict[str, list[tuple[float, float]]] = {
+        "c1": [(0.0, base_row["tau"])],
+        "c0": [(0.0, base_row["tau"])],
+        "two": [(0.0, base_row["tau"])],
+    }
     for g in args.coarse_gains_1:
-        coarse["c1"].append((np.log(g), decode(f"coarse-c1x{g:g}", base_flat, {COLOUR[1]: g}, args.coarse_episodes, kind="coarse", plane=1, gain=g)["tau"]))
+        coarse["c1"].append(
+            (
+                np.log(g),
+                decode(f"coarse-c1x{g:g}", base_flat, {COLOUR[1]: g}, args.coarse_episodes, kind="coarse", plane=1, gain=g)[
+                    "tau"
+                ],
+            )
+        )
     for g in args.coarse_gains_0:
-        coarse["c0"].append((np.log(g), decode(f"coarse-c0x{g:g}", base_flat, {COLOUR[0]: g}, args.coarse_episodes, kind="coarse", plane=0, gain=g)["tau"]))
+        coarse["c0"].append(
+            (
+                np.log(g),
+                decode(f"coarse-c0x{g:g}", base_flat, {COLOUR[0]: g}, args.coarse_episodes, kind="coarse", plane=0, gain=g)[
+                    "tau"
+                ],
+            )
+        )
     for s in args.coarse_s:
-        coarse["two"].append((s, decode(f"coarse-two{s:+g}", base_flat, two_plane(s), args.coarse_episodes, kind="coarse", plane="two", s=s)["tau"]))
+        coarse["two"].append(
+            (
+                s,
+                decode(f"coarse-two{s:+g}", base_flat, two_plane(s), args.coarse_episodes, kind="coarse", plane="two", s=s)[
+                    "tau"
+                ],
+            )
+        )
 
     print("\n=== brightness matched to each axis write ===")
     for write in writes:
-        for family, make in (("c1", lambda x: {COLOUR[1]: float(np.exp(x))}), ("c0", lambda x: {COLOUR[0]: float(np.exp(x))}), ("two", two_plane)):
+        for family, make in (
+            ("c1", lambda x: {COLOUR[1]: float(np.exp(x))}),
+            ("c0", lambda x: {COLOUR[0]: float(np.exp(x))}),
+            ("two", two_plane),
+        ):
             x = interpolate_x(coarse[family], write["tau"])
             if x is None:
                 print(f"  {write['name']}: {family} never reaches tau {write['tau']:.2f} on the coarse grid; skipped")
                 continue
-            decode(f"match{write['offset']:+.2f}-{family}", base_flat, make(x), args.episodes, kind="matched", family=family,
-                   log_gain=x, matches=write["name"], offset=write["offset"], target_tau=write["tau"])
+            decode(
+                f"match{write['offset']:+.2f}-{family}",
+                base_flat,
+                make(x),
+                args.episodes,
+                kind="matched",
+                family=family,
+                log_gain=x,
+                matches=write["name"],
+                offset=write["offset"],
+                target_tau=write["tau"],
+            )
 
     print("\n=== parts ===")
     for dv in args.part_offsets:
         decode(f"gainw{dv:+.2f}", base_flat + dv * gain, None, args.episodes, kind="part", part="gain in weights", offset=dv)
-        decode(f"gainb{dv:+.2f}", base_flat, {c: 1 + dv * b for c, b in betas.items()}, args.episodes, kind="part",
-               part="gain as brightness", offset=dv)
+        decode(
+            f"gainb{dv:+.2f}",
+            base_flat,
+            {c: 1 + dv * b for c, b in betas.items()},
+            args.episodes,
+            kind="part",
+            part="gain as brightness",
+            offset=dv,
+        )
         decode(f"input{dv:+.2f}", base_flat + dv * input_slice, None, args.episodes, kind="part", part="input conv", offset=dv)
-        decode(f"inputx{dv:+.2f}", base_flat + dv * rescale * input_slice, None, args.episodes, kind="part", part="input conv rescaled", offset=dv)
-        decode(f"nogain{dv:+.2f}", base_flat + dv * (axis - gain), None, args.episodes, kind="part", part="axis minus gain", offset=dv)
+        decode(
+            f"inputx{dv:+.2f}",
+            base_flat + dv * rescale * input_slice,
+            None,
+            args.episodes,
+            kind="part",
+            part="input conv rescaled",
+            offset=dv,
+        )
+        decode(
+            f"nogain{dv:+.2f}",
+            base_flat + dv * (axis - gain),
+            None,
+            args.episodes,
+            kind="part",
+            part="axis minus gain",
+            offset=dv,
+        )
 
     print("\n=== random writes ===")
     for draw in range(args.random_draws):
         direction = random_direction(len(axis), axis_norm, np.random.default_rng(1000 + draw))
         for dv in args.part_offsets:
-            decode(f"rand{draw}{dv:+.2f}", base_flat + dv * direction, None, args.episodes, kind="random", family="isotropic", draw=draw, offset=dv)
+            decode(
+                f"rand{draw}{dv:+.2f}",
+                base_flat + dv * direction,
+                None,
+                args.episodes,
+                kind="random",
+                family="isotropic",
+                draw=draw,
+                offset=dv,
+            )
     for draw in range(args.module_draws):
         direction = module_matched_direction(axis, groups, np.random.default_rng(2000 + draw))
         for dv in args.part_offsets:
-            decode(f"modrand{draw}{dv:+.2f}", base_flat + dv * direction, None, args.episodes, kind="random", family="per-module", draw=draw, offset=dv)
+            decode(
+                f"modrand{draw}{dv:+.2f}",
+                base_flat + dv * direction,
+                None,
+                args.episodes,
+                kind="random",
+                family="per-module",
+                draw=draw,
+                offset=dv,
+            )
     print("\nFAR_DOSE_DONE")
 
 

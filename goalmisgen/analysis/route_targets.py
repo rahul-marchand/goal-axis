@@ -187,4 +187,3 @@ def route_targets(levels: Sequence[Level], size: int, n_channels: int = 4) -> Ro
             # Positions past the end stay at the last cell so an observation can still be drawn.
             out["positions"][i, branch, length:] = path[length - 1]
     return RouteTargets(**out)
-

@@ -232,7 +232,9 @@ class Fit:
         eta = intercept + self.surface.columns(gap, near) @ h
         if condition != self.reference:
             j = self._others().index(condition)
-            eta = eta + shifts[j] + near_w[j] * (near - self.surface.near_centre) + slope_w[j] * (gap - self.surface.gap_centre)
+            eta = (
+                eta + shifts[j] + near_w[j] * (near - self.surface.near_centre) + slope_w[j] * (gap - self.surface.gap_centre)
+            )
         return eta
 
     def interaction(self, condition: int) -> tuple[float, float]:
@@ -275,7 +277,9 @@ def fit_model(table: CellTable, model: str, reference: int = 0, surface: Surface
     surface = surface or Surface.for_table(table)
     conditions = int(table.condition.max()) + 1
     others = [i for i in range(conditions) if i != reference]
-    dummies = np.stack([(table.condition == i).astype(float) for i in others], axis=1) if others else np.zeros((len(table.n), 0))
+    dummies = (
+        np.stack([(table.condition == i).astype(float) for i in others], axis=1) if others else np.zeros((len(table.n), 0))
+    )
     parts = [np.ones((len(table.n), 1)), dummies, surface.columns(table.gap, table.near)]
     if model in ("near", "full"):
         parts.append(dummies * (table.near - surface.near_centre)[:, None])
@@ -384,7 +388,9 @@ def banded_crossings(table: CellTable, condition: int, bands: list[tuple[int, in
     return np.array(out)
 
 
-def bootstrap(decisions: list[Decisions], statistic, resamples: int = 200, seed: int = 0, max_distance: int = 80, paired: bool = True):
+def bootstrap(
+    decisions: list[Decisions], statistic, resamples: int = 200, seed: int = 0, max_distance: int = 80, paired: bool = True
+):
     """Resamples of row indices, recounted for every condition; returns the statistics stacked.
 
     ``paired``: one resample shared by all conditions, which must then have the

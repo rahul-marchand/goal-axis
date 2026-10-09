@@ -147,10 +147,21 @@ def main() -> None:
         took_by_dose[dose], reached_by_dose[dose] = took, reached
         ok = reached & eval_targets.valid
         print(f"  dose {dose:+5.1f}: crossing {crossing(gap[ok], took[ok].astype(float)):6.2f}   reached {reached.mean():.1%}")
-    theta0 = crossing(gap[reached_by_dose[0.0] & eval_targets.valid], took_by_dose[0.0][reached_by_dose[0.0] & eval_targets.valid].astype(float))
+    theta0 = crossing(
+        gap[reached_by_dose[0.0] & eval_targets.valid],
+        took_by_dose[0.0][reached_by_dose[0.0] & eval_targets.valid].astype(float),
+    )
     small = [d for d in DOSES if abs(d) <= 3]
     xs = np.array(small)
-    ys = np.array([crossing(gap[reached_by_dose[d] & eval_targets.valid], took_by_dose[d][reached_by_dose[d] & eval_targets.valid].astype(float)) for d in small])
+    ys = np.array(
+        [
+            crossing(
+                gap[reached_by_dose[d] & eval_targets.valid],
+                took_by_dose[d][reached_by_dose[d] & eval_targets.valid].astype(float),
+            )
+            for d in small
+        ]
+    )
     keep = np.isfinite(ys)
     if keep.sum() >= 2:
         slope = np.polyfit(xs[keep], ys[keep], 1)[0]
@@ -179,7 +190,9 @@ def main() -> None:
     if both.sum() >= 10:
         fl, tg = flip[band][both], gap[band][both]
         print(f"  violations mean {doses_fit.violations[both].mean():.2f} of {len(DOSES)}")
-        print(f"  corr(d*, theta0 - flip) = {np.corrcoef(d_star[both], theta0 - fl)[0, 1]:+.3f}     slope of d* on flip {np.polyfit(fl, d_star[both], 1)[0]:+.3f} (predicted -1)")
+        print(
+            f"  corr(d*, theta0 - flip) = {np.corrcoef(d_star[both], theta0 - fl)[0, 1]:+.3f}     slope of d* on flip {np.polyfit(fl, d_star[both], 1)[0]:+.3f} (predicted -1)"
+        )
         print(f"  corr(d*, theta0 - gap)  = {np.corrcoef(d_star[both], theta0 - tg)[0, 1]:+.3f}")
         cells = cell_members(eval_targets.d_rich[band][both], eval_targets.d_poor[band][both], min_n=args.min_n)
         if cells:

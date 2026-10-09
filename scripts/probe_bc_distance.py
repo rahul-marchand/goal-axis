@@ -127,7 +127,9 @@ def main() -> None:
     depths = model.config.n_layers + 1
     layers: list[int | None] = [*range(depths), None]
 
-    def probe_arm(name: str, train_x: dict[str, np.ndarray], eval_x: dict[str, np.ndarray], full_grid: bool) -> tuple[dict, dict]:
+    def probe_arm(
+        name: str, train_x: dict[str, np.ndarray], eval_x: dict[str, np.ndarray], full_grid: bool
+    ) -> tuple[dict, dict]:
         """Fit every (target, site, layer); return the gap predictions and r2s for stage 2."""
         gap_predictions, gap_r2 = {}, {}
         for target, (y_train, y_eval) in targets.items():
@@ -191,7 +193,9 @@ def main() -> None:
     predictions = np.full(len(eval_idx), np.nan)
     predictions[eval_ok] = result.predictions
     keep = scored & np.isfinite(predictions)
-    cell = within_cell_choice(eval_targets.d_rich[keep], eval_targets.d_poor[keep], predictions[keep], choice[keep], min_n=args.min_n)
+    cell = within_cell_choice(
+        eval_targets.d_rich[keep], eval_targets.d_poor[keep], predictions[keep], choice[keep], min_n=args.min_n
+    )
     print(f"  gap: {result.summary}")
     print(f"  within-cell: {cell.summary}")
     print("  A linear map cannot run BFS; this bounds what maze appearance alone buys.")
@@ -214,7 +218,9 @@ def main() -> None:
             predictions = np.full(len(eval_idx), np.nan)
             predictions[eval_ok] = result.predictions
             keep = scored & np.isfinite(predictions)
-            cell = within_cell_choice(eval_targets.d_rich[keep], eval_targets.d_poor[keep], predictions[keep], choice[keep], min_n=args.min_n)
+            cell = within_cell_choice(
+                eval_targets.d_rich[keep], eval_targets.d_poor[keep], predictions[keep], choice[keep], min_n=args.min_n
+            )
             half_predictions.append(predictions)
             choice_rs.append(np.sqrt(cell.r2) if np.isfinite(cell.r2) else np.nan)
             print(f"  half probe: gap {result.summary}; within-cell {cell.summary}")
@@ -227,7 +233,9 @@ def main() -> None:
         mean_r = float(np.nanmean(choice_rs))
         print(f"  within-cell corr(residual A, residual B)  {reliability:+.3f}   (probe signal against probe noise)")
         if reliability > 0:
-            print(f"  disattenuated choice correlation          {mean_r / np.sqrt(reliability):+.3f}   (what a noiseless probe would see)")
+            print(
+                f"  disattenuated choice correlation          {mean_r / np.sqrt(reliability):+.3f}   (what a noiseless probe would see)"
+            )
         print("  Squared, the disattenuated value is the share of within-cell choice variance the model's")
         print("  own gap estimate accounts for. Near the cross-seed xi ceiling, the misread is all of xi.")
 

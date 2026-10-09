@@ -96,7 +96,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--at", type=int, default=-1, help="Which checkpoint of each arm, in step order.")
     parser.add_argument("--resamples", type=int, default=2000)
-    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
+    parser.add_argument(
+        "--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept)."
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--rungs",
@@ -213,9 +215,7 @@ def write_test(args, rung, base_flat, unravel, trained, stack, base_value, greed
     print(f"  writing o{args.write_objective}'s axis, {args.episodes} episodes per point")
     print(f"    {'':>34}{'steps':>9}  {'95% interval':>15}{'reached':>10}{'optimal':>10}")
 
-    base_point, base_low, base_high, base_reached = measure(
-        unravel(base_flat), greedy, args, "unwritten base"
-    )
+    base_point, base_low, base_high, base_reached = measure(unravel(base_flat), greedy, args, "unwritten base")
 
     written: list[dict] = []
     for offset in sorted(args.write_offsets):
@@ -241,9 +241,7 @@ def write_test(args, rung, base_flat, unravel, trained, stack, base_value, greed
         rng = np.random.default_rng(args.seed)
         direction = rng.normal(size=base_flat.shape)
         direction *= abs(widest["offset"]) * np.linalg.norm(axis_all) / np.linalg.norm(direction)
-        point, low, high, reached = measure(
-            unravel(base_flat + direction), greedy, args, "norm-matched random"
-        )
+        point, low, high, reached = measure(unravel(base_flat + direction), greedy, args, "norm-matched random")
         control = {"point": point, "low": low, "high": high, "reached": reached}
 
     decision = write_verdict(base_reached, written, args.reach_floor)

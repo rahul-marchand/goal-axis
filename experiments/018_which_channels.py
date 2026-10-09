@@ -64,7 +64,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cell", type=int, default=0, help="Which recurrent layer to open up (cell_list_N is a layer, not a maze cell)."
     )
-    parser.add_argument("--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept).")
+    parser.add_argument(
+        "--size", type=int, default=None, help="Defaults to the base's own maze size (11 for every base swept)."
+    )
     parser.add_argument("--at", type=int, default=-1)
     parser.add_argument("--top", type=int, default=8)
     return parser.parse_args()

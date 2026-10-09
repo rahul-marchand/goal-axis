@@ -66,8 +66,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dim-0", type=float, nargs="+", default=[0.8, 0.6, 0.45, 0.35, 0.25, 0.18, 0.12])
     parser.add_argument("--mix-offsets", type=float, nargs="+", default=[0.3, 0.7, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0])
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--extra-writes", type=Path, default=None,
-                        help="npz of threshold-matched non-gain knobs from scripts/control_writes.py.")
+    parser.add_argument(
+        "--extra-writes",
+        type=Path,
+        default=None,
+        help="npz of threshold-matched non-gain knobs from scripts/control_writes.py.",
+    )
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
 
@@ -107,8 +111,10 @@ def main() -> None:
     gain = gain_part(axis, base, kernel, COLOUR)
     betas = gain_coefficients(axis, base, kernel, COLOUR)
     beta0, beta1 = betas[COLOUR[0]], betas[COLOUR[1]]
-    print(f"sweep  {args.sweep}: {len(offsets)} arms; |axis| {np.linalg.norm(axis):.3g}; "
-          f"gain per unit offset colour 0 {beta0:+.3f}, colour 1 {beta1:+.3f}")
+    print(
+        f"sweep  {args.sweep}: {len(offsets)} arms; |axis| {np.linalg.norm(axis):.3g}; "
+        f"gain per unit offset colour 0 {beta0:+.3f}, colour 1 {beta1:+.3f}"
+    )
 
     rng = np.random.default_rng(args.seed)
     random_matched = np.zeros_like(axis)
@@ -148,10 +154,17 @@ def main() -> None:
             plus, minus = extra_pairs[name]
             return (plus if sign > 0 else minus).astype(np.float32)
         return (base + sign * args.offset * variants[name]).astype(np.float32)
+
     out: dict = {
-        "run": str(args.run), "checkpoint": str(checkpoint), "values": list(values), "sweep": args.sweep,
-        "offset": args.offset, "betas": {"0": beta0, "1": beta1}, "sites": [s.name for s in sites],
-        "axis_norm": float(np.linalg.norm(axis)), "argv": sys.argv[1:],
+        "run": str(args.run),
+        "checkpoint": str(checkpoint),
+        "values": list(values),
+        "sweep": args.sweep,
+        "offset": args.offset,
+        "betas": {"0": beta0, "1": beta1},
+        "sites": [s.name for s in sites],
+        "axis_norm": float(np.linalg.norm(axis)),
+        "argv": sys.argv[1:],
     }
 
     def finish():
@@ -169,8 +182,12 @@ def main() -> None:
         reached, steps = [], []
         for start in range(0, len(eval_targets), args.eval_chunk):
             rows = slice(start, start + args.eval_chunk)
-            r, s = plain(jnp.asarray(flat, dtype=jnp.float32), eval_static[rows], eval_start[rows],
-                         jnp.asarray(gains, dtype=jnp.float32))
+            r, s = plain(
+                jnp.asarray(flat, dtype=jnp.float32),
+                eval_static[rows],
+                eval_start[rows],
+                jnp.asarray(gains, dtype=jnp.float32),
+            )
             reached.append(np.asarray(r))
             steps.append(np.asarray(s))
         return read_outcomes(eval_targets, np.concatenate(reached), np.concatenate(steps), resamples=50)
@@ -188,10 +205,17 @@ def main() -> None:
             sub = fit_targets.subset(np.arange(start, min(start + args.chunk, len(fit_targets))))
             steps = sub.steps
             static = np.repeat(sub.static, 2, axis=0)
-            acc = ga.add_moments(acc, moments_fn(
-                jnp.asarray(flat32), writes, jnp.asarray(static), jnp.asarray(lo.erase(static, [COLOUR[1]])),
-                jnp.asarray(sub.positions.reshape(-1, steps, 2)), jnp.asarray(sub.role.reshape(-1, steps) != PAD),
-            ))
+            acc = ga.add_moments(
+                acc,
+                moments_fn(
+                    jnp.asarray(flat32),
+                    writes,
+                    jnp.asarray(static),
+                    jnp.asarray(lo.erase(static, [COLOUR[1]])),
+                    jnp.asarray(sub.positions.reshape(-1, steps, 2)),
+                    jnp.asarray(sub.role.reshape(-1, steps) != PAD),
+                ),
+            )
         print(f"\nsizes: {len(fit_targets)} valid levels in {time.time() - started:.0f}s")
         print("\n=== share of the write's activation change that survives erasing the colour-1 objective ===\n")
         print(f"  {'site':<18}" + "".join(f"{i:>10}" for i in range(len(names))))
@@ -214,16 +238,26 @@ def main() -> None:
             reached, steps = [], []
             for start in range(0, len(eval_targets), args.eval_chunk):
                 rows = slice(start, start + args.eval_chunk)
-                r, s = rollout(jnp.asarray(flat32), jnp.asarray(flat32), jnp.asarray(write, dtype=jnp.float32),
-                               eval_static[rows], eval_null[rows], eval_start[rows],
-                               jnp.asarray(mix), jnp.asarray(w), jnp.asarray(w_null))
+                r, s = rollout(
+                    jnp.asarray(flat32),
+                    jnp.asarray(flat32),
+                    jnp.asarray(write, dtype=jnp.float32),
+                    eval_static[rows],
+                    eval_null[rows],
+                    eval_start[rows],
+                    jnp.asarray(mix),
+                    jnp.asarray(w),
+                    jnp.asarray(w_null),
+                )
                 reached.append(np.asarray(r))
                 steps.append(np.asarray(s))
             return read_outcomes(eval_targets, np.concatenate(reached), np.concatenate(steps), resamples=50)
 
         base_readout = plain_readout(base, ones)
-        print(f"\nmediation on {len(eval_targets)} test levels; base threshold {base_readout.tau:.2f} "
-              f"(reached {base_readout.reached:.1%})")
+        print(
+            f"\nmediation on {len(eval_targets)} test levels; base threshold {base_readout.tau:.2f} "
+            f"(reached {base_readout.reached:.1%})"
+        )
         out["base_tau"] = base_readout.tau
         out["mediation"] = []
         for name in args.mediate:
@@ -241,13 +275,19 @@ def main() -> None:
                 out["mediation"].append(row)
                 print(f"  {name} @ {sign * args.offset:+.2f}: write threshold {row['write_tau']:.2f}", flush=True)
             plus, minus = rows[+1], rows[-1]
-            print(f"\n=== {name}: fraction of its threshold shift ({plus['write_tau']:.2f} vs {minus['write_tau']:.2f}) "
-                  "carried by each patch ===\n")
+            print(
+                f"\n=== {name}: fraction of its threshold shift ({plus['write_tau']:.2f} vs {minus['write_tau']:.2f}) "
+                "carried by each patch ===\n"
+            )
             print(f"  {'site group':<14}" + "".join(f"{mode:>22}" for mode in lo.MODES))
             summary = {}
             for group in args.groups:
-                fractions = {mode: ga.fraction_carried(plus[f"{group}|{mode}"], minus[f"{group}|{mode}"],
-                                                       plus["write_tau"], minus["write_tau"]) for mode in lo.MODES}
+                fractions = {
+                    mode: ga.fraction_carried(
+                        plus[f"{group}|{mode}"], minus[f"{group}|{mode}"], plus["write_tau"], minus["write_tau"]
+                    )
+                    for mode in lo.MODES
+                }
                 summary[group] = fractions
                 print(f"  {group:<14}" + "".join(f"{fractions[mode]:>22.2f}" for mode in lo.MODES))
             out.setdefault("fractions", {})[name] = summary
@@ -272,17 +312,29 @@ def main() -> None:
             sub = signal_targets.subset(np.arange(start, min(start + args.signal_chunk, len(signal_targets))))
             steps = sub.steps
             static = np.repeat(sub.static, 2, axis=0)
-            acc = ga.add_moments(acc, signals_fn(
-                jnp.asarray(flat32), jnp.asarray(gains), jnp.asarray(static),
-                jnp.asarray(lo.erase(static, [COLOUR[0]])), jnp.asarray(lo.erase(static, [COLOUR[1]])),
-                jnp.asarray(sub.positions.reshape(-1, steps, 2)), jnp.asarray(sub.role.reshape(-1, steps) != PAD),
-            ))
+            acc = ga.add_moments(
+                acc,
+                signals_fn(
+                    jnp.asarray(flat32),
+                    jnp.asarray(gains),
+                    jnp.asarray(static),
+                    jnp.asarray(lo.erase(static, [COLOUR[0]])),
+                    jnp.asarray(lo.erase(static, [COLOUR[1]])),
+                    jnp.asarray(sub.positions.reshape(-1, steps, 2)),
+                    jnp.asarray(sub.role.reshape(-1, steps) != PAD),
+                ),
+            )
         print(f"\nsignals: {len(signal_targets)} valid levels in {time.time() - started:.0f}s")
         taus = [plain_readout(base, g) for _, g in grid]
         rows = []
         for i, (label, g) in enumerate(grid):
-            row = {"label": label, "gain_c0": float(g[COLOUR[0]]), "gain_c1": float(g[COLOUR[1]]),
-                   "tau": taus[i].tau, "reached": taus[i].reached}
+            row = {
+                "label": label,
+                "gain_c0": float(g[COLOUR[0]]),
+                "gain_c1": float(g[COLOUR[1]]),
+                "tau": taus[i].tau,
+                "reached": taus[i].reached,
+            }
             for k, site in enumerate(sites):
                 row[f"s0|{site.name}"] = float(np.sqrt(acc[k]["s0"][i]))
                 row[f"s1|{site.name}"] = float(np.sqrt(acc[k]["s1"][i]))
@@ -320,10 +372,10 @@ def main() -> None:
         for name, direction in composites.items():
             for dv in args.mix_offsets:
                 readout = plain_readout(base + dv * direction, ones)
-                out["mix"].append({"write": name, "offset": dv, "tau": readout.tau, "reached": readout.reached,
-                                   "on_route": readout.on_route})
-                print(f"  {name:<26}{dv:>8.2f}{readout.tau:>8.2f}{readout.reached:>9.1%}{readout.on_route:>8.1%}",
-                      flush=True)
+                out["mix"].append(
+                    {"write": name, "offset": dv, "tau": readout.tau, "reached": readout.reached, "on_route": readout.on_route}
+                )
+                print(f"  {name:<26}{dv:>8.2f}{readout.tau:>8.2f}{readout.reached:>9.1%}{readout.on_route:>8.1%}", flush=True)
             finish()
 
     finish()
