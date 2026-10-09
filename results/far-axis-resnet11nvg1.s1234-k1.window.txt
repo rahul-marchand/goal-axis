@@ -1,0 +1,54 @@
+script far_axis_fit.py
+commit e904aa5
+argv   /workspace/data/runs/resnet11nvg1.s1234 --family k1 --base-value 0.5 --far 1.2 1.3 1.4 1.5 1.75 2.0 --window-loo --levels /workspace/data/levels/values/1.00-0.50@500k --json /workspace/data/figures-data/far-axis/resnet11nvg1.s1234-k1.window.json
+
+base       /workspace/data/runs/resnet11nvg1.s1234/local-files/cp_120176640   (1,234,405 parameters)
+window     o1: 8 arms at offsets -0.40..+0.40
+far        k1: 6 arms at offsets +0.70..+1.50
+
+=== the far axis against the window axis ===
+
+  |axis| per unit value   window 5.757   far 6.274
+  |drift|                 window 1.88   far 6.776
+  cos(axis_far, axis_window)    -0.006
+  cos(drift_far, axis_window)   +0.069
+  cos(drift_far, drift_window)  +0.098
+  |far arm| mean 4.635   |window arm| mean 4.33
+
+=== graded and predictive? leave-one-out within the far set ===
+
+    value  offset   |delta|  held-out R^2  held-out cos   implied
+     1.20   +0.70     4.499         0.663         0.866     +1.06
+     1.30   +0.80     4.525         0.684         0.849     +1.04
+     1.40   +0.90      4.46         0.702         0.846     +1.04
+     1.50   +1.00     4.647         0.676         0.822     +1.02
+     1.75   +1.25     4.752         0.628         0.826     +0.97
+     2.00   +1.50     4.926         0.504         0.892     +0.93
+
+  readback slope (implied on true offset)   window -0.02   far -0.16
+  far arms read by the window axis: implied +0.08, +0.10, +0.08, +0.07, +0.07, +0.09   slope -0.01
+
+
+=== the window's own leave-one-out writes, same seeds and episodes ===
+
+                                         steps    95% interval    reached
+               v=0.10 fine-tuned    25.8  [ 23.7,  28.1]      95.0%
+        v=0.10 written, held out    13.4  [ 12.8,  13.9]      94.7%
+               v=0.20 fine-tuned    11.7  [ 11.2,  12.2]      94.4%
+        v=0.20 written, held out    12.5  [ 12.0,  12.9]      96.7%
+               v=0.30 fine-tuned    10.7  [ 10.4,  11.1]      94.4%
+        v=0.30 written, held out    10.1  [  9.9,  10.5]      98.1%
+               v=0.40 fine-tuned     9.6  [  9.2,  10.0]      98.3%
+        v=0.40 written, held out     8.7  [  8.4,   9.0]      98.9%
+               v=0.60 fine-tuned     6.9  [  6.6,   7.2]      98.4%
+        v=0.60 written, held out     6.5  [  6.3,   6.8]      98.8%
+               v=0.70 fine-tuned     4.6  [  4.4,   5.0]      83.3%
+        v=0.70 written, held out     5.5  [  5.3,   5.8]      98.8%
+               v=0.80 fine-tuned     4.3  [  4.1,   4.6]      99.1%
+        v=0.80 written, held out     4.6  [  4.4,   4.9]      98.5%
+               v=0.90 fine-tuned     2.2  [  1.9,   2.4]      98.5%
+        v=0.90 written, held out     3.7  [  3.5,   4.1]      95.5%
+
+  median |error| 0.8 steps;  slope of written on fine-tuned 0.43
+
+wrote /workspace/data/figures-data/far-axis/resnet11nvg1.s1234-k1.window.json

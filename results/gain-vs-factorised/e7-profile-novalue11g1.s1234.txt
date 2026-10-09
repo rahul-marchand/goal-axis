@@ -1,0 +1,26 @@
+script direction_profile.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s1234 --n-levels 256 --json /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/novalue11g1.s1234.profile.json --levels /workspace/data/levels/values/1.00-0.50@500k
+
+base   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+input  params/network_params/conv_list_0/kernel (3, 3, 4, 32)
+states cell_list_0, cell_list_1, cell_list_2
+
+=== relative activation change per state (|dh| / |h|) ===
+  state                     gain        turn        axis      random
+  cell_list_0          7.909e-03   2.231e-03   1.813e-02   1.437e-02
+  cell_list_1          4.025e-03   1.117e-03   9.916e-03   6.429e-03
+  cell_list_2          1.145e-02   3.460e-03   2.337e-02   2.098e-02
+
+=== survival: how much of the relative change each stage passed on ===
+  stage                                           gain        turn        axis      random
+  cell_list_0 -> cell_list_1                     0.509       0.501       0.547       0.448
+  cell_list_1 -> cell_list_2                     2.844       3.097       2.357       3.264
+
+=== share of the axis's change explained (R^2) ===
+  state                   gain      turn      both    random
+  cell_list_0            0.162     0.025     0.204     0.084
+  cell_list_1            0.302     0.024     0.337     0.060
+  cell_list_2            0.283     0.132     0.388     0.077
+
+wrote /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/novalue11g1.s1234.profile.json

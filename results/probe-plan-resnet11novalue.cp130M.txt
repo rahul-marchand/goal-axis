@@ -1,0 +1,14 @@
+script 003_probe_plan.py
+commit e904aa5
+argv   /workspace/data/runs/resnet11novalue.s1234-cp130M/local-files/cp_130191360 --levels /workspace/data/levels/values/1.00-0.50@1M --split test --think 0 --test-correlations 1.0
+checkpoint cp_130191360  (update 25428)
+ScaledInputSpec, 11x11, rho=1.0, 256 train / 128 test episodes
+
+ think test rho               probe      AUC          95% CI   bal.acc  episodes
+     0     1.00             trained    0.914  [0.896, 0.933]     0.761       128
+     0     1.00           untrained    0.661  [0.640, 0.685]     0.585       128
+     0     1.00         observation    0.587  [0.576, 0.601]     0.578       128
+
+The trained probe must beat the *untrained* one. Beating only the
+observation shows the network has a receptive field, which it has
+before any training at all.

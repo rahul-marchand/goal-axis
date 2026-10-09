@@ -1,0 +1,17 @@
+script arm_thresholds.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s3456e --family k0 --base-value 1.0 --levels /workspace/data/levels/values/1.00-0.50@500k --arm-steps 400000
+
+base       /workspace/data/runs/novalue11g1.s3456e/local-files/cp_37498880
+family     k0, 6 arms, decoded at the base values (1.0, 0.5)
+
+=== what the arms themselves do ===
+
+                                   steps   95% interval     reached
+                 base, untouched     5.4  [  5.1,   5.8]      99.9%
+               v=0.00 fine-tuned     2.3  [  2.0,   2.6]      99.4%
+               v=0.10 fine-tuned     2.1  [  1.8,   2.4]      99.5%
+               v=0.20 fine-tuned     2.2  [  1.9,   2.5]      97.7%
+               v=0.30 fine-tuned     1.9  [  1.7,   2.2]      99.4%
+               v=0.40 fine-tuned     1.8  [  1.5,   2.2]      99.9%
+               v=0.50 fine-tuned     2.1  [  1.8,   2.3]      99.7%

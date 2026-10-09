@@ -1,0 +1,44 @@
+script direction_profile.py
+commit unknown
+argv   /workspace/data/runs/resnet11nvg1.s1234 --n-levels 256 --json /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/resnet11nvg1.s1234.profile.json --levels /workspace/data/levels/values/1.00-0.50@500k
+
+base   /workspace/data/runs/resnet11nvg1.s1234/local-files/cp_120176640  (1,234,405 parameters), values (1.0, 0.5)
+input  params/network_params/GuezResNet_0/GuezConvSequence_0/xXx_Input_xXx/kernel (3, 3, 4, 32)
+states GuezConvSequence_0, GuezConvSequence_1, GuezConvSequence_2, GuezConvSequence_3, GuezConvSequence_4, GuezConvSequence_5, GuezConvSequence_6, GuezConvSequence_7, GuezConvSequence_8
+
+=== relative activation change per state (|dh| / |h|) ===
+  state                     gain        turn        axis      random
+  GuezConvSequence_0   1.518e-02   1.071e-02   7.728e-03   1.797e-03
+  GuezConvSequence_1   2.614e-02   1.316e-02   1.156e-02   1.602e-03
+  GuezConvSequence_2   2.741e-02   1.207e-02   1.241e-02   1.476e-03
+  GuezConvSequence_3   2.790e-02   1.232e-02   1.430e-02   1.520e-03
+  GuezConvSequence_4   2.646e-02   1.185e-02   1.533e-02   1.469e-03
+  GuezConvSequence_5   2.572e-02   1.172e-02   1.664e-02   1.517e-03
+  GuezConvSequence_6   1.954e-02   9.083e-03   1.362e-02   1.219e-03
+  GuezConvSequence_7   1.354e-02   6.560e-03   1.119e-02   9.056e-04
+  GuezConvSequence_8   7.484e-03   3.788e-03   5.645e-03   5.457e-04
+
+=== survival: how much of the relative change each stage passed on ===
+  stage                                           gain        turn        axis      random
+  GuezConvSequence_0 -> GuezConvSequence_1       1.722       1.228       1.495       0.891
+  GuezConvSequence_1 -> GuezConvSequence_2       1.048       0.918       1.074       0.921
+  GuezConvSequence_2 -> GuezConvSequence_3       1.018       1.021       1.152       1.030
+  GuezConvSequence_3 -> GuezConvSequence_4       0.949       0.962       1.073       0.966
+  GuezConvSequence_4 -> GuezConvSequence_5       0.972       0.989       1.085       1.033
+  GuezConvSequence_5 -> GuezConvSequence_6       0.760       0.775       0.818       0.803
+  GuezConvSequence_6 -> GuezConvSequence_7       0.693       0.722       0.821       0.743
+  GuezConvSequence_7 -> GuezConvSequence_8       0.553       0.577       0.505       0.603
+
+=== share of the axis's change explained (R^2) ===
+  state                   gain      turn      both    random
+  GuezConvSequence_0     0.099     0.007     0.102     0.057
+  GuezConvSequence_1     0.247     0.007     0.251     0.054
+  GuezConvSequence_2     0.283     0.002     0.283     0.016
+  GuezConvSequence_3     0.285     0.002     0.292     0.015
+  GuezConvSequence_4     0.253     0.024     0.281     0.011
+  GuezConvSequence_5     0.255     0.036     0.289     0.005
+  GuezConvSequence_6     0.266     0.044     0.309     0.005
+  GuezConvSequence_7     0.226     0.050     0.271     0.004
+  GuezConvSequence_8     0.300     0.104     0.413     0.019
+
+wrote /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/resnet11nvg1.s1234.profile.json

@@ -1,0 +1,104 @@
+script 014_value_axis_analysis.py
+commit e904aa5
+argv   --base /workspace/data/runs/novalue11g1.s3456e/local-files/cp_37498880 --arms /workspace/data/runs/novalue11g1.s3456e/arms --levels /workspace/data/levels/values/1.00-0.50@500k --prefix o1 --base-value 0.5 --arm-steps 3000000 --at 7 --leave-one-out
+
+base cp_37498880  (update 7324, 1,449,605 parameters)
+
+arms
+  v=0.10  cp_2995200  (update 585)  |delta| 13.31
+  v=0.20  cp_2995200  (update 585)  |delta| 12.82
+  v=0.30  cp_2995200  (update 585)  |delta| 12.56
+  v=0.40  cp_2995200  (update 585)  |delta| 12.09
+  v=0.50  cp_2995200  (update 585)  |delta| 11.93
+  v=0.60  cp_2995200  (update 585)  |delta| 11.89
+  v=0.70  cp_2995200  (update 585)  |delta| 12.11
+  v=0.80  cp_2995200  (update 585)  |delta| 12.6
+  v=0.90  cp_2995200  (update 585)  |delta| 13.33
+
+common component |drift| 9.058   axis per unit value |axis| 18.14
+null arm |delta| 11.93, and 0.685 of it is that same common direction
+
+
+=== collinear? cosine between arms, raw ===
+
+            0.10    0.20    0.30    0.40    0.60    0.70    0.80    0.90
+  0.10     1.000   0.593   0.565   0.524   0.424   0.365   0.304   0.259
+  0.20     0.593   1.000   0.576   0.542   0.443   0.384   0.322   0.277
+  0.30     0.565   0.576   1.000   0.547   0.471   0.422   0.358   0.310
+  0.40     0.524   0.542   0.547   1.000   0.507   0.466   0.411   0.365
+  0.60     0.424   0.443   0.471   0.507   1.000   0.528   0.504   0.481
+  0.70     0.365   0.384   0.422   0.466   0.528   1.000   0.548   0.533
+  0.80     0.304   0.322   0.358   0.411   0.504   0.548   1.000   0.590
+  0.90     0.259   0.277   0.310   0.365   0.481   0.533   0.590   1.000
+
+=== and with the common component removed ===
+
+            0.10    0.20    0.30    0.40    0.60    0.70    0.80    0.90
+  0.10     1.000   0.174   0.096  -0.015  -0.225  -0.314  -0.375  -0.398
+  0.20     0.174   1.000   0.097  -0.001  -0.213  -0.304  -0.367  -0.390
+  0.30     0.096   0.097   1.000  -0.018  -0.186  -0.258  -0.327  -0.359
+  0.40    -0.015  -0.001  -0.018   1.000  -0.136  -0.193  -0.248  -0.278
+  0.60    -0.225  -0.213  -0.186  -0.136   1.000  -0.049  -0.045  -0.037
+  0.70    -0.314  -0.304  -0.258  -0.193  -0.049   1.000   0.072   0.090
+  0.80    -0.375  -0.367  -0.327  -0.248  -0.045   0.072   1.000   0.233
+  0.90    -0.398  -0.390  -0.359  -0.278  -0.037   0.090   0.233   1.000
+
+The raw matrix is positive everywhere, including between arms on opposite
+sides of the base, which is the signature of a direction that means no more
+than 'was fine-tuned'. Once that is removed, arms on the same side should
+agree and arms on opposite sides should oppose. Ordering matters as much as
+sign: neighbouring values should look more alike than distant ones.
+
+=== graded and predictive? ===
+
+    value  offset   |delta|  |residual|  held-out R^2  held-out cos  implied offset
+     0.10   -0.40     13.31       9.446        -0.128        -0.306           -0.16
+     0.20   -0.30     12.82       8.905         0.043        -0.322           -0.17
+     0.30   -0.20     12.56       8.484         0.062        -0.272           -0.14
+     0.40   -0.10     12.09       7.951         0.024        -0.159           -0.08
+     0.60    0.10     11.89       7.851        -0.001         0.100           +0.05
+     0.70    0.20     12.11       8.242         0.024         0.229           +0.12
+     0.80    0.30      12.6       9.006         0.068         0.340           +0.18
+     0.90    0.40     13.33       9.948         0.001         0.356           +0.20
+     null    0.00     11.93       8.741             —        -0.034           -0.02
+
+The implied offset is the axis read backwards, fitted without this arm. It
+should track the offset the arm was trained at, and the null arm's should sit
+near zero. All of them landing on the same number is the fit reporting the
+common component rather than the value.
+
+
+=== writable out of sample? each value from an axis that never saw it ===
+
+                                   steps    95% interval    reached
+        v=0.10 written, held out    14.0  [ 13.2,  14.9]      99.2%
+               v=0.10 fine-tuned    15.0  [ 14.1,  16.0]      99.9%
+        v=0.20 written, held out    11.3  [ 10.6,  12.1]      99.5%
+               v=0.20 fine-tuned    12.3  [ 11.6,  13.1]      99.4%
+        v=0.30 written, held out     8.8  [  8.3,   9.4]      99.8%
+               v=0.30 fine-tuned     9.5  [  9.1,  10.0]      99.7%
+        v=0.40 written, held out     6.9  [  6.4,   7.3]      99.9%
+               v=0.40 fine-tuned     8.3  [  7.8,   8.8]      99.8%
+        v=0.60 written, held out     4.2  [  3.8,   4.5]      99.9%
+               v=0.60 fine-tuned     4.7  [  4.4,   5.0]     100.0%
+        v=0.70 written, held out     3.3  [  3.0,   3.6]     100.0%
+               v=0.70 fine-tuned     3.7  [  3.4,   4.0]      99.0%
+        v=0.80 written, held out     2.5  [  2.2,   2.8]     100.0%
+               v=0.80 fine-tuned     2.1  [  1.9,   2.4]     100.0%
+        v=0.90 written, held out     2.1  [  1.7,   2.4]      99.8%
+               v=0.90 fine-tuned     1.2  [  0.9,   1.4]     100.0%
+
+     value   fine-tuned   written    error
+      0.10         15.0      14.0     -1.0
+      0.20         12.3      11.3     -1.0
+      0.30          9.5       8.8     -0.7
+      0.40          8.3       6.9     -1.4
+      0.60          4.7       4.2     -0.5
+      0.70          3.7       3.3     -0.4
+      0.80          2.1       2.5     +0.4
+      0.90          1.2       2.1     +0.9
+
+Each written value here comes from an axis fitted on the other five arms only,
+so nothing about this arm went into the direction that reproduces it. This is
+the comparison that separates an axis from a lookup of the arms it was built
+from; the in-sample version cannot.

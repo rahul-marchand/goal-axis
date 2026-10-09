@@ -1,0 +1,24 @@
+script cheapest_edit.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s1234 --levels /workspace/data/levels/values/1.00-0.50@500k --family dense --lr 3e-4 --l2 0 --steps 800 --n-edit 4096 --n-eval 1024 --batch 128 --nav-weight 0.1 --eval-shifts -8 -4 4 8 --seeds 0 1 --json figures/data/cheapest_edit/k.pilot.free.novalue11g1.s1234.json --save-deltas /workspace/data/cheapest_edit/k.pilot.free.novalue11g1.s1234.npz
+
+base   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+levels 4096 to edit on, 1024 held out
+base   threshold 6.96 steps, logistic scale 1.47 (edit levels); held out 7.13
+base   fork margin = +1.519 -0.173 x gap (r -0.768); margin-implied threshold 8.76 vs behavioural 6.96; sign agrees with the rollout choice on 97.8% of levels
+base   fork-sign threshold 6.5; 93.2% of levels agree with it and are trained on; doses ask to flip 6.1%, 4.8%, 9.3%
+base   fork P(rich) by gap: -12:1.00  -9:1.00  -6:0.99  -3:0.99  +0:0.95  +3:0.91  +6:0.59  +9:0.12  +12:0.05
+base   mean fork margin by gap: -12:+3.35  -9:+3.35  -6:+3.27  -3:+3.21  +0:+2.85  +3:+2.23  +6:+0.38  +9:-1.68  +12:-2.51
+no edit: fixed-level loss 0.0226 (nav 0.0000, fork 0.0226, fork error 0.078)
+
+fine-tuned axis o1: 8 arms, |v| 8.202 per unit value, slope -12.40 steps per unit, |v| 0.6613 per step, split-half reliability 0.605
+v per step: fixed-level loss 0.0186 (nav 0.0693, fork 0.0117, fork error 0.055)
+
+  fine-tuned axis, written per step
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.87    2.39  [  2.0,   2.7]   100.0%   94.5%    1.92    2.84
+    -4.0     3.13    3.94  [  3.5,   4.4]   100.0%   95.9%    3.31    4.53
+    -2.0*    5.13    5.07  [  4.7,   5.5]   100.0%   95.5%    4.61    5.49
+    +2.0*    9.13    9.20  [  8.6,   9.7]   100.0%   95.4%    8.53    9.87
+    +4.0*   11.13   12.22  [ 11.4,  12.8]   100.0%   94.2%   11.45   12.94
+    +8.0    15.13   21.65  [ 19.0,  24.4]    99.8%   88.3%   19.46   23.84

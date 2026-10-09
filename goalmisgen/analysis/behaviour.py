@@ -189,6 +189,23 @@ def value_distance_decisions(outcomes, n_features: int = 2):
     return np.array(gaps), np.array(took_richer), np.array(gap_in_value)
 
 
+def on_shortest_route(outcomes) -> float:
+    """Fraction of finished episodes whose length equals the distance to the objective reached.
+
+    The competence check an edit must pass besides moving the trade-off: a write
+    that shifts the threshold by making the agent wander has not moved a goal.
+    """
+    hits = []
+    for outcome in outcomes:
+        if not outcome.get("reached_objective"):
+            continue
+        distance = outcome.get(f"feature_{outcome.get('reached_feature_id')}_distance")
+        if distance is None or distance == UNREACHABLE:
+            continue
+        hits.append(int(outcome.get("episode_steps", -1)) == int(distance))
+    return float(np.mean(hits)) if hits else float("nan")
+
+
 def optimal_threshold(v0, v1, step_penalty: float, gamma: float):
     """Extra steps worth walking for colour 0 rather than colour 1: the task's own threshold.
 

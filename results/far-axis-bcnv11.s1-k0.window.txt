@@ -1,0 +1,19 @@
+script far_axis_fit_bc.py
+commit e904aa5
+argv   /workspace/data/offline/runs/bcnv11.s1 --family k0 --far -0.8 -0.9 -1.0 --window-loo --demos /workspace/data/offline/demos/test.rho100 --json /workspace/data/figures-data/far-axis/bcnv11.s1-k0.window.json
+
+base       bcnv11.s1 @ step 30,000   (806,533 parameters)
+window     o0: 24 arms at offsets -0.45..+0.45
+far        k0: 3 arms at offsets -1.00..-0.80
+
+=== the far axis against the window axis ===
+
+  |axis| per unit value   window 2.697   far 3.336
+  |drift|                 window 1.152   far 3.172
+  cos(axis_far, axis_window)    -0.096
+  cos(drift_far, axis_window)   -0.234
+  cos(drift_far, drift_window)  +0.170
+
+=== graded and predictive? leave-one-out within the far set ===
+
+    offset   |delta|  held-out R^2  held-out cos   implied

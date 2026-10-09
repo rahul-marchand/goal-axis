@@ -1,0 +1,63 @@
+script input_gain.py
+commit e904aa5
+argv   /workspace/data/runs/vit11nvg1.s9012 --levels /workspace/data/levels/values/1.00-0.50@500k --json figures/data/input_gain/vit11nvg1.s9012.json
+
+base   /workspace/data/runs/vit11nvg1.s9012/local-files/cp_249999360  (2,192,133 parameters), values (1.0, 0.5)
+input  params/network_params/embed/kernel (4, 64)
+
+=== brightness: the untouched network, colour planes scaled at the input; 2048 held-out levels ===
+
+                                                         steps   95% interval   reached    route
+                                       base, untouched    5.24  [  4.8,   5.8]    94.6%   100.0%
+
+                                        colour 0 x0.25  -26.13  [-29.6, -23.5]    78.3%   100.0%
+                                         colour 0 x0.5  -13.86  [-15.5, -12.6]    75.7%   100.0%
+                                        colour 0 x0.75    3.55  [  3.0,   4.0]    91.2%   100.0%
+                                         colour 0 x0.9    5.13  [  4.7,   5.6]    94.6%   100.0%
+                                         colour 0 x1.1    5.19  [  4.8,   5.6]    94.1%   100.0%
+                                        colour 0 x1.25    5.08  [  4.7,   5.5]    93.9%   100.0%
+                                         colour 0 x1.5    4.39  [  3.9,   4.9]    92.5%   100.0%
+                                           colour 0 x2    2.88  [  2.5,   3.4]    86.9%   100.0%
+                                           colour 0 x3   -0.66  [ -1.1,  -0.1]    76.9%   100.0%
+
+                                        colour 1 x0.25   31.02  [ 26.8,  38.3]    83.7%   100.0%
+                                         colour 1 x0.5   20.87  [ 19.0,  23.2]    84.5%   100.0%
+                                        colour 1 x0.75    7.12  [  6.6,   7.6]    92.4%   100.0%
+                                         colour 1 x0.9    5.55  [  5.1,   6.0]    94.3%   100.0%
+                                         colour 1 x1.1    5.11  [  4.6,   5.5]    94.8%   100.0%
+                                        colour 1 x1.25    5.09  [  4.6,   5.7]    94.5%   100.0%
+                                         colour 1 x1.5    5.16  [  4.7,   5.6]    94.0%   100.0%
+                                           colour 1 x2    6.13  [  5.7,   6.6]    90.7%   100.0%
+                                           colour 1 x3    8.29  [  7.7,   8.9]    85.1%   100.0%
+
+                          colour 0 x0.5, colour 1 x1.5  -13.28  [-14.6, -11.8]    75.6%   100.0%
+                        colour 0 x0.75, colour 1 x1.25    3.44  [  3.0,   3.9]    91.5%   100.0%
+                          colour 0 x0.9, colour 1 x1.1    5.12  [  4.7,   5.6]    94.8%   100.0%
+                          colour 0 x1.1, colour 1 x0.9    5.57  [  5.1,   6.0]    93.8%   100.0%
+                        colour 0 x1.25, colour 1 x0.75    6.91  [  6.4,   7.5]    91.8%   100.0%
+                          colour 0 x1.5, colour 1 x0.5   19.42  [ 17.6,  21.2]    81.7%   100.0%
+
+sweep  o1: 8 arms; |axis| 10.4
+       patch embed holds 0.7% of ||axis||^2; its gain part 0.5% of that
+       cos(axis, base kernel) per input channel: 0: -0.12, 1: +0.22, 2: -0.41, 3: +0.12
+       gain per unit offset: colour 0: -0.015, colour 1: +0.010
+
+=== the o1 axis and its parts, written at the base values ===
+
+                                                         steps   95% interval   reached    route
+
+                                     full axis @ -0.30    7.15  [  6.6,   7.6]    92.4%   100.0%
+                              only patch embed @ -0.30    5.31  [  4.8,   5.8]    94.4%   100.0%
+                     gain part, in the weights @ -0.30    5.25  [  4.9,   5.8]    94.5%   100.0%
+                      gain part, as brightness @ -0.30    5.25  [  4.9,   5.8]    94.5%   100.0%
+                        patch embed minus gain @ -0.30    5.32  [  4.9,   5.8]    94.4%   100.0%
+                          full axis minus gain @ -0.30    7.16  [  6.7,   7.7]    92.3%   100.0%
+
+                                     full axis @ +0.30    3.56  [  3.1,   4.1]    95.1%   100.0%
+                              only patch embed @ +0.30    5.04  [  4.6,   5.5]    94.6%   100.0%
+                     gain part, in the weights @ +0.30    5.21  [  4.8,   5.7]    94.7%   100.0%
+                      gain part, as brightness @ +0.30    5.21  [  4.8,   5.7]    94.7%   100.0%
+                        patch embed minus gain @ +0.30    5.05  [  4.6,   5.5]    94.6%   100.0%
+                          full axis minus gain @ +0.30    3.57  [  3.2,   4.0]    95.0%   100.0%
+
+wrote figures/data/input_gain/vit11nvg1.s9012.json

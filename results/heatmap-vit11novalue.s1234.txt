@@ -1,0 +1,2 @@
+checkpoint cp_249999360  (update 48828)
+wrote /workspace/data/figures-data/plan-probes/plan.vit11novalue.s1234.npz  (12 episodes)

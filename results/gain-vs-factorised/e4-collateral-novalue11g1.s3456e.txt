@@ -1,0 +1,67 @@
+script edit_collateral.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s3456e --levels /workspace/data/levels/values/1.00-0.50@500k --deltas readout=/workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s3456e.readout.npz late=/workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s3456e.late.npz input=/workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s3456e.input.npz all=/workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s3456e.all.npz --axis-from all --arms frozen/o1-030=/workspace/data/runs/novalue11g1.s3456e/arms-frozen/o1-030@400k free/o1-030=/workspace/data/runs/novalue11g1.s3456e/arms/o1-030@400k frozen/o1-020=/workspace/data/runs/novalue11g1.s3456e/arms-frozen/o1-020@400k free/o1-020=/workspace/data/runs/novalue11g1.s3456e/arms/o1-020@400k frozen/o1+020=/workspace/data/runs/novalue11g1.s3456e/arms-frozen/o1+020@400k free/o1+020=/workspace/data/runs/novalue11g1.s3456e/arms/o1+020@400k frozen/o1+030=/workspace/data/runs/novalue11g1.s3456e/arms-frozen/o1+030@400k free/o1+030=/workspace/data/runs/novalue11g1.s3456e/arms/o1+030@400k --json /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s3456e.collateral.json
+
+=== base ===
+  away = accuracy on levels >= 4 steps from the condition's own threshold; R/P = only the richer/poorer objective left: success and shortest-route rate
+  condition              target    tau 95% interval   reach  route    away   R ok  R opt   P ok  P opt
+  base                        -   5.35 [  5.0,  5.8]  99.9%  87.1%   97.8%  99.4%  78.9%  99.6%  71.2%
+
+=== searched edits, written at each dose (steps of threshold) ===
+  condition              target    tau 95% interval   reach  route    away   R ok  R opt   P ok  P opt
+  v -4                     1.35   2.63 [  2.3,  2.9]  99.8%  86.0%   98.0%  99.2%  75.6%  99.4%  68.8%
+  v -2                     3.35   3.81 [  3.5,  4.2]  99.9%  87.3%   98.2%  99.6%  77.7%  99.5%  71.4%
+  v +2                     7.35   7.75 [  7.3,  8.1]  99.8%  86.6%   97.0%  99.3%  78.7%  99.5%  67.1%
+  v +4                     9.35  11.09 [ 10.4, 11.8]  99.8%  83.0%   95.1%  99.4%  77.8%  98.2%  59.2%
+  readout -4               1.35   4.55 [  4.2,  4.9]  99.8%  85.3%   97.9%  99.3%  75.5%  99.5%  70.0%
+  readout -2               3.35   4.95 [  4.7,  5.3] 100.0%  87.5%   97.7%  99.6%  77.6%  99.6%  70.8%
+  readout +2               7.35   5.87 [  5.5,  6.3]  99.8%  87.6%   97.8%  99.3%  80.0%  99.4%  72.5%
+  readout +4               9.35   6.38 [  5.9,  6.8]  99.3%  85.0%   96.8%  98.0%  76.8%  98.9%  70.3%
+  late -4                  1.35   3.62 [  3.2,  4.0]  99.9%  90.2%   96.0%  99.3%  77.7%  98.5%  71.0%
+  late -2                  3.35   4.39 [  4.0,  4.8] 100.0%  89.6%   97.5%  99.6%  79.3%  98.9%  72.7%
+  late +2                  7.35   7.04 [  6.7,  7.5] 100.0%  88.8%   97.4%  99.6%  81.4%  99.9%  74.2%
+  late +4                  9.35   8.34 [  7.7,  8.9]  99.9%  89.8%   95.1%  99.1%  82.5%  99.0%  73.3%
+  input -4                 1.35   3.20 [  2.9,  3.6]  99.9%  88.8%   98.1%  99.4%  78.3%  99.6%  73.3%
+  input -2                 3.35   4.30 [  4.0,  4.6]  99.9%  87.9%   98.2%  99.5%  78.8%  99.6%  72.5%
+  input +2                 7.35   6.86 [  6.4,  7.3]  99.9%  85.8%   97.2%  99.5%  78.6%  99.5%  67.4%
+  input +4                 9.35   8.97 [  8.4,  9.5]  99.9%  84.4%   96.1%  99.5%  78.6%  99.2%  63.4%
+  all -4                   1.35   2.58 [  2.2,  3.0]  99.9%  91.6%   95.2%  99.6%  78.5%  99.4%  75.0%
+  all -2                   3.35   3.72 [  3.4,  4.0] 100.0%  90.2%   97.3%  99.7%  79.1%  99.7%  75.6%
+  all +2                   7.35   7.21 [  6.8,  7.7]  99.9%  89.2%   97.1%  99.7%  81.9%  99.6%  72.5%
+  all +4                   9.35   9.90 [  9.3, 10.7]  99.9%  89.7%   95.0%  99.8%  81.4%  99.4%  68.9%
+
+=== arms (the finished checkpoint, as trained) ===
+  condition              target    tau 95% interval   reach  route    away   R ok  R opt   P ok  P opt
+  frozen/o1-030               -   7.95 [  7.5,  8.4]  99.9%  87.7%   97.9%  99.8%  81.4%  99.7%  68.8%
+  free/o1-030                 -   9.67 [  9.0, 10.2]  99.5%  84.1%   96.3%  98.8%  77.5%  95.2%  63.1%
+  frozen/o1-020               -   7.28 [  7.0,  7.6] 100.0%  89.3%   97.9%  99.9%  81.3%  99.7%  73.3%
+  free/o1-020                 -   8.02 [  7.5,  8.4] 100.0%  86.6%   97.7%  99.9%  80.4%  99.2%  67.6%
+  frozen/o1+020               -   4.33 [  4.0,  4.7]  99.0%  82.7%   98.3%  98.0%  70.8%  98.9%  67.6%
+  free/o1+020                 -   4.14 [  3.8,  4.5]  99.8%  90.2%   98.2%  99.4%  80.0%  98.6%  76.7%
+  frozen/o1+030               -   3.81 [  3.5,  4.1] 100.0%  89.5%   98.9%  99.9%  78.6%  99.6%  74.4%
+  free/o1+030                 -   3.14 [  2.9,  3.4]  99.8%  85.1%   98.7%  99.6%  75.5%  98.4%  72.3%
+
+fitted frozen axis from 4 arms: threshold slope -7.04 steps per unit value, cos(axis, v) -0.317
+
+fitted free axis from 4 arms: threshold slope -10.51 steps per unit value, cos(axis, v) -0.832
+cos(frozen axis, free axis) +0.277; on the coordinates both could move +0.325
+
+function space (first-order logit change, centred), against v per step:
+  direction                  cos(Ju,Jv)  |Ju|/|Jv|
+  v                              +1.000      1.000
+  readout                        +0.113      1.003
+  late                           +0.494      1.666
+  input                          +0.830      0.596
+  all                            +0.601      1.346
+  arm:frozen/o1-030              +0.446      5.088
+  arm:free/o1-030                +0.539      6.200
+  arm:frozen/o1-020              +0.291      4.430
+  arm:free/o1-020                +0.451      5.002
+  arm:frozen/o1+020              -0.131      5.867
+  arm:free/o1+020                -0.282      5.292
+  arm:frozen/o1+030              -0.195      4.255
+  arm:free/o1+030                -0.386      5.748
+  axis:frozen                    +0.608      1.206
+  axis:free                      +0.887      0.998
+
+wrote /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s3456e.collateral.json

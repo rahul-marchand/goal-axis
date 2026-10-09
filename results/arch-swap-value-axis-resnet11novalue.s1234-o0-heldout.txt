@@ -2,21 +2,9 @@ script 014_value_axis_analysis.py
 commit 6b50d42
 argv   --base /workspace/data/runs/resnet11novalue.s1234/local-files/cp_149995520 --arms /workspace/data/runs/resnet11novalue.s1234/arms --levels /workspace/data/levels/values/1.00-0.50@500k --prefix o0 --base-value 1.0 --arm-steps 400000 --at -1 --leave-one-out
 
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/__init__.py:53: UserWarning: [33mWARN: `gymnasium.vector.make(...)` is deprecated and will be replaced by `gymnasium.make_vec(...)` in v1.0[0m
-  gym.logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.single_action_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.single_action_space` for environment variables.[0m
-  logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.observation_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.observation_space` for environment variables.[0m
-  logger.warn(
 base cp_149995520  (update 29296, 1,234,405 parameters)
 
 arms
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/__init__.py:53: UserWarning: [33mWARN: `gymnasium.vector.make(...)` is deprecated and will be replaced by `gymnasium.make_vec(...)` in v1.0[0m
-  gym.logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.single_action_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.single_action_space` for environment variables.[0m
-  logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.observation_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.observation_space` for environment variables.[0m
-  logger.warn(
   v=0.55  cp_399360  (update 78)  |delta| 0.0549
   v=0.56  cp_399360  (update 78)  |delta| 0.141
   v=0.57  cp_399360  (update 78)  |delta| 0.04154
@@ -147,17 +135,7 @@ common component rather than the value.
 === writable out of sample? each value from an axis that never saw it ===
 
                                    steps    95% interval    reached
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.num_envs to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.num_envs` for environment variables.[0m
-  logger.warn(
         v=0.55 written, held out    -0.5  [ -2.0,   0.6]       6.0%
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/__init__.py:53: UserWarning: [33mWARN: `gymnasium.vector.make(...)` is deprecated and will be replaced by `gymnasium.make_vec(...)` in v1.0[0m
-  gym.logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.single_action_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.single_action_space` for environment variables.[0m
-  logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.observation_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.observation_space` for environment variables.[0m
-  logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.num_envs to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.num_envs` for environment variables.[0m
-  logger.warn(
                v=0.55 fine-tuned    -0.3  [ -1.6,   1.2]       6.7%
         v=0.56 written, held out    -0.5  [ -2.0,   0.6]       6.0%
                v=0.56 fine-tuned    -0.3  [ -1.6,   1.2]       6.7%

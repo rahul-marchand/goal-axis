@@ -1,0 +1,105 @@
+=== novalue11g1.s1234 ===
+  family     reach  |u|/|v|  cos Ju,Jv  cos u,v  seed cos  module shares of |u|^2
+  axis v      1.04     1.00       1.00     1.00      0.60  (reliability)
+  readout     0.15     5.48      +0.06    +0.02     +0.49  dense 99%
+  late        0.79     5.59      +0.63    +0.03     +0.30  cell 2 input 16%, cell 2 recurrent 7%, dense 76%
+  input       0.89     0.89      +0.94    +0.39     +0.99  input conv 100%
+  all         0.93     5.51      +0.72    +0.09     +0.30  cell 0 input 6%, cell 1 input 5%, cell 2 input 11%, cell 2 recurrent 5%, dense 69%
+
+  collateral         target    tau    away   R ok  R opt   P ok  P opt
+  base                    -   7.20   99.1% 100.0%  89.0% 100.0%  76.2%
+  v -4                 3.20   4.13   99.5% 100.0%  86.5% 100.0%  77.4%
+  v +4                11.20  12.52   98.5% 100.0%  90.5%  99.3%  65.0%
+  readout -4           3.20   6.74   99.1% 100.0%  88.0% 100.0%  70.5%
+  readout +4          11.20   7.67   99.0%  99.9%  89.3% 100.0%  78.9%
+  late -4              3.20   4.49   98.3% 100.0%  88.5%  99.8%  81.4%
+  late +4             11.20  10.76   98.1%  99.9%  90.3%  99.5%  76.3%
+  input -4             3.20   4.38   99.5% 100.0%  87.3% 100.0%  79.0%
+  input +4            11.20  11.65   98.0% 100.0%  89.7%  99.6%  65.6%
+  all -4               3.20   3.56   98.3%  95.0%  89.6%  88.0%  87.5%
+  all +4              11.20  11.15   98.2% 100.0%  89.9%  98.9%  75.2%
+
+  arm                offset    tau    away   R ok  R opt   P ok  P opt   cos(diff,v)  |frozen diff|
+  free/o1-030         -0.30  12.48   99.1% 100.0%  91.1% 100.0%  77.8%       +0.50            0
+  frozen/o1-030       -0.30  12.80   98.6% 100.0%  89.2%  99.8%  71.8%       +0.26            0
+  free/o1-020         -0.20   9.85   99.5% 100.0%  90.9% 100.0%  83.7%       +0.36            0
+  frozen/o1-020       -0.20  10.24   99.1% 100.0%  92.3% 100.0%  80.4%       +0.20            0
+  free/o1+020         +0.20   5.00   99.9% 100.0%  89.2% 100.0%  83.7%       -0.38            0
+  frozen/o1+020       +0.20   5.54   99.6% 100.0%  89.5% 100.0%  85.4%       -0.19            0
+  free/o1+030         +0.30   3.53   99.9% 100.0%  87.4% 100.0%  84.2%       -0.57            0
+  frozen/o1+030       +0.30   4.75   99.3% 100.0%  90.6% 100.0%  83.9%       -0.28            0
+  fitted frozen axis: slope -12.90 steps/unit, cos with v -0.42
+  fitted free axis: slope -14.05 steps/unit, cos with v -0.83
+  cos(frozen axis, free axis) +0.36, on movable coordinates +0.40
+  function space vs v per step: readout +0.06 (x0.96), late +0.63 (x1.32), input +0.94 (x0.87), all +0.72 (x1.42), arm:frozen/o1-030 +0.84 (x4.29), arm:free/o1-030 +0.85 (x4.62), arm:frozen/o1-020 +0.71 (x4.27), arm:free/o1-020 +0.73 (x4.02), arm:frozen/o1+020 -0.52 (x3.08), arm:free/o1+020 -0.45 (x3.28), arm:frozen/o1+030 -0.79 (x3.67), arm:free/o1+030 -0.79 (x5.24), axis:frozen +0.93 (x0.92), axis:free +0.98 (x0.92)
+
+=== novalue11g1.s9012 ===
+  family     reach  |u|/|v|  cos Ju,Jv  cos u,v  seed cos  module shares of |u|^2
+  axis v      1.02     1.00       1.00     1.00      0.74  (reliability)
+  readout     0.07     4.12      +0.08    +0.02     +0.01  dense 100%
+  late        0.76     4.80      +0.77    +0.05     +0.64  cell 2 input 35%, cell 2 recurrent 11%, dense 53%
+  input       0.79     1.03      +0.96    +0.48     +0.98  input conv 100%
+  all         0.92     5.31      +0.81    +0.11     +0.45  conv 1 2%, cell 0 input 9%, cell 0 recurrent 2%, cell 1 input 11%, cell 2 input 19%, cell 2 recurrent 6%, dense 49%
+
+  collateral         target    tau    away   R ok  R opt   P ok  P opt
+  base                    -   7.25   99.8%  99.9%  83.9%  99.0%  74.5%
+  v -4                 3.25   4.08   99.8%  99.7%  82.6%  98.9%  77.7%
+  v +4                11.25  12.17   99.4%  99.6%  82.7%  88.3%  64.5%
+  readout -4           3.25   7.10   99.8% 100.0%  83.8%  99.1%  74.8%
+  readout +4          11.25   7.49   99.9%  99.8%  81.6%  99.2%  76.5%
+  late -4              3.25   4.75   97.9%  99.9%  86.7%  99.6%  80.1%
+  late +4             11.25  10.12   97.8%  99.9%  87.9%  99.0%  79.2%
+  input -4             3.25   4.89   99.5%  99.7%  82.2%  99.2%  77.4%
+  input +4            11.25  11.11   99.6%  99.7%  83.5%  90.4%  68.8%
+  all -4               3.25   3.71   98.3%  99.9%  84.4%  99.9%  81.2%
+  all +4              11.25  11.01   98.2%  99.5%  87.8%  92.9%  71.2%
+
+  arm                offset    tau    away   R ok  R opt   P ok  P opt   cos(diff,v)  |frozen diff|
+  free/o1-030         -0.30  12.92   99.7%  99.6%  82.9%  89.2%  57.6%       +0.56            0
+  frozen/o1-030       -0.30  12.67   99.3% 100.0%  85.9%  99.8%  67.5%       +0.30            0
+  free/o1-020         -0.20  11.54   99.5% 100.0%  86.7%  99.9%  72.0%       +0.42            0
+  frozen/o1-020       -0.20  11.14   99.3% 100.0%  85.1% 100.0%  74.2%       +0.23            0
+  free/o1+020         +0.20   4.94   99.6% 100.0%  81.6% 100.0%  73.6%       -0.48            0
+  frozen/o1+020       +0.20   5.38   99.7%  99.9%  84.6%  98.7%  75.4%       -0.27            0
+  free/o1+030         +0.30   3.24   99.7%  99.5%  77.1%  99.4%  68.1%       -0.67            0
+  frozen/o1+030       +0.30   3.89   99.6%  99.9%  86.4%  99.8%  80.0%       -0.36            0
+  fitted frozen axis: slope -14.57 steps/unit, cos with v -0.48
+  fitted free axis: slope -16.24 steps/unit, cos with v -0.88
+  cos(frozen axis, free axis) +0.44, on movable coordinates +0.53
+  function space vs v per step: readout +0.08 (x0.43), late +0.77 (x1.78), input +0.96 (x0.77), all +0.81 (x1.31), arm:frozen/o1-030 +0.79 (x4.44), arm:free/o1-030 +0.83 (x5.13), arm:frozen/o1-020 +0.83 (x4.00), arm:free/o1-020 +0.80 (x4.10), arm:frozen/o1+020 -0.45 (x2.84), arm:free/o1+020 -0.74 (x4.23), arm:frozen/o1+030 -0.87 (x4.10), arm:free/o1+030 -0.86 (x4.71), axis:frozen +0.97 (x0.83), axis:free +0.98 (x0.91)
+
+=== novalue11g1.s3456e ===
+  family     reach  |u|/|v|  cos Ju,Jv  cos u,v  seed cos  module shares of |u|^2
+  axis v      1.04     1.00       1.00     1.00      0.61  (reliability)
+  readout     0.21     3.94      +0.11    +0.03     +0.24  dense 100%
+  late        0.65     3.92      +0.49    +0.07     +0.36  cell 2 input 12%, cell 2 recurrent 5%, dense 82%
+  input       0.71     0.83      +0.83    +0.49     +0.99  input conv 100%
+  all         0.88     3.99      +0.60    +0.14     +0.21  input conv 2%, cell 0 input 5%, cell 1 input 5%, cell 2 input 9%, cell 2 recurrent 3%, dense 71%
+
+  collateral         target    tau    away   R ok  R opt   P ok  P opt
+  base                    -   5.35   97.8%  99.4%  78.9%  99.6%  71.2%
+  v -4                 1.35   2.63   98.0%  99.2%  75.6%  99.4%  68.8%
+  v +4                 9.35  11.09   95.1%  99.4%  77.8%  98.2%  59.2%
+  readout -4           1.35   4.55   97.9%  99.3%  75.5%  99.5%  70.0%
+  readout +4           9.35   6.38   96.8%  98.0%  76.8%  98.9%  70.3%
+  late -4              1.35   3.62   96.0%  99.3%  77.7%  98.5%  71.0%
+  late +4              9.35   8.34   95.1%  99.1%  82.5%  99.0%  73.3%
+  input -4             1.35   3.20   98.1%  99.4%  78.3%  99.6%  73.3%
+  input +4             9.35   8.97   96.1%  99.5%  78.6%  99.2%  63.4%
+  all -4               1.35   2.58   95.2%  99.6%  78.5%  99.4%  75.0%
+  all +4               9.35   9.90   95.0%  99.8%  81.4%  99.4%  68.9%
+
+  arm                offset    tau    away   R ok  R opt   P ok  P opt   cos(diff,v)  |frozen diff|
+  free/o1-030         -0.30   9.67   96.3%  98.8%  77.5%  95.2%  63.1%       +0.49            0
+  frozen/o1-030       -0.30   7.95   97.9%  99.8%  81.4%  99.7%  68.8%       +0.17            0
+  free/o1-020         -0.20   8.02   97.7%  99.9%  80.4%  99.2%  67.6%       +0.36            0
+  frozen/o1-020       -0.20   7.28   97.9%  99.9%  81.3%  99.7%  73.3%       +0.14            0
+  free/o1+020         +0.20   4.14   98.2%  99.4%  80.0%  98.6%  76.7%       -0.38            0
+  frozen/o1+020       +0.20   4.33   98.3%  98.0%  70.8%  98.9%  67.6%       -0.13            0
+  free/o1+030         +0.30   3.14   98.7%  99.6%  75.5%  98.4%  72.3%       -0.54            0
+  frozen/o1+030       +0.30   3.81   98.9%  99.9%  78.6%  99.6%  74.4%       -0.20            0
+  fitted frozen axis: slope -7.04 steps/unit, cos with v -0.32
+  fitted free axis: slope -10.51 steps/unit, cos with v -0.83
+  cos(frozen axis, free axis) +0.28, on movable coordinates +0.32
+  function space vs v per step: readout +0.11 (x1.00), late +0.49 (x1.67), input +0.83 (x0.60), all +0.60 (x1.35), arm:frozen/o1-030 +0.45 (x5.09), arm:free/o1-030 +0.54 (x6.20), arm:frozen/o1-020 +0.29 (x4.43), arm:free/o1-020 +0.45 (x5.00), arm:frozen/o1+020 -0.13 (x5.87), arm:free/o1+020 -0.28 (x5.29), arm:frozen/o1+030 -0.20 (x4.25), arm:free/o1+030 -0.39 (x5.75), axis:frozen +0.61 (x1.21), axis:free +0.89 (x1.00)
+

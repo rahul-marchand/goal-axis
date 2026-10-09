@@ -1,0 +1,36 @@
+script direction_profile.py
+commit unknown
+argv   /workspace/data/offline/runs/bcnv11.s1 --offline --demos /workspace/data/offline/demos --steps-tag 1000 --n-levels 256 --json /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/bcnv11.s1.profile.json
+
+base   bcnv11.s1 @ step 30,000  (806,533 parameters), values (1.0, 0.5)
+input  params/cell_in/kernel (4, 128)
+states embedding, block 0, block 1, block 2, block 3
+
+=== relative activation change per state (|dh| / |h|) ===
+  state                     gain        turn        axis      random
+  embedding            3.206e-03   3.189e-03   4.072e-04   8.760e-04
+  block 0              8.481e-03   2.114e-02   1.046e-02   5.888e-03
+  block 1              9.262e-03   1.958e-02   1.217e-02   6.021e-03
+  block 2              8.513e-03   1.763e-02   1.426e-02   6.030e-03
+  block 3              1.174e-02   2.309e-02   2.101e-02   8.285e-03
+
+=== survival: how much of the relative change each stage passed on ===
+  stage                                           gain        turn        axis      random
+  embedding -> block 0                           2.646       6.628      25.686       6.722
+  block 0 -> block 1                             1.092       0.926       1.164       1.023
+  block 1 -> block 2                             0.919       0.901       1.171       1.002
+  block 2 -> block 3                             1.379       1.309       1.474       1.374
+
+=== share of the axis's change explained (R^2) ===
+  state                   gain      turn      both    random
+  embedding              0.000     0.000     0.000     0.002
+  block 0                0.032     0.014     0.041     0.005
+  block 1                0.000     0.000     0.001     0.000
+  block 2                0.000     0.001     0.001     0.003
+  block 3                0.001     0.001     0.001     0.007
+
+=== the first LayerNorm, on the embedding ===
+  gain   ones  0.025  magnitude  0.950  direction  0.025   |dh|/|h| before 3.206e-03 after 4.217e-04   survival 0.132
+  turn   ones  0.022  magnitude  0.001  direction  0.976   |dh|/|h| before 3.189e-03 after 2.581e-03   survival 0.810
+
+wrote /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/bcnv11.s1.profile.json

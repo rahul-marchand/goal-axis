@@ -1,0 +1,130 @@
+script gain_alignment.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s3456e --levels /workspace/data/levels/values/1.00-0.50@500k --json /workspace/data/figures-data/gain_alignment/novalue11g1.s3456e.json
+
+base   /workspace/data/runs/novalue11g1.s3456e/local-files/cp_37498880  (1,449,605 parameters), values (1.0, 0.5), 4 input channels
+sweep  o1: 8 arms; |axis| 8.18; gain per unit offset colour 0: -0.061, colour 1: +0.125
+match  axis threshold shift over +-0.3: -5.76; colour-1 brightness +-g: 0.1: -1.75, 0.2: -3.02, 0.3: -4.96, 0.4: -7.28, 0.5: -9.70, 0.6: -12.67, 0.7: -16.93  -> +0.3
+
+profile: first chunk 6s (incl. compile)
+profile: 1024 levels in 42s
+
+=== gain alignment: R^2, two coefficients per channel; rows = sites in forward order ===
+
+  site                      0        1        2        3        4        5        6        7        8        9       10       11       12       13       14       15       16       17       18       19
+  input conv            0.052    1.000    1.000    0.040    0.040      nan    0.052      nan      nan      nan      nan      nan      nan      nan      nan      nan    0.053    0.057    1.000    1.000
+  conv 1                0.189    1.000    1.000    0.097    0.154    0.225    0.150    0.225      nan      nan      nan      nan      nan      nan      nan      nan    0.061    0.077    1.000    1.000
+  cell 0 tick 0         0.235    0.997    0.997    0.461    0.211    0.149    0.588    0.504    0.124    0.108    0.060    0.013    0.210    0.071      nan      nan    0.036    0.013    0.704    0.812
+  cell 1 tick 0         0.195    0.999    0.999    0.168    0.173    0.167    0.275    0.360    0.119    0.015    0.086    0.090    0.092    0.023      nan      nan    0.099    0.030    0.950    0.963
+  cell 2 tick 0         0.376    0.995    0.995    0.439    0.354    0.293    0.574    0.465    0.083    0.014    0.023    0.008    0.163    0.051      nan      nan    0.035    0.035    0.706    0.799
+  cell 0 tick 1         0.233    0.997    0.997    0.453    0.211    0.153    0.577    0.489    0.117    0.113    0.059    0.013    0.214    0.086      nan      nan    0.039    0.013    0.691    0.798
+  cell 1 tick 1         0.175    0.998    0.998    0.252    0.152    0.113    0.372    0.430    0.050    0.027    0.105    0.111    0.123    0.037      nan      nan    0.156    0.023    0.881    0.895
+  cell 2 tick 1         0.390    0.995    0.995    0.459    0.367    0.300    0.593    0.472    0.086    0.013    0.023    0.007    0.169    0.050      nan      nan    0.035    0.032    0.704    0.800
+  cell 0 tick 2         0.233    0.997    0.997    0.503    0.210    0.147    0.623    0.493    0.108    0.092    0.064    0.014    0.213    0.080      nan      nan    0.028    0.012    0.689    0.799
+  cell 1 tick 2         0.189    0.998    0.998    0.246    0.165    0.130    0.417    0.442    0.046    0.020    0.107    0.111    0.125    0.036      nan      nan    0.149    0.024    0.875    0.887
+  cell 2 tick 2         0.400    0.995    0.995    0.468    0.377    0.313    0.600    0.485    0.092    0.014    0.025    0.009    0.176    0.053      nan      nan    0.039    0.037    0.706    0.798
+  dense                 0.498    0.995    0.995    0.554    0.486    0.422    0.664    0.550    0.117    0.021    0.037    0.029    0.232    0.076    0.254      nan    0.057    0.030    0.699    0.801
+  logits                0.497    0.996    0.996    0.609    0.469    0.368    0.717    0.503    0.145    0.018    0.040    0.014    0.266    0.041    0.002    0.001    0.005    0.004    0.723    0.835
+  columns: 0 full axis; 1 gain part, in weights; 2 gain part, as brightness; 3 input conv minus gain; 4 full minus gain; 5 all but input conv; 6 only input conv; 7 only conv 1; 8 only cell 0 input; 9 only cell 0 recurrent; 10 only cell 1 input; 11 only cell 1 recurrent; 12 only cell 2 input; 13 only cell 2 recurrent; 14 only dense; 15 only heads; 16 random, module-matched; 17 random input conv, matched; 18 brightness contrast +-25%; 19 brightness colour 1, tau-matched
+
+=== gain alignment: R^2, two coefficients overall; rows = sites in forward order ===
+
+  site                      0        1        2        3        4        5        6        7        8        9       10       11       12       13       14       15       16       17       18       19
+  input conv            0.015    1.000    1.000    0.002    0.002      nan    0.015      nan      nan      nan      nan      nan      nan      nan      nan      nan    0.000    0.000    1.000    1.000
+  conv 1                0.105    1.000    1.000    0.017    0.066    0.117    0.075    0.117      nan      nan      nan      nan      nan      nan      nan      nan    0.011    0.005    1.000    1.000
+  cell 0 tick 0         0.178    0.997    0.997    0.440    0.151    0.076    0.573    0.487    0.024    0.067    0.028    0.006    0.197    0.066      nan      nan    0.003    0.001    0.689    0.806
+  cell 1 tick 0         0.123    0.999    0.999    0.119    0.100    0.097    0.233    0.321    0.077    0.004    0.001    0.002    0.038    0.009      nan      nan    0.064    0.013    0.945    0.959
+  cell 2 tick 0         0.362    0.995    0.995    0.418    0.339    0.269    0.559    0.456    0.072    0.012    0.017    0.003    0.132    0.046      nan      nan    0.000    0.002    0.701    0.796
+  cell 0 tick 1         0.172    0.997    0.997    0.428    0.148    0.076    0.560    0.462    0.019    0.073    0.029    0.006    0.203    0.081      nan      nan    0.002    0.001    0.678    0.792
+  cell 1 tick 1         0.091    0.998    0.998    0.148    0.065    0.040    0.287    0.379    0.024    0.012    0.018    0.008    0.104    0.030      nan      nan    0.092    0.011    0.873    0.890
+  cell 2 tick 1         0.376    0.995    0.995    0.442    0.353    0.277    0.580    0.464    0.084    0.011    0.022    0.003    0.140    0.046      nan      nan    0.000    0.002    0.699    0.797
+  cell 0 tick 2         0.176    0.997    0.997    0.485    0.151    0.075    0.611    0.471    0.015    0.058    0.028    0.009    0.205    0.076      nan      nan    0.001    0.002    0.678    0.795
+  cell 1 tick 2         0.106    0.998    0.998    0.227    0.079    0.044    0.402    0.430    0.022    0.006    0.018    0.006    0.112    0.031      nan      nan    0.102    0.014    0.867    0.882
+  cell 2 tick 2         0.384    0.995    0.995    0.448    0.361    0.287    0.587    0.476    0.089    0.012    0.023    0.003    0.145    0.048      nan      nan    0.000    0.003    0.700    0.796
+  dense                 0.396    0.995    0.995    0.525    0.379    0.318    0.643    0.499    0.109    0.014    0.030    0.007    0.213    0.059    0.035      nan    0.001    0.004    0.683    0.790
+  logits                0.496    0.996    0.996    0.608    0.469    0.368    0.717    0.503    0.145    0.018    0.040    0.014    0.265    0.040    0.001    0.000    0.003    0.001    0.722    0.835
+  columns: 0 full axis; 1 gain part, in weights; 2 gain part, as brightness; 3 input conv minus gain; 4 full minus gain; 5 all but input conv; 6 only input conv; 7 only conv 1; 8 only cell 0 input; 9 only cell 0 recurrent; 10 only cell 1 input; 11 only cell 1 recurrent; 12 only cell 2 input; 13 only cell 2 recurrent; 14 only dense; 15 only heads; 16 random, module-matched; 17 random input conv, matched; 18 brightness contrast +-25%; 19 brightness colour 1, tau-matched
+
+=== gain alignment: RMS change / RMS base activation; rows = sites in forward order ===
+
+  site                      0        1        2        3        4        5        6        7        8        9       10       11       12       13       14       15       16       17       18       19
+  input conv            0.073    0.007    0.007    0.072    0.072    0.000    0.073    0.000    0.000    0.000    0.000    0.000    0.000    0.000    0.000    0.000    4.980    4.683    0.070    0.045
+  conv 1                0.032    0.004    0.004    0.027    0.031    0.017    0.028    0.017    0.000    0.000    0.000    0.000    0.000    0.000    0.000    0.000    0.509    1.202    0.045    0.026
+  cell 0 tick 0         0.045    0.005    0.005    0.014    0.044    0.043    0.017    0.010    0.024    0.017    0.004    0.001    0.017    0.007    0.000    0.000    0.096    0.269    0.033    0.022
+  cell 1 tick 0         0.021    0.002    0.002    0.008    0.021    0.021    0.009    0.007    0.009    0.002    0.013    0.003    0.003    0.001    0.000    0.000    0.081    0.165    0.015    0.009
+  cell 2 tick 0         0.137    0.020    0.020    0.060    0.132    0.114    0.071    0.040    0.018    0.004    0.021    0.003    0.088    0.035    0.000    0.000    0.362    0.764    0.148    0.092
+  cell 0 tick 1         0.046    0.005    0.005    0.015    0.045    0.044    0.017    0.010    0.026    0.017    0.005    0.001    0.017    0.007    0.000    0.000    0.090    0.275    0.033    0.022
+  cell 1 tick 1         0.013    0.001    0.001    0.004    0.013    0.013    0.005    0.004    0.005    0.002    0.008    0.003    0.003    0.001    0.000    0.000    0.044    0.139    0.010    0.005
+  cell 2 tick 1         0.138    0.020    0.020    0.060    0.132    0.113    0.071    0.040    0.016    0.004    0.018    0.003    0.089    0.035    0.000    0.000    0.354    0.761    0.148    0.094
+  cell 0 tick 2         0.045    0.005    0.005    0.014    0.044    0.043    0.016    0.010    0.025    0.017    0.004    0.001    0.017    0.007    0.000    0.000    0.085    0.261    0.032    0.022
+  cell 1 tick 2         0.012    0.001    0.001    0.004    0.012    0.012    0.004    0.003    0.005    0.002    0.007    0.003    0.003    0.001    0.000    0.000    0.036    0.116    0.009    0.005
+  cell 2 tick 2         0.137    0.020    0.020    0.060    0.131    0.112    0.071    0.039    0.015    0.004    0.016    0.003    0.088    0.035    0.000    0.000    0.349    0.766    0.149    0.095
+  dense                 0.210    0.028    0.028    0.078    0.204    0.171    0.094    0.059    0.019    0.005    0.020    0.004    0.105    0.047    0.067    0.000    0.524    2.804    0.196    0.133
+  logits                0.244    0.034    0.034    0.100    0.231    0.185    0.123    0.063    0.023    0.006    0.026    0.004    0.135    0.062    0.058    0.016    0.410    1.997    0.240    0.175
+  columns: 0 full axis; 1 gain part, in weights; 2 gain part, as brightness; 3 input conv minus gain; 4 full minus gain; 5 all but input conv; 6 only input conv; 7 only conv 1; 8 only cell 0 input; 9 only cell 0 recurrent; 10 only cell 1 input; 11 only cell 1 recurrent; 12 only cell 2 input; 13 only cell 2 recurrent; 14 only dense; 15 only heads; 16 random, module-matched; 17 random input conv, matched; 18 brightness contrast +-25%; 19 brightness colour 1, tau-matched
+
+=== R^2 per channel as a fraction of the tau-matched brightness's own (the gain ceiling at this dose) ===
+
+  site                      0        1        2        3        4        5        6        7        8        9       10       11       12       13       14       15       16       17       18       19
+  input conv             0.05     1.00     1.00     0.04     0.04      nan     0.05      nan      nan      nan      nan      nan      nan      nan      nan      nan     0.05     0.06     1.00     1.00
+  conv 1                 0.19     1.00     1.00     0.10     0.15     0.23     0.15     0.23      nan      nan      nan      nan      nan      nan      nan      nan     0.06     0.08     1.00     1.00
+  cell 0 tick 0          0.29     1.23     1.23     0.57     0.26     0.18     0.72     0.62     0.15     0.13     0.07     0.02     0.26     0.09      nan      nan     0.04     0.02     0.87     1.00
+  cell 1 tick 0          0.20     1.04     1.04     0.17     0.18     0.17     0.29     0.37     0.12     0.02     0.09     0.09     0.10     0.02      nan      nan     0.10     0.03     0.99     1.00
+  cell 2 tick 0          0.47     1.25     1.25     0.55     0.44     0.37     0.72     0.58     0.10     0.02     0.03     0.01     0.20     0.06      nan      nan     0.04     0.04     0.88     1.00
+  cell 0 tick 1          0.29     1.25     1.25     0.57     0.26     0.19     0.72     0.61     0.15     0.14     0.07     0.02     0.27     0.11      nan      nan     0.05     0.02     0.87     1.00
+  cell 1 tick 1          0.19     1.12     1.12     0.28     0.17     0.13     0.42     0.48     0.06     0.03     0.12     0.12     0.14     0.04      nan      nan     0.17     0.03     0.98     1.00
+  cell 2 tick 1          0.49     1.24     1.24     0.57     0.46     0.38     0.74     0.59     0.11     0.02     0.03     0.01     0.21     0.06      nan      nan     0.04     0.04     0.88     1.00
+  cell 0 tick 2          0.29     1.25     1.25     0.63     0.26     0.18     0.78     0.62     0.14     0.11     0.08     0.02     0.27     0.10      nan      nan     0.04     0.02     0.86     1.00
+  cell 1 tick 2          0.21     1.13     1.13     0.28     0.19     0.15     0.47     0.50     0.05     0.02     0.12     0.12     0.14     0.04      nan      nan     0.17     0.03     0.99     1.00
+  cell 2 tick 2          0.50     1.25     1.25     0.59     0.47     0.39     0.75     0.61     0.11     0.02     0.03     0.01     0.22     0.07      nan      nan     0.05     0.05     0.88     1.00
+  dense                  0.62     1.24     1.24     0.69     0.61     0.53     0.83     0.69     0.15     0.03     0.05     0.04     0.29     0.09     0.32      nan     0.07     0.04     0.87     1.00
+  logits                 0.59     1.19     1.19     0.73     0.56     0.44     0.86     0.60     0.17     0.02     0.05     0.02     0.32     0.05     0.00     0.00     0.01     0.01     0.87     1.00
+
+mediation on 2048 test levels; base threshold 5.35 (reached 99.9%; 17s incl. compile)
+  full axis @ +0.30: write threshold 3.24 (474s)
+  full axis @ -0.30: write threshold 8.99 (934s)
+
+=== mediation: full axis; fraction of its threshold shift (3.24 vs 8.99) carried by a patch at each site group ===
+
+  site group                  full              gain          residual      gain, global  residual, global
+  input conv                  0.46              0.25              0.26              0.18              0.33
+  conv 1                      0.62              0.45              0.17              0.34              0.33
+  cell 0                      0.17              0.10              0.07              0.09              0.09
+  cell 1                      0.26              0.20              0.09              0.18              0.12
+  cell 2                      1.02              0.51              0.43              0.50              0.40
+  dense                       1.01              0.51              0.40              0.53              0.37
+  logits                      1.00              0.57              0.28              0.57              0.29
+
+wrote /workspace/data/figures-data/gain_alignment/novalue11g1.s3456e.json
+  all but input conv @ +0.30: write threshold 4.02 (1393s)
+  all but input conv @ -0.30: write threshold 7.21 (1852s)
+
+=== mediation: all but input conv; fraction of its threshold shift (4.02 vs 7.21) carried by a patch at each site group ===
+
+  site group                  full              gain          residual      gain, global  residual, global
+  input conv                 -0.00             -0.00             -0.00             -0.00             -0.00
+  conv 1                      0.25              0.24             -0.00              0.11              0.15
+  cell 0                      0.20              0.08              0.05              0.07              0.04
+  cell 1                      0.27              0.21              0.06              0.15              0.08
+  cell 2                      0.97              0.62              0.30              0.61              0.33
+  dense                       1.00              0.65              0.33              0.69              0.25
+  logits                      1.00              0.74              0.22              0.74              0.22
+
+wrote /workspace/data/figures-data/gain_alignment/novalue11g1.s3456e.json
+  brightness colour 1, tau-matched @ +0.30: write threshold 3.65 (2310s)
+  brightness colour 1, tau-matched @ -0.30: write threshold 8.61 (2769s)
+
+=== mediation: brightness colour 1, tau-matched; fraction of its threshold shift (3.65 vs 8.61) carried by a patch at each site group ===
+
+  site group                  full              gain          residual      gain, global  residual, global
+  input conv                  1.00              1.00             -0.00              1.00             -0.00
+  conv 1                      1.00              1.00             -0.00              1.00             -0.00
+  cell 0                      0.13              0.11              0.01              0.08              0.03
+  cell 1                      0.26              0.26              0.03              0.25              0.02
+  cell 2                      0.96              0.61              0.31              0.62              0.30
+  dense                       1.00              0.60              0.29              0.60              0.29
+  logits                      1.00              0.63              0.24              0.63              0.23
+
+wrote /workspace/data/figures-data/gain_alignment/novalue11g1.s3456e.json
+
+wrote /workspace/data/figures-data/gain_alignment/novalue11g1.s3456e.json

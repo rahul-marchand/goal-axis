@@ -1,0 +1,71 @@
+script leftover_patch.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s1234 --levels /workspace/data/levels/values/1.00-0.50@500k --extra-writes /workspace/data/figures-data/control/novalue11g1.s1234.npz --parts leftover --mediate full axis random, module-matched late contingent --json /workspace/data/figures-data/gain-vs-factorised/leftover-control-novalue11g1.s1234.json
+
+base   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms; |axis| 8.2; gain per unit offset colour 0 -0.047, colour 1 +0.169
+extra  4 matched non-gain knobs from /workspace/data/figures-data/control/novalue11g1.s1234.npz: late, readout, contingent, rotation
+
+sizes: 768 valid levels in 36s
+
+=== share of the write's activation change that survives erasing the colour-1 objective ===
+
+  site                       0         1         2         3         4         5         6         7
+  input conv             0.986     0.220     1.000       nan       nan       nan     1.000     0.567
+  conv 1                 0.998     0.295     1.000     1.014       nan       nan     1.002     0.392
+  cell 0 tick 0          0.542     0.049     1.036     0.756     0.981     1.118     0.993     0.051
+  cell 1 tick 0          0.520     0.061     0.993     0.717     0.952     1.143     1.025     0.060
+  cell 2 tick 0          0.327     0.046     1.043     0.525     0.988     1.162     0.992     0.047
+  cell 0 tick 1          0.540     0.050     1.038     0.751     0.995     1.135     0.993     0.052
+  cell 1 tick 1          0.507     0.046     0.997     0.708     0.997     1.174     1.031     0.051
+  cell 2 tick 1          0.323     0.047     1.066     0.533     1.001     1.210     1.000     0.048
+  cell 0 tick 2          0.554     0.051     1.046     0.771     1.034     1.147     0.994     0.053
+  cell 1 tick 2          0.526     0.045     1.018     0.740     1.047     1.199     1.041     0.049
+  cell 2 tick 2          0.323     0.043     1.076     0.529     0.994     1.211     0.990     0.045
+  dense                  0.329     0.036     1.071     0.529     0.965     0.967     0.987     0.037
+  logits                 0.161     0.013     1.052     0.293     1.047     0.974     1.005     0.019
+  columns: 0 full axis; 1 gain part, in weights; 2 random, module-matched; 3 all but input conv; 4 late; 5 readout; 6 contingent; 7 rotation
+
+mediation on 2048 test levels; base threshold 7.20 (reached 100.0%)
+  full axis @ +0.30: write threshold 4.39
+  full axis @ -0.30: write threshold 11.82
+
+=== full axis: fraction of its threshold shift (4.39 vs 11.82) carried by each patch ===
+
+  site group                      full    object-independent      object-dependent
+  cell 0                          0.60                  0.13                  0.45
+  cell 1                          0.66                  0.12                  0.50
+  cell 2                          0.96                  0.04                  0.94
+  all                             1.00                  0.04                  0.96
+  random, module-matched @ +0.30: write threshold 7.06
+  random, module-matched @ -0.30: write threshold 6.11
+
+=== random, module-matched: fraction of its threshold shift (7.06 vs 6.11) carried by each patch ===
+
+  site group                      full    object-independent      object-dependent
+  cell 0                          0.76                  0.39                  0.17
+  cell 1                          0.67                 -0.08                  0.86
+  cell 2                          1.17                  1.08                  0.62
+  all                             1.02                  1.70                 -3.55
+  late @ +0.30: write threshold 3.92
+  late @ -0.30: write threshold 11.36
+
+=== late: fraction of its threshold shift (3.92 vs 11.36) carried by each patch ===
+
+  site group                      full    object-independent      object-dependent
+  cell 0                          0.31                  0.09                  0.19
+  cell 1                          0.31                  0.08                  0.20
+  cell 2                          1.01                  0.15                  0.80
+  all                             1.00                  0.20                  0.62
+  contingent @ +0.30: write threshold 4.88
+  contingent @ -0.30: write threshold 5.32
+
+=== contingent: fraction of its threshold shift (4.88 vs 5.32) carried by each patch ===
+
+  site group                      full    object-independent      object-dependent
+  cell 0                          0.73                  2.35                 -3.20
+  cell 1                          1.70                  3.09                 -3.19
+  cell 2                         -3.19                 -3.97                  4.22
+  all                             1.00                 -2.47                  8.33
+
+LEFTOVER_DONE

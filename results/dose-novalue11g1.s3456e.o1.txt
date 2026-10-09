@@ -1,0 +1,131 @@
+script restricted_writes.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s3456e --levels /workspace/data/levels/values/1.00-0.50@500k --doses 0.5 1 2 4 8 --json figures/data/restricted/novalue11g1.s3456e.dose.json
+
+base   /workspace/data/runs/novalue11g1.s3456e/local-files/cp_37498880  (1,449,605 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms at [-0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4]; |axis| 8.18
+
+modules, forward order; ranked by share of the sweep-agreeing axis, -axis_o1 . axis_o0 per module
+
+  module                  params  params %   axis %   rank %  rank
+  input conv               1,184      0.08     28.1     44.9     1
+  conv 1                   9,248      0.64      9.5     14.5     3
+  cell 0 input           111,936      7.72      4.9      5.4     5
+  cell 0 recurrent        36,864      2.54      0.4      0.2     8
+  cell 1 input           111,936      7.72      6.0      5.1     6
+  cell 1 recurrent        36,864      2.54      0.4      0.2     9
+  cell 2 input           111,936      7.72     10.2     10.8     4
+  cell 2 recurrent        36,864      2.54      3.3      3.0     7
+  dense                  991,488     68.40     37.2     16.1     2
+  heads                    1,285      0.09      0.1      0.0    10
+
+=== writes, decoded on 2048 held-out levels at the base values ===
+
+                                                 steps   95% interval    reached
+                               base, untouched     5.4  [  5.1,   5.8]     99.9%
+
+                             full axis @ -0.30     9.1  [  8.7,   9.7]    100.0%
+                  only input conv x0.5 @ -0.30     6.1  [  5.7,   6.5]     99.9%
+                    only input conv x1 @ -0.30     6.8  [  6.4,   7.3]     99.9%
+                    only input conv x2 @ -0.30     8.3  [  7.9,   8.8]     99.9%
+                    only input conv x4 @ -0.30    13.7  [ 12.8,  14.7]     99.3%
+                    only input conv x8 @ -0.30    25.6  [ 23.3,  28.2]     89.9%
+                      only conv 1 x0.5 @ -0.30     5.6  [  5.2,   6.0]     99.9%
+                        only conv 1 x1 @ -0.30     5.9  [  5.5,   6.3]     99.9%
+                        only conv 1 x2 @ -0.30     6.5  [  6.0,   6.9]     99.9%
+                        only conv 1 x4 @ -0.30     8.2  [  7.8,   8.9]     99.9%
+                        only conv 1 x8 @ -0.30    15.9  [ 14.6,  17.3]     99.7%
+                only cell 0 input x0.5 @ -0.30     5.5  [  5.1,   5.9]     99.9%
+                  only cell 0 input x1 @ -0.30     5.6  [  5.3,   6.0]     99.9%
+                  only cell 0 input x2 @ -0.30     5.9  [  5.5,   6.3]     99.9%
+                  only cell 0 input x4 @ -0.30     5.9  [  5.6,   6.4]     99.9%
+                  only cell 0 input x8 @ -0.30     5.9  [  5.6,   6.4]     99.9%
+            only cell 0 recurrent x0.5 @ -0.30     5.4  [  5.1,   5.8]     99.9%
+              only cell 0 recurrent x1 @ -0.30     5.4  [  5.1,   5.8]     99.9%
+              only cell 0 recurrent x2 @ -0.30     5.4  [  4.9,   5.8]     99.9%
+              only cell 0 recurrent x4 @ -0.30     5.4  [  4.9,   5.8]     99.9%
+              only cell 0 recurrent x8 @ -0.30     5.4  [  5.0,   5.8]     99.8%
+                only cell 1 input x0.5 @ -0.30     5.4  [  5.1,   5.8]     99.9%
+                  only cell 1 input x1 @ -0.30     5.5  [  5.1,   5.9]     99.9%
+                  only cell 1 input x2 @ -0.30     5.7  [  5.4,   6.1]     99.9%
+                  only cell 1 input x4 @ -0.30     6.0  [  5.6,   6.4]     99.9%
+                  only cell 1 input x8 @ -0.30     6.2  [  5.8,   6.6]     99.9%
+            only cell 1 recurrent x0.5 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 1 recurrent x1 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 1 recurrent x2 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 1 recurrent x4 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 1 recurrent x8 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+                only cell 2 input x0.5 @ -0.30     5.8  [  5.4,   6.2]    100.0%
+                  only cell 2 input x1 @ -0.30     6.2  [  5.8,   6.5]     99.9%
+                  only cell 2 input x2 @ -0.30     6.8  [  6.4,   7.2]     99.9%
+                  only cell 2 input x4 @ -0.30     9.3  [  8.8,   9.9]     98.5%
+                  only cell 2 input x8 @ -0.30    11.8  [ 10.7,  12.8]     77.1%
+            only cell 2 recurrent x0.5 @ -0.30     5.5  [  5.1,   5.9]     99.9%
+              only cell 2 recurrent x1 @ -0.30     5.6  [  5.2,   6.0]     99.9%
+              only cell 2 recurrent x2 @ -0.30     5.8  [  5.4,   6.2]     99.9%
+              only cell 2 recurrent x4 @ -0.30     6.2  [  5.8,   6.6]     99.8%
+              only cell 2 recurrent x8 @ -0.30     7.2  [  6.8,   7.7]     99.6%
+                       only dense x0.5 @ -0.30     5.4  [  5.1,   5.8]     99.9%
+                         only dense x1 @ -0.30     5.5  [  5.1,   5.9]     99.9%
+                         only dense x2 @ -0.30     5.5  [  5.1,   5.9]     99.9%
+                         only dense x4 @ -0.30     5.6  [  5.2,   6.0]     99.7%
+                         only dense x8 @ -0.30     5.8  [  5.4,   6.3]     93.6%
+                       only heads x0.5 @ -0.30     5.4  [  5.1,   5.8]     99.9%
+                         only heads x1 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+                         only heads x2 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+                         only heads x4 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+                         only heads x8 @ -0.30     5.4  [  5.0,   5.8]     99.9%
+
+                             full axis @ +0.30     3.2  [  2.9,   3.6]     99.9%
+                  only input conv x0.5 @ +0.30     4.7  [  4.3,   5.0]     99.9%
+                    only input conv x1 @ +0.30     4.2  [  3.8,   4.5]     99.9%
+                    only input conv x2 @ +0.30     3.3  [  3.0,   3.6]     99.9%
+                    only input conv x4 @ +0.30     1.0  [  0.7,   1.3]     99.9%
+                    only input conv x8 @ +0.30    -2.3  [ -2.7,  -1.9]     98.4%
+                      only conv 1 x0.5 @ +0.30     5.3  [  4.9,   5.7]     99.9%
+                        only conv 1 x1 @ +0.30     5.1  [  4.7,   5.4]     99.9%
+                        only conv 1 x2 @ +0.30     4.7  [  4.4,   5.1]     99.9%
+                        only conv 1 x4 @ +0.30     4.0  [  3.7,   4.4]     99.9%
+                        only conv 1 x8 @ +0.30     3.2  [  2.8,   3.5]     98.2%
+                only cell 0 input x0.5 @ +0.30     5.2  [  4.9,   5.6]     99.9%
+                  only cell 0 input x1 @ +0.30     5.2  [  4.9,   5.5]     99.9%
+                  only cell 0 input x2 @ +0.30     5.0  [  4.7,   5.4]     99.9%
+                  only cell 0 input x4 @ +0.30     5.0  [  4.7,   5.4]     99.9%
+                  only cell 0 input x8 @ +0.30     5.0  [  4.5,   5.5]    100.0%
+            only cell 0 recurrent x0.5 @ +0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 0 recurrent x1 @ +0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 0 recurrent x2 @ +0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 0 recurrent x4 @ +0.30     5.4  [  5.0,   5.8]     99.9%
+              only cell 0 recurrent x8 @ +0.30     5.4  [  5.0,   5.7]     99.9%
+                only cell 1 input x0.5 @ +0.30     5.3  [  4.9,   5.7]     99.9%
+                  only cell 1 input x1 @ +0.30     5.3  [  4.9,   5.6]     99.9%
+                  only cell 1 input x2 @ +0.30     5.1  [  4.7,   5.5]     99.9%
+                  only cell 1 input x4 @ +0.30     4.9  [  4.4,   5.2]     99.9%
+                  only cell 1 input x8 @ +0.30     4.7  [  4.3,   5.1]     99.9%
+            only cell 1 recurrent x0.5 @ +0.30     5.4  [  5.1,   5.8]     99.9%
+              only cell 1 recurrent x1 @ +0.30     5.4  [  5.1,   5.8]     99.9%
+              only cell 1 recurrent x2 @ +0.30     5.4  [  5.1,   5.8]     99.9%
+              only cell 1 recurrent x4 @ +0.30     5.4  [  5.1,   5.8]     99.9%
+              only cell 1 recurrent x8 @ +0.30     5.5  [  5.1,   5.9]     99.9%
+                only cell 2 input x0.5 @ +0.30     5.1  [  4.8,   5.5]     99.9%
+                  only cell 2 input x1 @ +0.30     4.8  [  4.4,   5.2]     99.9%
+                  only cell 2 input x2 @ +0.30     4.3  [  3.9,   4.7]     99.8%
+                  only cell 2 input x4 @ +0.30     3.4  [  3.0,   3.8]     97.3%
+                  only cell 2 input x8 @ +0.30     2.5  [  2.0,   3.1]     60.4%
+            only cell 2 recurrent x0.5 @ +0.30     5.4  [  5.0,   5.7]     99.9%
+              only cell 2 recurrent x1 @ +0.30     5.3  [  4.9,   5.6]     99.9%
+              only cell 2 recurrent x2 @ +0.30     5.1  [  4.7,   5.5]     99.9%
+              only cell 2 recurrent x4 @ +0.30     4.7  [  4.4,   5.0]     99.7%
+              only cell 2 recurrent x8 @ +0.30     4.0  [  3.7,   4.4]     98.7%
+                       only dense x0.5 @ +0.30     5.3  [  5.0,   5.7]     99.9%
+                         only dense x1 @ +0.30     5.4  [  5.0,   5.8]     99.9%
+                         only dense x2 @ +0.30     5.4  [  5.1,   5.8]     99.9%
+                         only dense x4 @ +0.30     5.1  [  4.7,   5.6]     99.6%
+                         only dense x8 @ +0.30     5.1  [  4.6,   5.6]     91.1%
+                       only heads x0.5 @ +0.30     5.4  [  5.0,   5.8]     99.9%
+                         only heads x1 @ +0.30     5.4  [  5.0,   5.8]     99.9%
+                         only heads x2 @ +0.30     5.4  [  5.0,   5.7]     99.9%
+                         only heads x4 @ +0.30     5.5  [  5.1,   5.9]     99.9%
+                         only heads x8 @ +0.30     5.4  [  5.1,   5.8]     99.9%
+
+wrote figures/data/restricted/novalue11g1.s3456e.dose.json

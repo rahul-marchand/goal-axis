@@ -1,0 +1,19 @@
+script arm_thresholds.py
+commit e904aa5
+argv   /workspace/data/runs/resnet11nvg1.s3456 --family k1 --base-value 0.5 --levels /workspace/data/levels/values/1.00-0.50@500k --arm-steps 400000
+
+base       /workspace/data/runs/resnet11nvg1.s3456/local-files/cp_149995520
+family     k1, 8 arms, decoded at the base values (1.0, 0.5)
+
+=== what the arms themselves do ===
+
+                                   steps   95% interval     reached
+                 base, untouched     8.6  [  8.3,   8.9]      99.6%
+               v=1.00 fine-tuned     0.3  [  0.2,   0.5]      99.9%
+               v=1.10 fine-tuned    -1.1  [ -1.2,  -0.9]      99.3%
+               v=1.20 fine-tuned    -2.3  [ -2.5,  -2.1]      99.9%
+               v=1.30 fine-tuned    -4.1  [ -4.4,  -3.9]      99.8%
+               v=1.40 fine-tuned    -5.5  [ -5.8,  -5.1]      99.8%
+               v=1.50 fine-tuned    -4.9  [ -5.2,  -4.7]      99.1%
+               v=1.75 fine-tuned   -10.0  [-10.5,  -9.7]      98.2%
+               v=2.00 fine-tuned   -87.2  [-91.8, -49.3]      98.1%

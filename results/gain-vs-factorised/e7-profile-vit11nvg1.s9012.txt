@@ -1,0 +1,36 @@
+script direction_profile.py
+commit unknown
+argv   /workspace/data/runs/vit11nvg1.s9012 --n-levels 256 --json /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/vit11nvg1.s9012.profile.json --levels /workspace/data/levels/values/1.00-0.50@500k
+
+base   /workspace/data/runs/vit11nvg1.s9012/local-files/cp_249999360  (2,192,133 parameters), values (1.0, 0.5)
+input  params/network_params/embed/kernel (4, 64)
+states embed, block_0, block_1, block_2, block_3
+
+=== relative activation change per state (|dh| / |h|) ===
+  state                     gain        turn        axis      random
+  embed                2.537e-03   1.441e-03   3.509e-04   2.848e-04
+  block_0              1.769e-03   1.050e-03   6.991e-04   2.769e-04
+  block_1              1.417e-03   8.150e-04   5.436e-04   2.023e-04
+  block_2              1.533e-03   9.771e-04   6.152e-04   1.818e-04
+  block_3              2.523e-03   1.645e-03   9.721e-04   2.105e-04
+
+=== survival: how much of the relative change each stage passed on ===
+  stage                                           gain        turn        axis      random
+  embed -> block_0                               0.697       0.729       1.992       0.972
+  block_0 -> block_1                             0.801       0.776       0.777       0.731
+  block_1 -> block_2                             1.082       1.199       1.132       0.898
+  block_2 -> block_3                             1.646       1.684       1.580       1.158
+
+=== share of the axis's change explained (R^2) ===
+  state                   gain      turn      both    random
+  embed                  0.002     0.014     0.016     0.064
+  block_0                0.006     0.017     0.020     0.011
+  block_1                0.001     0.099     0.103     0.029
+  block_2                0.010     0.106     0.106     0.068
+  block_3                0.071     0.211     0.216     0.022
+
+=== the first LayerNorm, on the embedding ===
+  gain   ones  0.006  magnitude  0.334  direction  0.660   |dh|/|h| before 2.537e-03 after 1.903e-03   survival 0.750
+  turn   ones  0.055  magnitude  0.019  direction  0.926   |dh|/|h| before 1.441e-03 after 1.346e-03   survival 0.934
+
+wrote /workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e7/vit11nvg1.s9012.profile.json

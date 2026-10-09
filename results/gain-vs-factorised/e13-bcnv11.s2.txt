@@ -1,0 +1,45 @@
+script e13_position_patch.py
+commit e904aa5
+argv   /workspace/data/offline/runs/bcnv11.s2 --demos /workspace/data/offline/demos --levels 2048 --json /workspace/data/figures-data/gain-vs-factorised/e13/bcnv11.s2.json
+base   bcnv11.s2 @ step 30,000 (806,533 parameters), values (1.0, 0.5)
+axis   o1: 25 arms, |v| 2.653 per unit value
+levels 2048 from test.rho100; 121 cell tokens + SEP = 122
+
+                   condition  depth      tau  reached    route   share
+                        base      -    10.89    98.1%    94.8%       -
+        weight write @ -0.30      -    19.20    98.0%    88.7%    1.00
+          objectives @ -0.30      0    10.89    98.1%    94.8%    0.00
+                 sep @ -0.30      0    10.89    98.1%    94.8%    0.00
+         other cells @ -0.30      0    10.97    98.1%    94.7%    0.01
+                 all @ -0.30      0    10.97    98.1%    94.7%    0.01
+          objectives @ -0.30      1    13.05    98.0%    93.5%    0.26
+                 sep @ -0.30      1    10.84    98.1%    94.7%   -0.01
+         other cells @ -0.30      1    11.64    98.1%    94.2%    0.09
+                 all @ -0.30      1    13.65    98.0%    92.9%    0.33
+          objectives @ -0.30      2    13.58    98.1%    93.3%    0.32
+                 sep @ -0.30      2    10.71    98.1%    94.9%   -0.02
+         other cells @ -0.30      2    12.99    98.2%    92.9%    0.25
+                 all @ -0.30      2    15.94    98.2%    90.9%    0.61
+          objectives @ -0.30      3    11.87    98.0%    93.9%    0.12
+                 sep @ -0.30      3    10.84    98.1%    94.9%   -0.01
+         other cells @ -0.30      3    16.53    98.2%    90.5%    0.68
+                 all @ -0.30      3    18.07    98.0%    89.6%    0.86
+        weight write @ +0.30      -     5.94    98.1%    88.2%    1.00
+          objectives @ +0.30      0    10.88    98.1%    94.8%    0.00
+                 sep @ +0.30      0    10.90    98.0%    94.8%   -0.00
+         other cells @ +0.30      0    10.76    98.1%    94.6%    0.03
+                 all @ +0.30      0    10.77    98.0%    94.5%    0.02
+          objectives @ +0.30      1     9.16    98.3%    93.8%    0.35
+                 sep @ +0.30      1    10.83    98.0%    94.7%    0.01
+         other cells @ +0.30      1    10.13    97.9%    94.5%    0.15
+                 all @ +0.30      1     8.60    98.1%    93.2%    0.46
+          objectives @ +0.30      2     9.11    98.1%    93.5%    0.36
+                 sep @ +0.30      2    10.74    98.0%    94.6%    0.03
+         other cells @ +0.30      2     8.81    98.2%    92.9%    0.42
+                 all @ +0.30      2     7.31    98.1%    91.3%    0.72
+          objectives @ +0.30      3    10.18    98.1%    94.1%    0.14
+                 sep @ +0.30      3    10.88    98.0%    94.2%    0.00
+         other cells @ +0.30      3     7.02    98.1%    90.8%    0.78
+                 all @ +0.30      3     6.22    98.1%    89.3%    0.94
+
+wrote /workspace/data/figures-data/gain-vs-factorised/e13/bcnv11.s2.json

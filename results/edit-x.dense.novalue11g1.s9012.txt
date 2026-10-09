@@ -1,0 +1,93 @@
+script cheapest_edit.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s9012 --levels /workspace/data/levels/values/1.00-0.50@500k --family dense --modules dense --max-norm 1 --seeds 0 --on-policy --n-edit 32000 --n-eval 2048 --batch 128 --nav-weight 0.1 --eval-shifts -8 -6 -4 -1 1 3 6 8 --lr 3e-4 --l2 0 --steps 600 --json figures/data/cheapest_edit/x.dense.novalue11g1.s9012.json --save-deltas /workspace/data/cheapest_edit/x.dense.novalue11g1.s9012.npz
+
+base   /workspace/data/runs/novalue11g1.s9012/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+levels 32000 to edit on, 2048 held out
+base   threshold 7.49 steps, logistic scale 1.30 (edit levels); held out 7.25
+base   fork margin = +1.454 -0.153 x gap (r -0.723); margin-implied threshold 9.53 vs behavioural 7.49; sign agrees with the rollout choice on 95.1% of levels
+base   fork-sign threshold 7.5; 91.0% of levels agree with it and are trained on; doses ask to flip 5.5%, 4.7%, 8.8%
+base   commits within 40 steps on 100.0% of edit levels
+base   fork P(rich) by gap: -12:1.00  -9:1.00  -6:1.00  -3:1.00  +0:1.00  +3:0.98  +6:0.76  +9:0.20  +12:0.03
+base   mean fork margin by gap: -12:+2.99  -9:+2.99  -6:+2.92  -3:+2.80  +0:+2.75  +3:+2.16  +6:+0.88  +9:-1.29  +12:-2.10
+no edit: fixed-level loss 0.0446 (nav 0.0000, fork 0.0446, fork error 0.112)
+
+fine-tuned axis o1: 8 arms, |v| 7.265 per unit value, slope -13.88 steps per unit, |v| 0.5233 per step, split-half reliability 0.740
+v per step: fixed-level loss 0.0274 (nav 0.0207, fork 0.0253, fork error 0.087)
+
+  fine-tuned axis, written per step
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.75    2.17  [  1.9,   2.4]    99.7%   89.3%    2.48    1.90
+    -6.0     1.25    2.92  [  2.7,   3.2]    99.9%   91.0%    3.16    2.72
+    -4.0     3.25    4.08  [  3.9,   4.3]   100.0%   91.1%    4.29    3.90
+    -2.0*    5.25    5.68  [  5.4,   6.0]   100.0%   91.5%    5.94    5.44
+    -1.0     6.25    6.46  [  6.1,   6.8]   100.0%   90.9%    6.63    6.31
+    +1.0     8.25    8.66  [  8.3,   9.0]   100.0%   89.8%    8.92    8.39
+    +2.0*    9.25    9.92  [  9.6,  10.3]   100.0%   89.1%   10.29    9.53
+    +3.0    10.25   10.93  [ 10.5,  11.3]   100.0%   88.6%   11.07   10.79
+    +4.0*   11.25   12.17  [ 11.8,  12.7]   100.0%   87.5%   12.40   11.93
+    +6.0    13.25   14.58  [ 14.0,  15.2]    99.8%   85.0%   14.67   14.47
+    +8.0    15.25   18.13  [ 17.2,  19.2]    99.0%   84.2%   18.96   17.47
+
+budget: |delta| <= 0.5233 per step (1 x |v|)
+
+=== search: family dense, seed 0 ===
+  step     0  loss 0.0330  nav 0.0000  fork 0.0330  fork error 0.101  |delta| 0  uncommitted 0.000
+  step    25  loss 0.0279  nav 0.0051  fork 0.0274  fork error 0.103  |delta| 0.3813  uncommitted 0.000
+  step    50  loss 0.0267  nav 0.0038  fork 0.0263  fork error 0.084  |delta| 0.5233  uncommitted 0.000
+  step    75  loss 0.0298  nav 0.0040  fork 0.0294  fork error 0.105  |delta| 0.5233  uncommitted 0.000
+  step   100  loss 0.0327  nav 0.0042  fork 0.0323  fork error 0.107  |delta| 0.5233  uncommitted 0.000
+  step   125  loss 0.0306  nav 0.0034  fork 0.0302  fork error 0.072  |delta| 0.5233  uncommitted 0.000
+  step   150  loss 0.0299  nav 0.0064  fork 0.0292  fork error 0.088  |delta| 0.5233  uncommitted 0.000
+  step   175  loss 0.0318  nav 0.0037  fork 0.0315  fork error 0.078  |delta| 0.5233  uncommitted 0.000
+  step   200  loss 0.0322  nav 0.0034  fork 0.0319  fork error 0.101  |delta| 0.5233  uncommitted 0.000
+  step   225  loss 0.0315  nav 0.0044  fork 0.0285  fork error 0.089  |delta| 0.5233  uncommitted 0.003
+  step   250  loss 0.0410  nav 0.0020  fork 0.0408  fork error 0.086  |delta| 0.5233  uncommitted 0.000
+  step   275  loss 0.0252  nav 0.0030  fork 0.0249  fork error 0.088  |delta| 0.5233  uncommitted 0.000
+  step   300  loss 0.0340  nav 0.0028  fork 0.0338  fork error 0.091  |delta| 0.5233  uncommitted 0.000
+  step   325  loss 0.0433  nav 0.0016  fork 0.0431  fork error 0.098  |delta| 0.5233  uncommitted 0.000
+  step   350  loss 0.0344  nav 0.0037  fork 0.0341  fork error 0.093  |delta| 0.5233  uncommitted 0.000
+  step   375  loss 0.0150  nav 0.0020  fork 0.0148  fork error 0.070  |delta| 0.5233  uncommitted 0.000
+  step   400  loss 0.0412  nav 0.0022  fork 0.0409  fork error 0.090  |delta| 0.5233  uncommitted 0.000
+  step   425  loss 0.0163  nav 0.0018  fork 0.0161  fork error 0.074  |delta| 0.5233  uncommitted 0.000
+  step   450  loss 0.0310  nav 0.0028  fork 0.0307  fork error 0.073  |delta| 0.5233  uncommitted 0.000
+  step   475  loss 0.0347  nav 0.0020  fork 0.0345  fork error 0.093  |delta| 0.5233  uncommitted 0.000
+  step   500  loss 0.0187  nav 0.0019  fork 0.0185  fork error 0.066  |delta| 0.5233  uncommitted 0.000
+  step   525  loss 0.0331  nav 0.0024  fork 0.0328  fork error 0.093  |delta| 0.5233  uncommitted 0.000
+  step   550  loss 0.0249  nav 0.0022  fork 0.0247  fork error 0.096  |delta| 0.5233  uncommitted 0.000
+  step   575  loss 0.0391  nav 0.0023  fork 0.0389  fork error 0.093  |delta| 0.5233  uncommitted 0.000
+  step   599  loss 0.0276  nav 0.0025  fork 0.0273  fork error 0.092  |delta| 0.5233  uncommitted 0.000
+  fixed-level loss 0.0394 (nav 0.0026, fork 0.0392, fork error 0.104)
+
+  seed 0: |delta| 0.5233 per step, 991,488 edit parameters
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.75    7.09  [  6.8,   7.4]   100.0%   87.9%    7.04    7.17
+    -6.0     1.25    7.16  [  6.9,   7.4]   100.0%   89.6%    7.16    7.17
+    -4.0     3.25    7.16  [  6.9,   7.4]   100.0%   90.4%    7.16    7.19
+    -2.0*    5.25    7.15  [  6.8,   7.4]   100.0%   91.0%    7.19    7.13
+    -1.0     6.25    7.21  [  6.9,   7.5]   100.0%   90.9%    7.31    7.13
+    +1.0     8.25    7.32  [  7.0,   7.6]   100.0%   90.2%    7.47    7.18
+    +2.0*    9.25    7.38  [  7.1,   7.7]   100.0%   89.7%    7.63    7.15
+    +3.0    10.25    7.51  [  7.2,   7.8]   100.0%   89.0%    7.84    7.18
+    +4.0*   11.25    7.62  [  7.3,   8.0]    99.9%   88.6%    7.95    7.29
+    +6.0    13.25    7.84  [  7.5,   8.2]    99.2%   87.9%    8.18    7.51
+    +8.0    15.25    7.86  [  7.5,   8.2]    96.9%   87.9%    8.21    7.51
+cos(u, v): seed0 +0.023, mean +0.023
+function-space cos at forks only: seed0 +0.207, mean +0.207
+function-space cos(J u, J v): seed0 +0.099, mean +0.099
+|J u| / |J v| per step: seed0 0.170, mean 0.170
+
+  module                u share  v share     cos
+  input conv               0.0%    24.9%    +nan
+  conv 1                   0.0%    13.1%    +nan
+  cell 0 input             0.0%    13.9%    +nan
+  cell 0 recurrent         0.0%     2.2%    +nan
+  cell 1 input             0.0%    15.4%    +nan
+  cell 1 recurrent         0.0%     1.1%    +nan
+  cell 2 input             0.0%    17.4%    +nan
+  cell 2 recurrent         0.0%     5.1%    +nan
+  dense                  100.0%     6.9%  +0.089
+  heads                    0.0%     0.0%    +nan
+
+wrote figures/data/cheapest_edit/x.dense.novalue11g1.s9012.json
+wrote /workspace/data/cheapest_edit/x.dense.novalue11g1.s9012.npz

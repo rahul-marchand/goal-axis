@@ -1,0 +1,106 @@
+script restricted_writes_bc.py
+commit e904aa5
+argv   /workspace/data/offline/runs/bcnv11.s1 --demos /workspace/data/offline/demos/test.rho100 --json figures/data/restricted/bcnv11.s1.o1.json
+
+base   bcnv11.s1 @ step 30,000  (806,533 parameters), values (1.0, 0.5)
+sweep  o1: 24 arms at [-0.45, -0.44, -0.43, -0.42, -0.41, -0.4, -0.39, -0.38, -0.3, -0.2, -0.1, -0.05, 0.05, 0.1, 0.2, 0.3, 0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45]; |axis| 2.7
+
+modules, forward order; ranked by share of the sweep-agreeing axis, -axis_o1 . axis_o0 per module
+
+  module                  params  params %   axis %   rank %  rank
+  embed                   12,544      1.56      0.5      0.4     9
+  block 0 attention       66,048      8.19      1.7      1.7     8
+  block 0 mlp            131,712     16.33     10.8     10.8     4
+  block 1 attention       66,048      8.19      7.7      7.7     6
+  block 1 mlp            131,712     16.33     20.9     21.0     2
+  block 2 attention       66,048      8.19      7.9      7.9     5
+  block 2 mlp            131,712     16.33     18.2     18.2     3
+  block 3 attention       66,048      8.19      7.1      7.1     7
+  block 3 mlp            131,712     16.33     25.0     25.0     1
+  head                       901      0.11      0.1      0.1    11
+  other                    2,048      0.25      0.1      0.1    10
+
+=== writes, greedy decode on 2048 held-out levels at the base values ===
+
+                                                 steps   reached   optimal
+                               base, untouched    10.8     96.8%     92.9%
+
+                             full axis @ -0.30    20.7     95.8%     87.3%
+                            only embed @ -0.30    10.8     96.3%     92.9%
+            only embed, rescaled x14.3 @ -0.30    11.5     80.2%     87.9%
+                         all but embed @ -0.30    20.7     96.1%     87.4%
+                only block 0 attention @ -0.30    11.1     96.7%     92.9%
+  only block 0 attention, rescaled x7.6 @ -0.30    20.5     83.2%     82.9%
+             all but block 0 attention @ -0.30    19.9     95.9%     87.7%
+                      only block 0 mlp @ -0.30    12.0     96.8%     92.7%
+       only block 0 mlp, rescaled x3.0 @ -0.30    15.7     96.2%     90.5%
+                   all but block 0 mlp @ -0.30    18.8     95.9%     88.4%
+                only block 1 attention @ -0.30    11.5     96.6%     93.2%
+  only block 1 attention, rescaled x3.6 @ -0.30    13.4     96.1%     92.1%
+             all but block 1 attention @ -0.30    20.0     96.0%     87.8%
+                      only block 1 mlp @ -0.30    13.2     96.7%     92.2%
+       only block 1 mlp, rescaled x2.2 @ -0.30    17.3     96.2%     89.5%
+                   all but block 1 mlp @ -0.30    17.3     96.3%     89.4%
+                only block 2 attention @ -0.30    11.4     96.8%     92.8%
+  only block 2 attention, rescaled x3.6 @ -0.30    13.0     96.4%     91.7%
+             all but block 2 attention @ -0.30    19.5     95.9%     88.1%
+                      only block 2 mlp @ -0.30    11.6     96.8%     93.2%
+       only block 2 mlp, rescaled x2.3 @ -0.30    13.3     96.6%     91.7%
+                   all but block 2 mlp @ -0.30    19.0     96.1%     88.5%
+                only block 3 attention @ -0.30    11.3     96.7%     93.0%
+  only block 3 attention, rescaled x3.8 @ -0.30    13.7     96.3%     90.7%
+             all but block 3 attention @ -0.30    19.7     95.9%     87.9%
+                      only block 3 mlp @ -0.30    10.8     96.9%     92.8%
+       only block 3 mlp, rescaled x2.0 @ -0.30    10.9     96.7%     93.0%
+                   all but block 3 mlp @ -0.30    20.3     95.9%     87.4%
+                             only head @ -0.30    10.8     96.9%     92.9%
+             only head, rescaled x34.9 @ -0.30    10.7     96.5%     92.3%
+                          all but head @ -0.30    20.8     95.8%     87.2%
+                            only other @ -0.30    10.9     96.9%     92.8%
+            only other, rescaled x31.5 @ -0.30    12.0     96.4%     92.9%
+                         all but other @ -0.30    20.6     95.8%     87.3%
+               largest 1 (block 3 mlp) @ -0.30    10.8     96.9%     92.8%
+  largest 2 (block 3 mlp, block 1 mlp) @ -0.30    13.4     96.6%     91.8%
+  largest 3 (block 3 mlp, block 1 mlp, block 2 mlp) @ -0.30    14.7     96.4%     91.1%
+  largest 4 (block 3 mlp, block 1 mlp, block 2 mlp, block 0 mlp) @ -0.30    16.7     96.2%     89.7%
+
+                             full axis @ +0.30     5.7     96.8%     86.5%
+                            only embed @ +0.30    10.6     97.0%     93.3%
+            only embed, rescaled x14.3 @ +0.30     7.7     87.4%     89.9%
+                         all but embed @ +0.30     5.7     96.5%     86.7%
+                only block 0 attention @ +0.30    10.2     96.8%     93.2%
+  only block 0 attention, rescaled x7.6 @ +0.30     8.2     90.6%     87.1%
+             all but block 0 attention @ +0.30     5.8     97.0%     86.7%
+                      only block 0 mlp @ +0.30     9.5     96.7%     92.8%
+       only block 0 mlp, rescaled x3.0 @ +0.30     8.1     96.6%     90.7%
+                   all but block 0 mlp @ +0.30     6.2     96.9%     87.9%
+                only block 1 attention @ +0.30    10.0     96.7%     92.9%
+  only block 1 attention, rescaled x3.6 @ +0.30     8.6     96.9%     90.9%
+             all but block 1 attention @ +0.30     6.1     96.7%     87.6%
+                      only block 1 mlp @ +0.30     8.9     96.9%     92.2%
+       only block 1 mlp, rescaled x2.2 @ +0.30     6.8     96.6%     88.5%
+                   all but block 1 mlp @ +0.30     6.9     96.8%     89.2%
+                only block 2 attention @ +0.30    10.1     96.9%     93.1%
+  only block 2 attention, rescaled x3.6 @ +0.30     8.7     96.6%     91.7%
+             all but block 2 attention @ +0.30     6.0     97.0%     87.3%
+                      only block 2 mlp @ +0.30     9.7     96.6%     93.2%
+       only block 2 mlp, rescaled x2.3 @ +0.30     9.0     96.6%     91.9%
+                   all but block 2 mlp @ +0.30     6.2     96.8%     87.6%
+                only block 3 attention @ +0.30    10.3     96.6%     93.0%
+  only block 3 attention, rescaled x3.8 @ +0.30     9.0     96.6%     91.5%
+             all but block 3 attention @ +0.30     6.0     96.8%     87.1%
+                      only block 3 mlp @ +0.30    10.5     96.8%     92.8%
+       only block 3 mlp, rescaled x2.0 @ +0.30    10.3     96.8%     93.1%
+                   all but block 3 mlp @ +0.30     5.9     96.8%     87.0%
+                             only head @ +0.30    10.8     96.7%     92.8%
+             only head, rescaled x34.9 @ +0.30    11.5     96.2%     92.1%
+                          all but head @ +0.30     5.7     96.8%     86.6%
+                            only other @ +0.30    10.7     96.8%     93.0%
+            only other, rescaled x31.5 @ +0.30     9.3     96.6%     92.2%
+                         all but other @ +0.30     5.7     96.8%     86.6%
+               largest 1 (block 3 mlp) @ +0.30    10.5     96.8%     92.8%
+  largest 2 (block 3 mlp, block 1 mlp) @ +0.30     8.6     96.9%     91.9%
+  largest 3 (block 3 mlp, block 1 mlp, block 2 mlp) @ +0.30     7.9     96.8%     90.9%
+  largest 4 (block 3 mlp, block 1 mlp, block 2 mlp, block 0 mlp) @ +0.30     7.1     96.7%     89.3%
+
+wrote figures/data/restricted/bcnv11.s1.o1.json

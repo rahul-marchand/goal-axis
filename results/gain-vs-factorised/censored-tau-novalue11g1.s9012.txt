@@ -1,0 +1,169 @@
+script censored_tau.py
+commit unknown
+argv   /workspace/data/figures-data/axis-far-dose/novalue11g1.s9012 --json /workspace/data/figures-data/leftover/censored-novalue11g1.s9012.json
+
+/workspace/data/figures-data/axis-far-dose/novalue11g1.s9012  (125 conditions, 16,384 episodes each)
+loaded 125 episode files
+skipped 27 shorter decodes (not level-paired): coarse-c0x0.12, coarse-c0x0.18, coarse-c0x0.25, coarse-c0x0.35 ...
+
+base threshold 7.59 on 16,382 finished levels
+
+=== axis ===  common set 4,570 levels (27.9% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+      0.15   100.0%    5.56     5.43       7.59     -0.02        0.56
+       0.3   100.0%    4.02     4.04       7.59     -0.02        0.56
+      0.45    99.9%    2.91     2.93       7.59     -0.02        0.56
+       0.7    99.1%    1.85     1.73       7.59     -0.03        0.56
+         1    95.1%    1.12     0.98       7.57     -0.05        0.56
+       1.5    75.6%    0.43     0.32       7.38     -0.14        0.56
+         2    48.1%    0.10     0.03       7.30     -0.03        0.56
+       2.5    28.5%   -0.21    -0.14       7.18      0.56        0.56
+      base   100.0%    7.59     7.17       7.59     -0.02        0.56
+
+=== bright c1 ===  common set 14,937 levels (91.2% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       1.5   100.0%    4.05     4.04       7.59     -0.02       -0.20
+         2   100.0%    1.84     1.88       7.59     -0.02       -0.20
+         3    99.7%   -0.23    -0.23       7.59     -0.01       -0.20
+         4    97.8%   -0.85    -0.85       7.59     -0.04       -0.20
+         5    91.3%   -1.14    -1.14       7.56     -0.20       -0.20
+      base   100.0%    7.59     7.56       7.59     -0.02       -0.20
+
+=== matched c0 ===  common set 16,378 levels (100.0% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+      0.15   100.0%    5.62     5.62       7.59     -0.02       -0.02
+       0.3   100.0%    4.10     4.10       7.59     -0.02       -0.02
+      0.45   100.0%    3.09     3.09       7.59     -0.02       -0.02
+       0.7   100.0%    1.97     1.97       7.59     -0.02       -0.02
+         1   100.0%    1.21     1.21       7.59     -0.02       -0.02
+       1.5   100.0%    0.46     0.46       7.59     -0.02       -0.02
+         2   100.0%    0.15     0.16       7.59     -0.02       -0.02
+       2.5   100.0%   -0.15    -0.15       7.59     -0.02       -0.02
+      base   100.0%    7.59     7.59       7.59     -0.02       -0.02
+
+=== matched c1 ===  common set 16,343 levels (99.7% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+      0.15   100.0%    5.50     5.50       7.59     -0.02       -0.02
+       0.3   100.0%    4.10     4.10       7.59     -0.02       -0.02
+      0.45   100.0%    2.88     2.88       7.59     -0.02       -0.02
+       0.7   100.0%    1.91     1.91       7.59     -0.02       -0.02
+         1    99.9%    1.12     1.12       7.59     -0.02       -0.02
+       1.5    99.9%    0.41     0.41       7.59     -0.02       -0.02
+         2    99.9%    0.10     0.10       7.59     -0.02       -0.02
+       2.5    99.8%   -0.14    -0.14       7.59     -0.02       -0.02
+      base   100.0%    7.59     7.59       7.59     -0.02       -0.02
+
+=== matched two ===  common set 16,376 levels (100.0% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+      0.15   100.0%    5.54     5.54       7.59     -0.02       -0.02
+       0.3   100.0%    4.07     4.07       7.59     -0.02       -0.02
+      0.45   100.0%    2.93     2.93       7.59     -0.02       -0.02
+       0.7   100.0%    1.80     1.80       7.59     -0.02       -0.02
+         1   100.0%    1.09     1.09       7.59     -0.02       -0.02
+       1.5   100.0%    0.32     0.32       7.59     -0.02       -0.02
+         2   100.0%   -0.06    -0.05       7.59     -0.02       -0.02
+       2.5   100.0%   -0.36    -0.36       7.59     -0.02       -0.02
+      base   100.0%    7.59     7.59       7.59     -0.02       -0.02
+
+=== part: axis minus gain ===  common set 4,642 levels (28.3% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3   100.0%    4.37     4.33       7.59     -0.02        0.36
+       0.7    99.0%    2.31     2.26       7.59     -0.03        0.36
+         1    94.4%    1.62     1.54       7.57     -0.07        0.36
+       1.5    75.1%    0.87     0.79       7.36     -0.14        0.36
+         2    48.5%    0.38     0.40       7.24      0.04        0.36
+       2.5    29.1%    0.30     0.35       7.09      0.38        0.36
+      base   100.0%    7.59     7.08       7.59     -0.02        0.36
+
+=== part: gain as brightness ===  common set 16,379 levels (100.0% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3   100.0%    7.02     7.02       7.59     -0.02       -0.02
+       0.7   100.0%    6.37     6.37       7.59     -0.02       -0.02
+         1   100.0%    5.89     5.89       7.59     -0.02       -0.02
+       1.5   100.0%    5.06     5.06       7.59     -0.02       -0.02
+         2   100.0%    4.28     4.28       7.59     -0.02       -0.02
+       2.5   100.0%    3.53     3.53       7.59     -0.02       -0.02
+      base   100.0%    7.59     7.59       7.59     -0.02       -0.02
+
+=== part: gain in weights ===  common set 16,379 levels (100.0% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3   100.0%    7.02     7.02       7.59     -0.02       -0.02
+       0.7   100.0%    6.37     6.37       7.59     -0.02       -0.02
+         1   100.0%    5.89     5.89       7.59     -0.02       -0.02
+       1.5   100.0%    5.06     5.06       7.59     -0.02       -0.02
+         2   100.0%    4.28     4.28       7.59     -0.02       -0.02
+       2.5   100.0%    3.53     3.53       7.59     -0.02       -0.02
+      base   100.0%    7.59     7.59       7.59     -0.02       -0.02
+
+=== part: input conv ===  common set 16,019 levels (97.8% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3   100.0%    6.05     6.04       7.59     -0.02       -0.02
+       0.7   100.0%    4.26     4.24       7.59     -0.02       -0.02
+         1   100.0%    3.28     3.26       7.59     -0.02       -0.02
+       1.5    99.9%    1.74     1.71       7.59     -0.02       -0.02
+         2    99.4%    0.50     0.50       7.59     -0.02       -0.02
+       2.5    97.8%   -0.38    -0.38       7.57     -0.02       -0.02
+      base   100.0%    7.59     7.57       7.59     -0.02       -0.02
+
+=== part: input conv rescaled ===  common set 11,281 levels (68.9% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3   100.0%    4.63     4.54       7.59     -0.02        0.47
+       0.7    99.9%    1.96     1.85       7.59     -0.02        0.47
+         1    99.4%    0.50     0.49       7.59     -0.02        0.47
+       1.5    95.2%   -1.01    -1.04       7.55     -0.01        0.47
+         2    84.7%   -1.83    -1.78       7.50      0.13        0.47
+       2.5    69.3%   -2.29    -2.28       7.35      0.47        0.47
+      base   100.0%    7.59     7.35       7.59     -0.02        0.47
+
+=== random isotropic 0 ===  common set 12,926 levels (78.9% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3   100.0%    7.10     6.97       7.59     -0.02       -0.77
+       0.7   100.0%    6.36     6.13       7.59     -0.02       -0.77
+         1   100.0%    5.84     5.58       7.59     -0.02       -0.77
+       1.5    99.2%    5.23     4.95       7.58     -0.05       -0.77
+         2    93.5%    4.63     4.44       7.52     -0.22       -0.77
+       2.5    79.0%    4.23     4.23       7.44     -0.76       -0.77
+      base   100.0%    7.59     7.43       7.59     -0.02       -0.77
+
+=== random isotropic 1 ===  common set 15,605 levels (95.2% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3    99.9%    7.90     7.89       7.59     -0.02       -0.32
+       0.7    99.8%    8.24     8.22       7.59     -0.03       -0.32
+         1    99.7%    8.38     8.35       7.59     -0.03       -0.32
+       1.5    98.9%    8.71     8.68       7.58     -0.09       -0.32
+         2    97.4%    8.78     8.74       7.58     -0.17       -0.32
+       2.5    95.4%    8.77     8.76       7.59     -0.31       -0.32
+      base   100.0%    7.59     7.59       7.59     -0.02       -0.32
+
+=== random isotropic 2 ===  common set 15,802 levels (96.4% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3   100.0%    7.25     7.18       7.59     -0.02       -0.14
+       0.7   100.0%    6.78     6.70       7.59     -0.02       -0.14
+         1    99.9%    6.41     6.31       7.59     -0.02       -0.14
+       1.5    99.8%    5.77     5.68       7.59     -0.03       -0.14
+         2    98.8%    5.23     5.16       7.56     -0.06       -0.14
+       2.5    96.5%    4.92     4.92       7.55     -0.14       -0.14
+      base   100.0%    7.59     7.54       7.59     -0.02       -0.14
+
+=== random per-module 0 ===  common set 486 levels (3.0% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3    23.4%    1.41     1.36       7.63     -0.81       -0.64
+       0.7     6.7%    0.30     0.81       7.39     -0.02       -0.64
+         1     7.9%    0.23     0.41       7.71     -0.60       -0.64
+       1.5     7.2%    0.31     0.60       7.49     -0.69       -0.64
+         2     6.9%    0.17     0.71       7.29     -0.21       -0.64
+       2.5     6.9%    0.17     0.71       7.29     -0.21       -0.64
+      base   100.0%    7.59     7.73       7.59     -0.02       -0.64
+
+=== random per-module 1 ===  common set 708 levels (4.3% of the trade-off levels)
+        at  reached     tau   common  base here  mean gap  common gap
+       0.3    90.3%    5.71     3.80       7.52     -0.38       -0.73
+       0.7    17.6%    0.78     0.90       7.67     -0.12       -0.73
+         1    17.8%    0.57     0.92       7.70     -0.26       -0.73
+       1.5     6.3%    0.06     0.71       7.89      0.06       -0.73
+         2     6.3%    0.06     0.71       7.89      0.06       -0.73
+       2.5     6.3%    0.06     0.71       7.89      0.06       -0.73
+      base   100.0%    7.59     8.00       7.59     -0.02       -0.73
+
+wrote /workspace/data/figures-data/leftover/censored-novalue11g1.s9012.json
+CENSORED_DONE

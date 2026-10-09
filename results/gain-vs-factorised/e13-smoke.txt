@@ -1,0 +1,20 @@
+script e13_position_patch.py
+commit e904aa5
+argv   /workspace/data/offline/runs/scaling/sc11.d512l4.s1 --demos /workspace/data/offline/demos --levels 64 --json /workspace/data/figures-data/gain-vs-factorised/e13/smoke.json --depths 0 1 --doses 0.3 --chunk 64
+base   sc11.d512l4.s1 @ step 30,000 (12,663,301 parameters), values (1.0, 0.5)
+axis   o1: 13 arms, |v| 5.009 per unit value
+levels 64 from test.rho100; 121 cell tokens + SEP = 122
+
+                   condition  depth      tau  reached    route   share
+                        base      -    11.04    98.4%    98.3%       -
+        weight write @ +0.30      -     5.43    98.4%    82.8%    1.00
+          objectives @ +0.30      0    11.04    98.4%    98.3%   -0.00
+                 sep @ +0.30      0    11.04    98.4%    98.3%   -0.00
+         other cells @ +0.30      0    11.04    98.4%    98.3%   -0.00
+                 all @ +0.30      0    11.04    98.4%    98.3%   -0.00
+          objectives @ +0.30      1    10.66   100.0%    98.3%    0.07
+                 sep @ +0.30      1    11.04    98.4%    98.3%   -0.00
+         other cells @ +0.30      1    10.65    98.4%    98.3%    0.07
+                 all @ +0.30      1     9.51    98.4%   100.0%    0.27
+
+wrote /workspace/data/figures-data/gain-vs-factorised/e13/smoke.json

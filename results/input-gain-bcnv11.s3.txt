@@ -1,0 +1,63 @@
+script input_gain_bc.py
+commit e904aa5
+argv   /workspace/data/offline/runs/bcnv11.s3 --demos /workspace/data/offline/demos/test.rho100 --json figures/data/input_gain/bcnv11.s3.json
+
+base   bcnv11.s3 @ step 30,000  (806,533 parameters), values (1.0, 0.5)
+input  params/cell_in/kernel (4, 128)
+
+=== brightness: the untouched model, colour planes scaled at the input; 2048 held-out levels ===
+
+                                                         steps  reached    route
+                                       base, untouched   10.60    97.5%    99.3%
+
+                                        colour 0 x0.25  -30.78    92.1%    98.4%
+                                         colour 0 x0.5   -6.18    94.1%    98.3%
+                                        colour 0 x0.75    8.26    97.0%    99.1%
+                                         colour 0 x0.9    9.98    97.5%    99.4%
+                                         colour 0 x1.1   11.14    97.4%    99.2%
+                                        colour 0 x1.25   11.47    96.9%    98.4%
+                                         colour 0 x1.5   10.43    84.7%    93.8%
+                                           colour 0 x2   -3.39    73.3%    80.3%
+                                           colour 0 x3  -27.11    78.1%    81.7%
+
+                                        colour 1 x0.25   29.83    95.8%    99.0%
+                                         colour 1 x0.5   20.77    97.0%    99.1%
+                                        colour 1 x0.75   13.69    97.5%    99.4%
+                                         colour 1 x0.9   11.28    97.4%    99.3%
+                                         colour 1 x1.1   10.67    97.3%    99.2%
+                                        colour 1 x1.25   11.37    97.2%    99.0%
+                                         colour 1 x1.5   15.88    95.3%    98.1%
+                                           colour 1 x2   21.09    93.8%    97.2%
+                                           colour 1 x3   27.57    94.0%    96.8%
+
+                          colour 0 x0.5, colour 1 x1.5   -0.57    87.1%    93.6%
+                        colour 0 x0.75, colour 1 x1.25    8.62    96.5%    98.8%
+                          colour 0 x0.9, colour 1 x1.1    9.80    97.4%    99.4%
+                          colour 0 x1.1, colour 1 x0.9   11.76    97.5%    99.1%
+                        colour 0 x1.25, colour 1 x0.75   13.69    96.4%    98.6%
+                          colour 0 x1.5, colour 1 x0.5   23.56    81.5%    92.5%
+
+sweep  o1: 24 arms; |axis| 2.5
+       cell_in kernel holds 0.02% of ||axis||^2; its gain part 6.6% of that
+       cos(axis, base kernel) per input channel: 0: -0.01, 1: +0.19, 2: -0.29, 3: -0.26
+       gain per unit offset: colour 0: -0.001, colour 1: -0.001
+
+=== the o1 axis and its parts, written at the base values ===
+
+                                                         steps  reached    route
+
+                                     full axis @ -0.30   19.18    97.1%    99.4%
+                           only cell_in kernel @ -0.30   10.63    97.5%    99.3%
+                     gain part, in the weights @ -0.30   10.61    97.5%    99.3%
+                      gain part, as brightness @ -0.30   10.60    97.5%    99.3%
+                            cell_in minus gain @ -0.30   10.65    97.5%    99.3%
+                          full axis minus gain @ -0.30   19.22    97.1%    99.4%
+
+                                     full axis @ +0.30    5.39    97.8%    99.5%
+                           only cell_in kernel @ +0.30   10.62    97.5%    99.3%
+                     gain part, in the weights @ +0.30   10.58    97.6%    99.3%
+                      gain part, as brightness @ +0.30   10.64    97.5%    99.3%
+                            cell_in minus gain @ +0.30   10.55    97.5%    99.3%
+                          full axis minus gain @ +0.30    5.39    97.8%    99.5%
+
+wrote figures/data/input_gain/bcnv11.s3.json

@@ -1,0 +1,110 @@
+script cheapest_edit.py
+commit unknown
+argv   /workspace/data/offline/runs/bcnv11.s2 --offline --demos /workspace/data/offline/demos --target soft --seeds 0 1 --steps 400 --shifts -4 -2 2 4 --eval-shifts -16 -12 -8 -4 -2 2 4 8 --json /workspace/data/figures-data/gain-vs-factorised/e9/bcnv11.s2.early.json --save-deltas /workspace/data/figures-data/gain-vs-factorised/e9/bcnv11.s2.early.npz --family dense --modules block 0 attention block 0 mlp block 1 attention block 1 mlp
+
+base   bcnv11.s2 @ step 30,000  (806,533 parameters), values (1.0, 0.5)
+levels 4096 to edit on, 2048 held out
+base   threshold 10.89 steps, logistic scale 2.07 (edit levels); held out 10.94
+base   fork margin = +6.192 -0.364 x gap (r -0.724); margin-implied threshold 16.99 vs behavioural 10.89; sign agrees with the rollout choice on 99.9% of levels
+base   fork-sign threshold 10.5; 94.8% of levels agree with it and are trained on; doses ask to flip 9.5%, 4.3%, 4.1%, 7.0%
+base   fork P(rich) by gap: -12:1.00  -9:1.00  -6:1.00  -3:1.00  +0:0.99  +3:0.99  +6:0.94  +9:0.69  +12:0.21
+base   mean fork margin by gap: -12:+10.11  -9:+10.11  -6:+9.56  -3:+9.12  +0:+8.90  +3:+7.04  +6:+4.45  +9:+1.59  +12:-1.46
+no edit: fixed-level loss 0.3264 (nav 0.0060, fork 0.3204, fork error 0.082)
+
+fine-tuned axis o1: 24 arms, |v| 2.653 per unit value, slope -22.16 steps per unit, |v| 0.1197 per step, split-half reliability 0.969
+v per step: fixed-level loss 0.2581 (nav 0.0058, fork 0.2523, fork error 0.065)
+
+  fine-tuned axis, written per step
+    shift  target     tau   95% interval   reached   route   above   below
+   -16.0    -5.06    1.33  [  1.1,   1.6]    97.1%   99.5%    1.03    1.60
+   -12.0    -1.06    2.79  [  2.5,   3.1]    97.8%   99.7%    2.61    2.95
+    -8.0     2.94    4.90  [  4.5,   5.3]    97.9%   99.9%    4.69    5.10
+    -4.0*    6.94    7.79  [  7.4,   8.2]    98.1%  100.0%    7.86    7.74
+    -2.0*    8.94    9.28  [  8.8,   9.8]    98.0%   99.9%    9.28    9.26
+    +2.0*   12.94   13.13  [ 12.6,  13.8]    98.2%   99.8%   13.59   12.75
+    +4.0*   14.94   15.69  [ 14.9,  16.7]    98.3%   99.8%   16.04   15.38
+    +8.0    18.94   21.22  [ 19.6,  23.2]    97.8%   99.5%   20.91   21.53
+
+=== search: family dense, seed 0 ===
+  step     0  loss 0.4907  nav 0.0092  fork 0.4815  fork error 0.134  |delta| 0
+  step    25  loss 1.1767  nav 0.3787  fork 0.7972  fork error 0.281  |delta| 0.8266
+  step    50  loss 0.8252  nav 0.2009  fork 0.6234  fork error 0.211  |delta| 0.962
+  step    75  loss 0.8239  nav 0.1983  fork 0.6245  fork error 0.225  |delta| 1.031
+  step   100  loss 0.7299  nav 0.1616  fork 0.5671  fork error 0.223  |delta| 1.097
+  step   125  loss 0.5880  nav 0.1009  fork 0.4858  fork error 0.155  |delta| 1.134
+  step   150  loss 0.8071  nav 0.2501  fork 0.5556  fork error 0.175  |delta| 1.176
+  step   175  loss 0.5816  nav 0.0872  fork 0.4930  fork error 0.195  |delta| 1.199
+  step   200  loss 0.3218  nav 0.0668  fork 0.2535  fork error 0.103  |delta| 1.215
+  step   225  loss 0.4448  nav 0.0549  fork 0.3884  fork error 0.144  |delta| 1.227
+  step   250  loss 0.3985  nav 0.1009  fork 0.2961  fork error 0.094  |delta| 1.23
+  step   275  loss 0.4049  nav 0.0323  fork 0.3711  fork error 0.123  |delta| 1.231
+  step   300  loss 0.3327  nav 0.0253  fork 0.3058  fork error 0.094  |delta| 1.23
+  step   325  loss 0.3685  nav 0.0224  fork 0.3445  fork error 0.105  |delta| 1.23
+  step   350  loss 0.3064  nav 0.0136  fork 0.2913  fork error 0.098  |delta| 1.228
+  step   375  loss 0.2803  nav 0.0132  fork 0.2656  fork error 0.083  |delta| 1.227
+  step   399  loss 0.2404  nav 0.0139  fork 0.2250  fork error 0.084  |delta| 1.225
+  fixed-level loss 0.2493 (nav 0.0153, fork 0.2340, fork error 0.077)
+
+  seed 0: |delta| 1.225 per step, 395,520 edit parameters
+    shift  target     tau   95% interval   reached   route   above   below
+   -16.0    -5.06   -0.00  [ -0.9,   1.0]    17.9%   33.3%    1.86   -2.09
+   -12.0    -1.06    1.58  [  0.6,   2.5]    26.7%   57.7%    2.12    1.20
+    -8.0     2.94    3.87  [  3.1,   4.5]    57.7%   96.9%    4.26    3.50
+    -4.0*    6.94    7.49  [  6.9,   8.0]    90.9%   99.6%    7.62    7.36
+    -2.0*    8.94    8.60  [  8.1,   9.1]    96.5%   99.4%    8.69    8.52
+    +2.0*   12.94   13.97  [ 13.1,  14.8]    95.9%   99.4%   15.22   12.91
+    +4.0*   14.94   15.90  [ 14.6,  17.2]    88.2%   99.7%   17.09   14.88
+    +8.0    18.94    9.60  [  8.5,  10.6]    47.7%   88.6%   10.41    8.94
+
+=== search: family dense, seed 1 ===
+  step     0  loss 0.2568  nav 0.0002  fork 0.2566  fork error 0.079  |delta| 0
+  step    25  loss 1.1401  nav 0.3603  fork 0.7791  fork error 0.304  |delta| 0.825
+  step    50  loss 0.8158  nav 0.2474  fork 0.5674  fork error 0.225  |delta| 0.9725
+  step    75  loss 0.6033  nav 0.1441  fork 0.4581  fork error 0.194  |delta| 1.041
+  step   100  loss 0.4704  nav 0.1123  fork 0.3569  fork error 0.148  |delta| 1.096
+  step   125  loss 0.6299  nav 0.1658  fork 0.4628  fork error 0.190  |delta| 1.143
+  step   150  loss 0.3703  nav 0.0659  fork 0.3030  fork error 0.116  |delta| 1.16
+  step   175  loss 0.4766  nav 0.0868  fork 0.3884  fork error 0.150  |delta| 1.182
+  step   200  loss 0.4864  nav 0.0843  fork 0.4007  fork error 0.158  |delta| 1.206
+  step   225  loss 0.3241  nav 0.0576  fork 0.2650  fork error 0.089  |delta| 1.216
+  step   250  loss 0.2577  nav 0.0341  fork 0.2221  fork error 0.089  |delta| 1.218
+  step   275  loss 0.2308  nav 0.0362  fork 0.1931  fork error 0.088  |delta| 1.217
+  step   300  loss 0.4334  nav 0.0254  fork 0.4065  fork error 0.135  |delta| 1.215
+  step   325  loss 0.3137  nav 0.0334  fork 0.2789  fork error 0.096  |delta| 1.213
+  step   350  loss 0.1856  nav 0.0082  fork 0.1759  fork error 0.068  |delta| 1.211
+  step   375  loss 0.1915  nav 0.0172  fork 0.1729  fork error 0.054  |delta| 1.21
+  step   399  loss 0.2564  nav 0.0089  fork 0.2460  fork error 0.058  |delta| 1.208
+  fixed-level loss 0.2353 (nav 0.0147, fork 0.2207, fork error 0.072)
+
+  seed 1: |delta| 1.208 per step, 395,520 edit parameters
+    shift  target     tau   95% interval   reached   route   above   below
+   -16.0    -5.06    0.43  [ -0.3,   1.5]     3.6%   90.4%    0.25    0.54
+   -12.0    -1.06    0.57  [ -0.7,   1.6]    14.6%   78.0%    0.19    0.79
+    -8.0     2.94    4.35  [  3.7,   5.0]    54.6%   93.6%    3.79    4.88
+    -4.0*    6.94    7.80  [  7.2,   8.3]    91.3%   99.7%    7.51    8.04
+    -2.0*    8.94    9.03  [  8.5,   9.6]    96.1%   99.7%    8.84    9.20
+    +2.0*   12.94   13.45  [ 12.7,  14.2]    96.8%   99.6%   14.25   12.78
+    +4.0*   14.94   16.01  [ 14.8,  17.5]    89.1%   99.7%   17.68   14.88
+    +8.0    18.94   10.85  [  9.6,  12.2]    44.9%   87.5%   10.14   11.43
+
+seed-to-seed cos(u_i, u_j): +0.134
+cos(u, v): seed0 +0.015, seed1 +0.016, mean +0.020
+function-space cos at forks only: seed0 +0.355, seed1 +0.304, mean +0.396
+function-space cos(J u, J v): seed0 +0.219, seed1 +0.156, mean +0.231
+|J u| / |J v| per step: seed0 5.983, seed1 5.257, mean 4.624
+
+  module                u share  v share     cos
+  embed                    0.0%     0.5%    +nan
+  block 0 attention        4.7%     1.9%  +0.021
+  block 0 mlp             28.7%    13.4%  +0.042
+  block 1 attention       13.6%     7.5%  +0.030
+  block 1 mlp             52.9%    19.4%  +0.027
+  block 2 attention        0.0%     9.6%    +nan
+  block 2 mlp              0.0%    19.1%    +nan
+  block 3 attention        0.0%     7.0%    +nan
+  block 3 mlp              0.0%    21.4%    +nan
+  head                     0.0%     0.1%    +nan
+  other                    0.0%     0.1%    +nan
+
+wrote /workspace/data/figures-data/gain-vs-factorised/e9/bcnv11.s2.early.json
+wrote /workspace/data/figures-data/gain-vs-factorised/e9/bcnv11.s2.early.npz

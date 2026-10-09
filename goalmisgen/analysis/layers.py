@@ -27,6 +27,8 @@ a norm and inferring one.
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 from jax import tree_util
 
@@ -192,3 +194,72 @@ def axis_by_group(
             "reliability": split_half_reliability(offsets, restricted, splits=splits, seed=seed),
         }
     return out
+
+
+def path_string(path) -> str:
+    """A pytree key path as ``a/b/c``, whatever flavour of key entries it holds."""
+    return "/".join(_component(entry) for entry in path)
+
+
+def module_of(path: str) -> str:
+    """The architectural module a parameter path belongs to, named as a reader knows it.
+
+    This is the grouping the per-module figure and the restricted writes share,
+    so the two read row for row. Every architecture in the project gets the
+    same skeleton -- an input layer, the trunk in forward order, then the
+    readout -- and the DRC's encoder is split into its two convolutions and the
+    flatten layer rather than lumped, since that lumping is what hid the input
+    convolution in ``017``.
+    """
+    if "actor_params" in path or "critic_params" in path:
+        return "heads"
+    if (m := re.search(r"conv_list_(\d+)", path)) is not None:
+        return "input conv" if m.group(1) == "0" else f"conv {m.group(1)}"
+    if (m := re.search(r"cell_list_(\d+)/(ih|hh|fence|project)", path)) is not None:
+        return f"cell {m.group(1)} {'recurrent' if m.group(2) == 'hh' else 'input'}"
+    if "dense_list" in path:
+        return "dense"
+    if "xXx_Input_xXx" in path:
+        return "input conv"
+    if (m := re.search(r"GuezConvSequence_(\d+)", path)) is not None:
+        return f"stage {m.group(1)}"
+    if "GuezResNet_0/Dense_0" in path:
+        return "dense"
+    if (m := re.search(r"block_(\d+)/(attention|mlp)", path)) is not None:
+        return f"block {m.group(1)} {'attention' if m.group(2) == 'attention' else 'mlp'}"
+    if re.search(r"network_params/(Dense_0|final_norm)", path) is not None:
+        return "dense"
+    if re.search(r"network_params/(embed|position)", path) is not None:
+        return "patch embed"
+    if re.search(r"^params/(head|ln_final)/", path) is not None:
+        return "head"
+    if re.search(r"^params/(action_embedding|cell_in|sep|row_embedding|col_embedding|action_position)", path) is not None:
+        return "embed"
+    return "other"
+
+
+def forward_order(names) -> list[str]:
+    """Modules in the order the network applies them."""
+
+    def key(name: str) -> tuple:
+        if name in ("input conv", "patch embed", "embed"):
+            return (0, 0, 0)
+        if name.startswith("conv "):
+            return (1, int(name.split()[1]), 0)
+        if name.startswith(("cell ", "stage ", "block ")):
+            parts = name.split()
+            sub = {"input": 0, "attention": 0, "recurrent": 1, "mlp": 1}.get(parts[2] if len(parts) > 2 else "", 0)
+            return (2, int(parts[1]), sub)
+        if name == "dense":
+            return (3, 0, 0)
+        if name in ("heads", "head"):
+            return (4, 0, 0)
+        return (5, 0, 0)
+
+    return sorted(names, key=key)
+
+
+def module_groups(params) -> tuple[dict[str, np.ndarray], list[str]]:
+    """:func:`parameter_groups` under :func:`module_of`, with the modules in forward order."""
+    groups = parameter_groups(params, group_of=lambda path: module_of(path_string(path)))
+    return groups, forward_order(set(groups))

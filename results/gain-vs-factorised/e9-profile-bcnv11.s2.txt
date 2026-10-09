@@ -1,0 +1,36 @@
+script direction_profile.py
+commit unknown
+argv   /workspace/data/offline/runs/bcnv11.s2 --offline --demos /workspace/data/offline/demos --n-levels 128 --json /workspace/data/figures-data/gain-vs-factorised/e9/bcnv11.s2.profile.json
+
+base   bcnv11.s2 @ step 30,000  (806,533 parameters), values (1.0, 0.5)
+input  params/cell_in/kernel (4, 128)
+states embedding, block 0, block 1, block 2, block 3
+
+=== relative activation change per state (|dh| / |h|) ===
+  state                     gain        turn        axis      random
+  embedding            2.780e-03   2.757e-03   4.414e-04   7.614e-04
+  block 0              1.970e-03   2.531e-03   7.770e-03   3.851e-03
+  block 1              1.627e-02   8.974e-03   1.261e-02   4.775e-03
+  block 2              1.779e-02   1.189e-02   2.039e-02   5.505e-03
+  block 3              1.948e-02   1.344e-02   2.366e-02   7.159e-03
+
+=== survival: how much of the relative change each stage passed on ===
+  stage                                           gain        turn        axis      random
+  embedding -> block 0                           0.709       0.918      17.605       5.058
+  block 0 -> block 1                             8.256       3.546       1.623       1.240
+  block 1 -> block 2                             1.094       1.324       1.617       1.153
+  block 2 -> block 3                             1.095       1.131       1.161       1.300
+
+=== share of the axis's change explained (R^2) ===
+  state                   gain      turn      both    random
+  embedding              0.000     0.000     0.000     0.007
+  block 0                0.000     0.000     0.000     0.001
+  block 1                0.027     0.008     0.030     0.000
+  block 2                0.069     0.010     0.078     0.001
+  block 3                0.050     0.000     0.051     0.006
+
+=== the first LayerNorm, on the embedding ===
+  gain   ones  0.028  magnitude  0.944  direction  0.028   |dh|/|h| before 2.780e-03 after 4.366e-04   survival 0.157
+  turn   ones  0.036  magnitude  0.001  direction  0.964   |dh|/|h| before 2.757e-03 after 2.534e-03   survival 0.919
+
+wrote /workspace/data/figures-data/gain-vs-factorised/e9/bcnv11.s2.profile.json

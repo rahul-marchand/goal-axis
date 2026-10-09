@@ -1,0 +1,110 @@
+script cheapest_edit.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s9012 --levels /workspace/data/levels/values/1.00-0.50@500k --on-policy --n-edit 4096 --n-eval 2048 --batch 128 --nav-weight 0.1 --eval-shifts -8 -6 -4 -1 1 3 6 8 --seeds 0 1 --family gain --lr 3e-2 --l2 0 --steps 300 --json figures/data/cheapest_edit/g.gain.novalue11g1.s9012.json --save-deltas /workspace/data/cheapest_edit/g.gain.novalue11g1.s9012.npz
+
+base   /workspace/data/runs/novalue11g1.s9012/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+levels 4096 to edit on, 2048 held out
+base   threshold 7.44 steps, logistic scale 1.28 (edit levels); held out 7.25
+base   fork margin = +1.447 -0.153 x gap (r -0.721); margin-implied threshold 9.43 vs behavioural 7.44; sign agrees with the rollout choice on 94.9% of levels
+base   fork-sign threshold 7.5; 90.6% of levels agree with it and are trained on; doses ask to flip 5.3%, 4.6%, 9.1%
+base   commits within 40 steps on 100.0% of edit levels
+base   fork P(rich) by gap: -12:1.00  -9:1.00  -6:1.00  -3:1.00  +0:1.00  +3:0.97  +6:0.73  +9:0.21  +12:0.01
+base   mean fork margin by gap: -12:+2.99  -9:+2.99  -6:+2.89  -3:+2.79  +0:+2.75  +3:+2.08  +6:+1.02  +9:-1.35  +12:-2.18
+no edit: fixed-level loss 0.0369 (nav 0.0000, fork 0.0369, fork error 0.102)
+
+fine-tuned axis o1: 8 arms, |v| 7.265 per unit value, slope -13.88 steps per unit, |v| 0.5233 per step, split-half reliability 0.740
+v per step: fixed-level loss 0.0306 (nav 0.0183, fork 0.0288, fork error 0.086)
+
+  fine-tuned axis, written per step
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.75    2.17  [  1.9,   2.4]    99.7%   89.3%    2.48    1.90
+    -6.0     1.25    2.92  [  2.7,   3.2]    99.9%   91.0%    3.16    2.72
+    -4.0     3.25    4.08  [  3.9,   4.3]   100.0%   91.1%    4.29    3.90
+    -2.0*    5.25    5.68  [  5.4,   6.0]   100.0%   91.5%    5.94    5.44
+    -1.0     6.25    6.46  [  6.1,   6.8]   100.0%   90.9%    6.63    6.31
+    +1.0     8.25    8.66  [  8.3,   9.0]   100.0%   89.8%    8.92    8.39
+    +2.0*    9.25    9.92  [  9.6,  10.3]   100.0%   89.1%   10.29    9.53
+    +3.0    10.25   10.93  [ 10.5,  11.3]   100.0%   88.6%   11.07   10.79
+    +4.0*   11.25   12.17  [ 11.8,  12.7]   100.0%   87.5%   12.40   11.93
+    +6.0    13.25   14.58  [ 14.0,  15.2]    99.8%   85.0%   14.67   14.47
+    +8.0    15.25   18.13  [ 17.2,  19.2]    99.0%   84.2%   18.96   17.47
+
+=== search: family gain, seed 0 ===
+  step     0  loss 0.0405  nav 0.0000  fork 0.0405  fork error 0.121  |delta| 0  uncommitted 0.000
+  step    25  loss 0.0275  nav 0.0197  fork 0.0256  fork error 0.075  |delta| 1.871  uncommitted 0.000
+  step    50  loss 0.0225  nav 0.0108  fork 0.0215  fork error 0.079  |delta| 1.48  uncommitted 0.000
+  step    75  loss 0.0152  nav 0.0059  fork 0.0146  fork error 0.065  |delta| 0.7721  uncommitted 0.000
+  step   100  loss 0.0252  nav 0.0082  fork 0.0244  fork error 0.096  |delta| 1.565  uncommitted 0.000
+  step   125  loss 0.0436  nav 0.0065  fork 0.0429  fork error 0.127  |delta| 1.376  uncommitted 0.000
+  step   150  loss 0.0183  nav 0.0123  fork 0.0171  fork error 0.078  |delta| 1.289  uncommitted 0.000
+  step   175  loss 0.0198  nav 0.0083  fork 0.0190  fork error 0.073  |delta| 0.9295  uncommitted 0.000
+  step   200  loss 0.0177  nav 0.0063  fork 0.0171  fork error 0.079  |delta| 0.9005  uncommitted 0.000
+  step   225  loss 0.0252  nav 0.0082  fork 0.0244  fork error 0.099  |delta| 1.008  uncommitted 0.000
+  step   250  loss 0.0191  nav 0.0124  fork 0.0179  fork error 0.071  |delta| 1.044  uncommitted 0.000
+  step   275  loss 0.0236  nav 0.0099  fork 0.0226  fork error 0.092  |delta| 1.113  uncommitted 0.000
+  step   299  loss 0.0197  nav 0.0047  fork 0.0193  fork error 0.089  |delta| 1.037  uncommitted 0.000
+  fixed-level loss 0.0241 (nav 0.0083, fork 0.0232, fork error 0.080)
+
+  seed 0: |delta| 1.042 per step, 2 edit parameters
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.75    2.06  [  1.8,   2.3]   100.0%   92.7%    2.52    1.67
+    -6.0     1.25    3.33  [  3.1,   3.6]   100.0%   92.5%    3.67    3.04
+    -4.0     3.25    4.86  [  4.6,   5.2]   100.0%   92.1%    5.10    4.65
+    -2.0*    5.25    6.15  [  5.8,   6.5]   100.0%   91.7%    6.39    5.94
+    -1.0     6.25    6.67  [  6.4,   7.0]   100.0%   90.8%    6.86    6.50
+    +1.0     8.25    8.28  [  8.0,   8.6]   100.0%   89.7%    8.60    7.93
+    +2.0*    9.25    9.24  [  8.9,   9.6]   100.0%   88.8%    9.57    8.88
+    +3.0    10.25   10.24  [  9.9,  10.6]   100.0%   88.3%   10.51    9.94
+    +4.0*   11.25   11.17  [ 10.8,  11.6]   100.0%   87.5%   11.33   11.00
+    +6.0    13.25   13.15  [ 12.6,  13.6]    99.9%   86.2%   13.35   12.95
+    +8.0    15.25   16.58  [ 15.8,  17.7]    99.6%   84.7%   17.09   16.16
+
+=== search: family gain, seed 1 ===
+  step     0  loss 0.0252  nav -0.0000  fork 0.0252  fork error 0.078  |delta| 0  uncommitted 0.000
+  step    25  loss 0.0371  nav 0.0329  fork 0.0286  fork error 0.095  |delta| 1.799  uncommitted 0.005
+  step    50  loss 0.0125  nav 0.0070  fork 0.0118  fork error 0.067  |delta| 1.106  uncommitted 0.000
+  step    75  loss 0.0257  nav 0.0105  fork 0.0246  fork error 0.093  |delta| 1.071  uncommitted 0.000
+  step   100  loss 0.0402  nav 0.0059  fork 0.0397  fork error 0.107  |delta| 2.295  uncommitted 0.000
+  step   125  loss 0.0211  nav 0.0043  fork 0.0207  fork error 0.082  |delta| 1.258  uncommitted 0.000
+  step   150  loss 0.0137  nav 0.0009  fork 0.0136  fork error 0.064  |delta| 0.632  uncommitted 0.000
+  step   175  loss 0.0245  nav 0.0134  fork 0.0231  fork error 0.081  |delta| 1.296  uncommitted 0.000
+  step   200  loss 0.0226  nav 0.0054  fork 0.0221  fork error 0.069  |delta| 0.8207  uncommitted 0.008
+  step   225  loss 0.0253  nav 0.0091  fork 0.0244  fork error 0.090  |delta| 1.089  uncommitted 0.000
+  step   250  loss 0.0244  nav 0.0116  fork 0.0232  fork error 0.087  |delta| 1.178  uncommitted 0.000
+  step   275  loss 0.0119  nav 0.0047  fork 0.0115  fork error 0.059  |delta| 1.175  uncommitted 0.000
+  step   299  loss 0.0287  nav 0.0082  fork 0.0278  fork error 0.084  |delta| 1.053  uncommitted 0.000
+  fixed-level loss 0.0232 (nav 0.0074, fork 0.0225, fork error 0.080)
+
+  seed 1: |delta| 1.057 per step, 2 edit parameters
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.75    1.89  [  1.7,   2.1]   100.0%   92.4%    2.22    1.60
+    -6.0     1.25    3.37  [  3.1,   3.6]   100.0%   92.7%    3.73    3.07
+    -4.0     3.25    4.92  [  4.7,   5.2]   100.0%   92.2%    5.17    4.71
+    -2.0*    5.25    6.22  [  5.9,   6.6]   100.0%   91.7%    6.49    5.98
+    -1.0     6.25    6.70  [  6.4,   7.0]   100.0%   90.8%    6.90    6.54
+    +1.0     8.25    8.23  [  7.9,   8.6]   100.0%   89.7%    8.56    7.88
+    +2.0*    9.25    9.05  [  8.7,   9.4]   100.0%   88.9%    9.26    8.82
+    +3.0    10.25    9.99  [  9.6,  10.3]   100.0%   88.1%   10.17    9.79
+    +4.0*   11.25   10.90  [ 10.5,  11.3]   100.0%   87.5%   11.05   10.74
+    +6.0    13.25   12.56  [ 12.1,  13.0]    99.9%   86.0%   12.81   12.30
+    +8.0    15.25   14.82  [ 14.2,  15.5]    99.5%   85.0%   15.40   14.28
+
+seed-to-seed cos(u_i, u_j): +0.990
+cos(u, v): seed0 +0.330, seed1 +0.320, mean +0.326
+function-space cos(J u, J v): seed0 +0.971, seed1 +0.968, mean +0.970
+|J u| / |J v| per step: seed0 0.743, seed1 0.692, mean 0.718
+
+  module                u share  v share     cos
+  input conv             100.0%    24.9%  +0.653
+  conv 1                   0.0%    13.1%    +nan
+  cell 0 input             0.0%    13.9%    +nan
+  cell 0 recurrent         0.0%     2.2%    +nan
+  cell 1 input             0.0%    15.4%    +nan
+  cell 1 recurrent         0.0%     1.1%    +nan
+  cell 2 input             0.0%    17.4%    +nan
+  cell 2 recurrent         0.0%     5.1%    +nan
+  dense                    0.0%     6.9%    +nan
+  heads                    0.0%     0.0%    +nan
+
+wrote figures/data/cheapest_edit/g.gain.novalue11g1.s9012.json
+wrote /workspace/data/cheapest_edit/g.gain.novalue11g1.s9012.npz

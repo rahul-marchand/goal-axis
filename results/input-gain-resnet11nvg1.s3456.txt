@@ -1,0 +1,63 @@
+script input_gain.py
+commit e904aa5
+argv   /workspace/data/runs/resnet11nvg1.s3456 --levels /workspace/data/levels/values/1.00-0.50@500k --json figures/data/input_gain/resnet11nvg1.s3456.json
+
+base   /workspace/data/runs/resnet11nvg1.s3456/local-files/cp_149995520  (1,234,405 parameters), values (1.0, 0.5)
+input  params/network_params/GuezResNet_0/GuezConvSequence_0/xXx_Input_xXx/kernel (3, 3, 4, 32)
+
+=== brightness: the untouched network, colour planes scaled at the input; 2048 held-out levels ===
+
+                                                         steps   95% interval   reached    route
+                                       base, untouched    8.58  [  8.3,   8.9]    99.6%   100.0%
+
+                                        colour 0 x0.25  -36.61  [-52.4, -31.9]    91.5%   100.0%
+                                         colour 0 x0.5  -16.13  [-17.8, -14.6]    73.3%   100.0%
+                                        colour 0 x0.75    6.58  [  6.3,   6.9]    97.9%   100.0%
+                                         colour 0 x0.9    8.30  [  8.0,   8.6]    99.7%   100.0%
+                                         colour 0 x1.1    8.88  [  8.6,   9.1]    99.7%   100.0%
+                                        colour 0 x1.25    9.35  [  9.0,   9.6]    99.5%   100.0%
+                                         colour 0 x1.5   10.29  [  9.9,  10.7]    94.2%   100.0%
+                                           colour 0 x2    9.10  [  8.5,   9.7]    57.0%   100.0%
+                                           colour 0 x3    0.69  [ -0.1,   1.7]    13.0%   100.0%
+
+                                        colour 1 x0.25   98.50  [ 52.0, 104.4]    97.7%   100.0%
+                                         colour 1 x0.5   27.02  [ 24.6,  30.7]    95.1%   100.0%
+                                        colour 1 x0.75   10.63  [ 10.3,  11.1]    98.8%   100.0%
+                                         colour 1 x0.9    9.07  [  8.8,   9.4]    99.6%   100.0%
+                                         colour 1 x1.1    8.36  [  8.1,   8.7]    99.6%   100.0%
+                                        colour 1 x1.25    8.06  [  7.8,   8.3]    99.5%   100.0%
+                                         colour 1 x1.5    7.67  [  7.4,   7.9]    99.6%   100.0%
+                                           colour 1 x2    7.36  [  7.1,   7.6]    99.2%   100.0%
+                                           colour 1 x3    6.75  [  6.5,   7.0]    95.9%   100.0%
+
+                          colour 0 x0.5, colour 1 x1.5  -16.91  [-18.5, -15.4]    75.4%   100.0%
+                        colour 0 x0.75, colour 1 x1.25    5.83  [  5.6,   6.1]    97.8%   100.0%
+                          colour 0 x0.9, colour 1 x1.1    7.88  [  7.6,   8.1]    99.7%   100.0%
+                          colour 0 x1.1, colour 1 x0.9    9.43  [  9.2,   9.7]    99.7%   100.0%
+                        colour 0 x1.25, colour 1 x0.75   11.27  [ 10.8,  11.6]    98.8%   100.0%
+                          colour 0 x1.5, colour 1 x0.5   20.41  [ 19.1,  22.3]    89.9%   100.0%
+
+sweep  o1: 8 arms; |axis| 5.37
+       input conv holds 2.0% of ||axis||^2; its gain part 15.5% of that
+       cos(axis, base kernel) per input channel: 0: +0.07, 1: +0.11, 2: -0.48, 3: +0.41
+       gain per unit offset: colour 0: -0.037, colour 1: +0.094
+
+=== the o1 axis and its parts, written at the base values ===
+
+                                                         steps   95% interval   reached    route
+
+                                     full axis @ -0.30   13.14  [ 12.8,  13.5]    98.6%   100.0%
+                               only input conv @ -0.30    9.55  [  9.2,   9.9]    99.7%   100.0%
+                     gain part, in the weights @ -0.30    8.73  [  8.5,   9.1]    99.6%   100.0%
+                      gain part, as brightness @ -0.30    8.73  [  8.5,   9.1]    99.6%   100.0%
+                         input conv minus gain @ -0.30    9.43  [  9.1,   9.7]    99.7%   100.0%
+                          full axis minus gain @ -0.30   12.92  [ 12.5,  13.3]    98.8%   100.0%
+
+                                     full axis @ +0.30    4.45  [  4.2,   4.7]    99.2%   100.0%
+                               only input conv @ +0.30    7.57  [  7.3,   7.8]    99.6%   100.0%
+                     gain part, in the weights @ +0.30    8.47  [  8.2,   8.8]    99.6%   100.0%
+                      gain part, as brightness @ +0.30    8.47  [  8.2,   8.8]    99.6%   100.0%
+                         input conv minus gain @ +0.30    7.68  [  7.4,   8.0]    99.6%   100.0%
+                          full axis minus gain @ +0.30    4.56  [  4.3,   4.8]    99.4%   100.0%
+
+wrote figures/data/input_gain/resnet11nvg1.s3456.json

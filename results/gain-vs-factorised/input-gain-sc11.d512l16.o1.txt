@@ -1,0 +1,63 @@
+script input_gain_bc.py
+commit unknown
+argv   /workspace/data/offline/runs/scaling/sc11.d512l16.s1 --demos /workspace/data/offline/demos/scaling/test.rho100 --sweep o1 --steps 1000 --levels 2048 --json /workspace/data/figures-data/gain-vs-factorised/input-gain-sc11.d512l16.json
+
+base   sc11.d512l16.s1 @ step 30,000  (50,491,909 parameters), values (1.0, 0.5)
+input  params/cell_in/kernel (4, 512)
+
+=== brightness: the untouched model, colour planes scaled at the input; 2048 held-out levels ===
+
+                                                         steps  reached    route
+                                       base, untouched   10.61   100.0%   100.0%
+
+                                        colour 0 x0.25    8.46    81.9%    99.7%
+                                         colour 0 x0.5   10.64    99.9%   100.0%
+                                        colour 0 x0.75   10.63   100.0%   100.0%
+                                         colour 0 x0.9   10.61   100.0%   100.0%
+                                         colour 0 x1.1   10.61   100.0%   100.0%
+                                        colour 0 x1.25   10.61   100.0%   100.0%
+                                         colour 0 x1.5   10.61   100.0%   100.0%
+                                           colour 0 x2   10.27    98.3%   100.0%
+                                           colour 0 x3   -0.48    61.6%    99.4%
+
+                                        colour 1 x0.25   20.62   100.0%   100.0%
+                                         colour 1 x0.5   10.71   100.0%   100.0%
+                                        colour 1 x0.75   10.61   100.0%   100.0%
+                                         colour 1 x0.9   10.61   100.0%   100.0%
+                                         colour 1 x1.1   10.61   100.0%   100.0%
+                                        colour 1 x1.25   10.61   100.0%   100.0%
+                                         colour 1 x1.5   10.61   100.0%   100.0%
+                                           colour 1 x2   11.30   100.0%    99.9%
+                                           colour 1 x3   18.68    98.2%    99.0%
+
+                          colour 0 x0.5, colour 1 x1.5   10.58   100.0%   100.0%
+                        colour 0 x0.75, colour 1 x1.25   10.61   100.0%   100.0%
+                          colour 0 x0.9, colour 1 x1.1   10.61   100.0%   100.0%
+                          colour 0 x1.1, colour 1 x0.9   10.61   100.0%   100.0%
+                        colour 0 x1.25, colour 1 x0.75   10.61   100.0%   100.0%
+                          colour 0 x1.5, colour 1 x0.5   10.76   100.0%   100.0%
+
+sweep  o1: 12 arms; |axis| 10.1
+       cell_in kernel holds 0.00% of ||axis||^2; its gain part 1.4% of that
+       cos(axis, base kernel) per input channel: 0: -0.00, 1: +0.03, 2: -0.20, 3: +0.17
+       gain per unit offset: colour 0: -0.000, colour 1: +0.000
+
+=== the o1 axis and its parts, written at the base values ===
+
+                                                         steps  reached    route
+
+                                     full axis @ -0.30   17.05   100.0%   100.0%
+                           only cell_in kernel @ -0.30   10.61   100.0%   100.0%
+                     gain part, in the weights @ -0.30   10.61   100.0%   100.0%
+                      gain part, as brightness @ -0.30   10.61   100.0%   100.0%
+                            cell_in minus gain @ -0.30   10.61   100.0%   100.0%
+                          full axis minus gain @ -0.30   17.05   100.0%   100.0%
+
+                                     full axis @ +0.30    6.24   100.0%   100.0%
+                           only cell_in kernel @ +0.30   10.61   100.0%   100.0%
+                     gain part, in the weights @ +0.30   10.61   100.0%   100.0%
+                      gain part, as brightness @ +0.30   10.61   100.0%   100.0%
+                            cell_in minus gain @ +0.30   10.61   100.0%   100.0%
+                          full axis minus gain @ +0.30    6.25   100.0%   100.0%
+
+wrote /workspace/data/figures-data/gain-vs-factorised/input-gain-sc11.d512l16.json

@@ -1,0 +1,60 @@
+script far_axis_fit.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s3456e --family k0 --base-value 1.0 --far 0.0 0.1 0.2 0.3 --levels /workspace/data/levels/values/1.00-0.50@500k --json /workspace/data/figures-data/far-axis/novalue11g1.s3456e-k0.json
+
+base       /workspace/data/runs/novalue11g1.s3456e/local-files/cp_37498880   (1,449,605 parameters)
+window     o0: 8 arms at offsets -0.40..+0.40
+far        k0: 4 arms at offsets -1.00..-0.70
+
+=== the far axis against the window axis ===
+
+  |axis| per unit value   window 8.108   far 18.12
+  |drift|                 window 2.585   far 15.83
+  cos(axis_far, axis_window)    -0.008
+  cos(drift_far, axis_window)   -0.186
+  cos(drift_far, drift_window)  +0.123
+  |far arm| mean 6.183   |window arm| mean 4.771
+
+=== graded and predictive? leave-one-out within the far set ===
+
+    value  offset   |delta|  held-out R^2  held-out cos   implied
+     0.00   -1.00     6.377         0.903        -0.979     -0.81
+     0.10   -0.90     6.227         0.919        -0.962     -0.83
+     0.20   -0.80      6.21         0.924        -0.964     -0.86
+     0.30   -0.70     5.919         0.923        -0.984     -0.89
+
+  readback slope (implied on true offset)   window 0.49   far -0.29
+  far arms read by the window axis: implied -0.34, -0.33, -0.35, -0.34   slope -0.02
+
+
+=== written within the reversed regime, each arm from a fit that never saw it ===
+
+                                         steps    95% interval    reached
+               v=0.00 fine-tuned     2.3  [  2.0,   2.6]      99.4%
+        v=0.00 written from base     2.2  [  1.8,   2.5]      96.0%
+      v=0.00 written from v=0.10     2.3  [  1.9,   2.6]      96.1%
+       v=0.00 random from v=0.10     1.8  [  1.5,   2.2]      99.6%
+               v=0.10 fine-tuned     2.1  [  1.8,   2.4]      99.5%
+        v=0.10 written from base     2.0  [  1.8,   2.3]      99.7%
+      v=0.10 written from v=0.00     2.1  [  1.8,   2.4]      99.7%
+       v=0.10 random from v=0.00     2.2  [  1.9,   2.5]      99.4%
+               v=0.20 fine-tuned     2.2  [  1.9,   2.5]      97.7%
+        v=0.20 written from base     2.0  [  1.8,   2.3]      99.8%
+      v=0.20 written from v=0.30     2.1  [  1.8,   2.4]      99.5%
+       v=0.20 random from v=0.30     2.0  [  1.7,   2.3]      99.3%
+               v=0.30 fine-tuned     1.9  [  1.7,   2.2]      99.4%
+        v=0.30 written from base     2.1  [  1.8,   2.5]      94.0%
+      v=0.30 written from v=0.20     2.1  [  1.8,   2.5]      91.9%
+       v=0.30 random from v=0.20     2.2  [  1.8,   2.5]      98.0%
+
+    value  fine-tuned  from base    err  from nbr    err   random    err  nbr arm
+     0.00         2.3        2.2   -0.1       2.3   -0.0      1.8   -0.4      2.1
+     0.10         2.1        2.0   -0.0       2.1   +0.0      2.2   +0.1      2.3
+     0.20         2.2        2.0   -0.2       2.1   -0.1      2.0   -0.2      1.9
+     0.30         1.9        2.1   +0.2       2.1   +0.2      2.2   +0.3      2.2
+
+  median |error|   from base 0.1   from neighbour 0.1   random 0.2 steps
+  neighbour write: asked to move 0.2 steps (median), moved 0.2; slope of moved on asked 0.62
+  slope of written on fine-tuned across far arms   from base 0.00   from neighbour 0.28
+
+wrote /workspace/data/figures-data/far-axis/novalue11g1.s3456e-k0.json

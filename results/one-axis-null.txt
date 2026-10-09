@@ -1,0 +1,136 @@
+script one_axis_null.py
+commit e904aa5
+argv   --rl novalue11g1.s1234=cp_149995520 novalue11g1.s9012=cp_149995520 novalue11g1.s3456e=cp_37498880 resnet11nvg1.s1234=cp_120176640 resnet11nvg1.s2468=cp_090132480 resnet11nvg1.s3456=cp_149995520 vit11nvg1.s9012=cp_249999360 vit11nvg1.s1234=cp_249999360 vit11nvg1.s5678=cp_200294400 vit11nvg1lr.s1234=cp_249999360 --bc bcnv11.s1 bcnv11.s2 bcnv11.s3 --json figures/data/one_axis.json
+
+
+=== novalue11g1.s1234  (1,449,605 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 2.32  |axis| 8.219  split-half reliability (SB) +0.603
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 2.307  |axis| 8.202  split-half reliability (SB) +0.605
+  cos(axis_0, axis_1)          -0.609
+  ceiling sqrt(r0 r1)          +0.604    cos/ceiling -1.01
+  null, shuffling o0:  mean -0.002  sd 0.311  5th pct -0.481  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.005  sd 0.309  5th pct -0.476  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.61 (one knob: -1)   corr -0.991   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.61 (one knob: -1)   corr -0.994   own-axis slope +1.00
+
+=== novalue11g1.s9012  (1,449,605 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 1.706  |axis| 7.249  split-half reliability (SB) +0.731
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 1.732  |axis| 7.265  split-half reliability (SB) +0.740
+  cos(axis_0, axis_1)          -0.750
+  ceiling sqrt(r0 r1)          +0.736    cos/ceiling -1.02
+  null, shuffling o0:  mean -0.004  sd 0.423  5th pct -0.632  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.008  sd 0.422  5th pct -0.631  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.75 (one knob: -1)   corr -0.993   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.75 (one knob: -1)   corr -0.993   own-axis slope +1.00
+
+=== novalue11g1.s3456e  (1,449,605 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 2.585  |axis| 8.108  split-half reliability (SB) +0.590
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 2.569  |axis| 8.182  split-half reliability (SB) +0.608
+  cos(axis_0, axis_1)          -0.610
+  ceiling sqrt(r0 r1)          +0.599    cos/ceiling -1.02
+  null, shuffling o0:  mean -0.003  sd 0.307  5th pct -0.476  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.004  sd 0.309  5th pct -0.478  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.60 (one knob: -1)   corr -0.998   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.62 (one knob: -1)   corr -0.996   own-axis slope +1.00
+
+=== resnet11nvg1.s1234  (1,234,405 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 1.857  |axis| 5.758  split-half reliability (SB) +0.125
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 1.88  |axis| 5.757  split-half reliability (SB) +0.121
+  cos(axis_0, axis_1)          -0.118
+  ceiling sqrt(r0 r1)          +0.123    cos/ceiling -0.96
+  null, shuffling o0:  mean -0.001  sd 0.048  5th pct -0.078  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.001  sd 0.049  5th pct -0.077  p(null <= observed) 0.0010
+  o0 arms read through axis_1:  slope -0.12 (one knob: -1)   corr -0.971   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.12 (one knob: -1)   corr -0.966   own-axis slope +1.00
+
+=== resnet11nvg1.s2468  (1,234,405 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 1.627  |axis| 4.604  split-half reliability (SB) +0.211
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 1.61  |axis| 4.644  split-half reliability (SB) +0.208
+  cos(axis_0, axis_1)          -0.198
+  ceiling sqrt(r0 r1)          +0.210    cos/ceiling -0.95
+  null, shuffling o0:  mean -0.001  sd 0.084  5th pct -0.135  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.001  sd 0.082  5th pct -0.129  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.20 (one knob: -1)   corr -0.984   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.20 (one knob: -1)   corr -0.997   own-axis slope +1.00
+
+=== resnet11nvg1.s3456  (1,234,405 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 1.613  |axis| 5.215  split-half reliability (SB) +0.374
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 1.599  |axis| 5.373  split-half reliability (SB) +0.395
+  cos(axis_0, axis_1)          -0.375
+  ceiling sqrt(r0 r1)          +0.384    cos/ceiling -0.98
+  null, shuffling o0:  mean -0.001  sd 0.168  5th pct -0.263  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.002  sd 0.170  5th pct -0.268  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.36 (one knob: -1)   corr -0.991   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.39 (one knob: -1)   corr -0.995   own-axis slope +1.00
+
+=== vit11nvg1.s9012  (2,192,133 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 5.062  |axis| 10.25  split-half reliability (SB) +0.258
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 4.961  |axis| 10.42  split-half reliability (SB) +0.287
+  cos(axis_0, axis_1)          -0.232
+  ceiling sqrt(r0 r1)          +0.273    cos/ceiling -0.85
+  null, shuffling o0:  mean -0.001  sd 0.099  5th pct -0.159  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.002  sd 0.099  5th pct -0.159  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.23 (one knob: -1)   corr -0.988   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.24 (one knob: -1)   corr -0.992   own-axis slope +1.00
+
+=== vit11nvg1.s1234  (2,192,133 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 5.6  |axis| 9.342  split-half reliability (SB) +0.110
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 5.561  |axis| 9.503  split-half reliability (SB) +0.104
+  cos(axis_0, axis_1)          -0.036
+  ceiling sqrt(r0 r1)          +0.107    cos/ceiling -0.34
+  null, shuffling o0:  mean -0.001  sd 0.022  5th pct -0.037  p(null <= observed) 0.0535
+  null, shuffling o1:  mean +0.000  sd 0.022  5th pct -0.037  p(null <= observed) 0.0525
+  o0 arms read through axis_1:  slope -0.04 (one knob: -1)   corr -0.650   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.04 (one knob: -1)   corr -0.648   own-axis slope +1.00
+
+=== vit11nvg1.s5678  (2,192,133 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 6.105  |axis| 10.56  split-half reliability (SB) +0.133
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 6.073  |axis| 10.61  split-half reliability (SB) +0.052
+  cos(axis_0, axis_1)          +0.003
+  ceiling sqrt(r0 r1)          +0.084    cos/ceiling +0.04
+  null, shuffling o0:  mean -0.000  sd 0.037  5th pct -0.060  p(null <= observed) 0.5247
+  null, shuffling o1:  mean +0.001  sd 0.034  5th pct -0.055  p(null <= observed) 0.5247
+  o0 arms read through axis_1:  slope +0.00 (one knob: -1)   corr +0.034   own-axis slope +1.00
+  o1 arms read through axis_0:  slope +0.00 (one knob: -1)   corr +0.034   own-axis slope +1.00
+
+=== vit11nvg1lr.s1234  (2,192,133 parameters) ===
+  o0: 8 arms at -0.40..+0.40  + null arm   |drift| 13.28  |axis| 24.08  split-half reliability (SB) +0.083
+  o1: 8 arms at -0.40..+0.40  + null arm   |drift| 13.3  |axis| 24.46  split-half reliability (SB) +0.103
+  cos(axis_0, axis_1)          -0.018
+  ceiling sqrt(r0 r1)          +0.092    cos/ceiling -0.19
+  null, shuffling o0:  mean +0.000  sd 0.012  5th pct -0.020  p(null <= observed) 0.0740
+  null, shuffling o1:  mean -0.000  sd 0.014  5th pct -0.023  p(null <= observed) 0.1174
+  o0 arms read through axis_1:  slope -0.02 (one knob: -1)   corr -0.586   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.02 (one knob: -1)   corr -0.495   own-axis slope +1.00
+
+=== bcnv11.s1  (806,533 parameters) ===
+  o0: 24 arms at -0.45..+0.45  + null arm   |drift| 1.152  |axis| 2.697  split-half reliability (SB) +0.975
+  o1: 24 arms at -0.45..+0.45  + null arm   |drift| 1.151  |axis| 2.697  split-half reliability (SB) +0.975
+  cos(axis_0, axis_1)          -0.985
+  ceiling sqrt(r0 r1)          +0.975    cos/ceiling -1.01
+  null, shuffling o0:  mean -0.012  sd 0.609  5th pct -0.870  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.013  sd 0.612  5th pct -0.873  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.98 (one knob: -1)   corr -0.986   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.98 (one knob: -1)   corr -0.986   own-axis slope +1.00
+
+=== bcnv11.s2  (806,533 parameters) ===
+  o0: 24 arms at -0.45..+0.45  + null arm   |drift| 1.075  |axis| 2.651  split-half reliability (SB) +0.969
+  o1: 24 arms at -0.45..+0.45  + null arm   |drift| 1.073  |axis| 2.653  split-half reliability (SB) +0.969
+  cos(axis_0, axis_1)          -0.981
+  ceiling sqrt(r0 r1)          +0.969    cos/ceiling -1.01
+  null, shuffling o0:  mean -0.012  sd 0.579  5th pct -0.847  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.013  sd 0.581  5th pct -0.848  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.98 (one knob: -1)   corr -0.993   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.98 (one knob: -1)   corr -0.993   own-axis slope +1.00
+
+=== bcnv11.s3  (806,533 parameters) ===
+  o0: 24 arms at -0.45..+0.45  + null arm   |drift| 1.061  |axis| 2.495  split-half reliability (SB) +0.971
+  o1: 24 arms at -0.45..+0.45  + null arm   |drift| 1.061  |axis| 2.499  split-half reliability (SB) +0.971
+  cos(axis_0, axis_1)          -0.982
+  ceiling sqrt(r0 r1)          +0.971    cos/ceiling -1.01
+  null, shuffling o0:  mean -0.012  sd 0.589  5th pct -0.856  p(null <= observed) 0.0005
+  null, shuffling o1:  mean -0.012  sd 0.590  5th pct -0.857  p(null <= observed) 0.0005
+  o0 arms read through axis_1:  slope -0.98 (one knob: -1)   corr -0.992   own-axis slope +1.00
+  o1 arms read through axis_0:  slope -0.98 (one knob: -1)   corr -0.992   own-axis slope +1.00
+
+wrote figures/data/one_axis.json

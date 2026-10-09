@@ -1,0 +1,157 @@
+script field_decomp.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s9012 --levels /workspace/data/levels/values/1.00-0.50@500k --split test --n-levels 256 --n-steps 4 --offset 0.30 --bright 1.49 --json /workspace/data/figures-data/gain-vs-factorised/e12/novalue11g1.s9012.json
+base   /workspace/data/runs/novalue11g1.s9012/local-files/cp_149995520, values (1.0, 0.5)
+levels 256 from /workspace/data/levels/values/1.00-0.50@500k [test], 4 teacher-forced steps
+
+sweep  o1: 8 arms; |axis| 7.26
+
+  ran base
+  ran axis +
+  ran axis -
+  ran bright +
+  ran bright -
+=== how off-distribution is the 'neither' baseline? rms(h_neither - h_both) / rms(h_both) ===
+
+          input conv    0.310
+              conv 1    0.317
+       cell 0 tick 0    0.221
+       cell 1 tick 0    0.186
+       cell 2 tick 0    0.528
+       cell 0 tick 1    0.219
+       cell 1 tick 1    0.130
+       cell 2 tick 1    0.520
+       cell 0 tick 2    0.204
+       cell 1 tick 2    0.118
+       cell 2 tick 2    0.541
+
+=== combination: D ~ alpha A_near + gamma A_far, last step ===
+    superposition is (1, 1); winner-take-all is (1, 0)
+
+                site   alpha   gamma    R^2    cells   |I|/|D|
+          input conv   1.000   1.000  1.000        5     0.000
+              conv 1   1.000   1.000  1.000      379     0.000
+       cell 0 tick 0   0.699   0.592  0.719    12544     0.668
+       cell 1 tick 0   0.713   0.599  0.705    12544     0.658
+       cell 2 tick 0   0.677   0.585  0.674    12544     0.720
+       cell 0 tick 1   0.694   0.567  0.709    12544     0.686
+       cell 1 tick 1   0.709   0.571  0.705    12544     0.668
+       cell 2 tick 1   0.669   0.582  0.670    12544     0.726
+       cell 0 tick 2   0.687   0.572  0.702    12544     0.693
+       cell 1 tick 2   0.704   0.602  0.709    12544     0.661
+       cell 2 tick 2   0.652   0.613  0.648    12544     0.744
+
+=== where a value manipulation lands: share of its energy in each term ===
+    dh(both) = dh(neither) + dA_rich + dA_poor + dI
+
+                site   variant  neither  dA_rich  dA_poor       dI   rms dh
+          input conv    axis +    0.992    0.001    0.007    0.000   0.0008
+          input conv    axis -    0.992    0.001    0.007    0.000   0.0008
+          input conv  bright +    0.000    0.000    1.000    0.000   0.0004
+          input conv  bright -    0.000    0.000    1.000    0.000   0.0002
+              conv 1    axis +    0.857    0.012    0.132    0.000   0.0077
+              conv 1    axis -    0.858    0.013    0.129    0.000   0.0076
+              conv 1  bright +    0.000    0.000    1.000    0.000   0.0080
+              conv 1  bright -    0.000    0.000    1.000    0.000   0.0054
+       cell 0 tick 0    axis +    0.262    0.244    0.185    0.308   0.0618
+       cell 0 tick 0    axis -    0.141    0.173    0.317    0.369   0.0568
+       cell 0 tick 0  bright +    0.000    0.000    0.411    0.589   0.0446
+       cell 0 tick 0  bright -    0.000    0.000    0.478    0.522   0.0331
+       cell 1 tick 0    axis +    0.153    0.218    0.221    0.408   0.0197
+       cell 1 tick 0    axis -    0.133    0.156    0.338    0.373   0.0187
+       cell 1 tick 0  bright +    0.000    0.000    0.441    0.559   0.0157
+       cell 1 tick 0  bright -    0.000    0.000    0.498    0.502   0.0108
+       cell 2 tick 0    axis +    0.124    0.183    0.223    0.470   0.0572
+       cell 2 tick 0    axis -    0.094    0.127    0.349    0.430   0.0570
+       cell 2 tick 0  bright +    0.000    0.000    0.359    0.641   0.0541
+       cell 2 tick 0  bright -    0.000    0.000    0.468    0.532   0.0430
+       cell 0 tick 1    axis +    0.261    0.242    0.182    0.315   0.0631
+       cell 0 tick 1    axis -    0.139    0.176    0.311    0.373   0.0579
+       cell 0 tick 1  bright +    0.000    0.000    0.396    0.604   0.0456
+       cell 0 tick 1  bright -    0.000    0.000    0.470    0.530   0.0337
+       cell 1 tick 1    axis +    0.152    0.217    0.220    0.410   0.0197
+       cell 1 tick 1    axis -    0.120    0.149    0.339    0.391   0.0184
+       cell 1 tick 1  bright +    0.000    0.000    0.431    0.569   0.0158
+       cell 1 tick 1  bright -    0.000    0.000    0.488    0.512   0.0105
+       cell 2 tick 1    axis +    0.116    0.181    0.235    0.468   0.0555
+       cell 2 tick 1    axis -    0.081    0.120    0.352    0.446   0.0571
+       cell 2 tick 1  bright +    0.000    0.000    0.376    0.624   0.0522
+       cell 2 tick 1  bright -    0.000    0.000    0.462    0.538   0.0437
+       cell 0 tick 2    axis +    0.271    0.244    0.186    0.299   0.0638
+       cell 0 tick 2    axis -    0.133    0.168    0.320    0.379   0.0587
+       cell 0 tick 2  bright +    0.000    0.000    0.405    0.595   0.0455
+       cell 0 tick 2  bright -    0.000    0.000    0.476    0.524   0.0341
+       cell 1 tick 2    axis +    0.142    0.222    0.235    0.400   0.0194
+       cell 1 tick 2    axis -    0.101    0.137    0.375    0.388   0.0181
+       cell 1 tick 2  bright +    0.000    0.000    0.455    0.545   0.0155
+       cell 1 tick 2  bright -    0.000    0.000    0.509    0.491   0.0105
+       cell 2 tick 2    axis +    0.123    0.176    0.227    0.474   0.0550
+       cell 2 tick 2    axis -    0.079    0.113    0.350    0.458   0.0589
+       cell 2 tick 2  bright +    0.000    0.000    0.362    0.638   0.0529
+       cell 2 tick 2  bright -    0.000    0.000    0.453    0.547   0.0475
+
+=== field shape and propagation: A_rich against distance from the rich objective ===
+    log slope fits exp(-lambda d); linear slope fits a cost-subtracted utility
+
+                site step  log slope  log R^2  lin slope  half d  BFS R^2 grid R^2
+          input conv    0     -0.798    0.861    -0.0155     2.0    0.861      nan
+          input conv    1     -0.798    0.861    -0.0155     2.0    0.861      nan
+          input conv    2     -0.798    0.861    -0.0155     2.0    0.861      nan
+          input conv    3     -0.798    0.861    -0.0155     2.0    0.861      nan
+              conv 1    0     -0.342    0.842    -0.0640     2.0    0.842    0.933
+              conv 1    1     -0.342    0.842    -0.0640     2.0    0.842    0.933
+              conv 1    2     -0.342    0.842    -0.0640     2.0    0.842    0.933
+              conv 1    3     -0.342    0.842    -0.0640     2.0    0.842    0.933
+       cell 0 tick 0    0     -0.280    0.899    -0.1716     3.0    0.899    0.928
+       cell 0 tick 0    1     -0.087    0.910    -0.0906    11.0    0.910    0.950
+       cell 0 tick 0    2     -0.090    0.928    -0.0957    10.0    0.928    0.944
+       cell 0 tick 0    3     -0.100    0.942    -0.1034     9.0    0.942    0.941
+       cell 1 tick 0    0     -0.253    0.945    -0.1982     4.0    0.945    0.891
+       cell 1 tick 0    1     -0.089    0.833    -0.0370    11.0    0.833    0.958
+       cell 1 tick 0    2     -0.087    0.843    -0.0329    12.0    0.843    0.943
+       cell 1 tick 0    3     -0.095    0.830    -0.0336    11.0    0.830    0.925
+       cell 2 tick 0    0     -0.246    0.950    -0.1610     6.0    0.950    0.882
+       cell 2 tick 0    1     -0.077    0.983    -0.1010    11.0    0.983    0.950
+       cell 2 tick 0    2     -0.071    0.967    -0.0939    11.0    0.967    0.913
+       cell 2 tick 0    3     -0.077    0.974    -0.0979    10.0    0.974    0.916
+       cell 0 tick 1    0     -0.129    0.936    -0.1339     7.0    0.936    0.945
+       cell 0 tick 1    1     -0.082    0.903    -0.0905    12.0    0.903    0.944
+       cell 0 tick 1    2     -0.090    0.928    -0.0958    10.0    0.928    0.932
+       cell 0 tick 1    3     -0.099    0.946    -0.1021     9.0    0.946    0.937
+       cell 1 tick 1    0     -0.116    0.950    -0.0604     8.0    0.950    0.982
+       cell 1 tick 1    1     -0.075    0.862    -0.0298     nan    0.862    0.948
+       cell 1 tick 1    2     -0.092    0.827    -0.0338    12.0    0.827    0.930
+       cell 1 tick 1    3     -0.100    0.826    -0.0345    11.0    0.826    0.929
+       cell 2 tick 1    0     -0.112    0.959    -0.1159     8.0    0.959    0.951
+       cell 2 tick 1    1     -0.076    0.979    -0.0985    11.0    0.979    0.944
+       cell 2 tick 1    2     -0.082    0.974    -0.1041     9.0    0.974    0.931
+       cell 2 tick 1    3     -0.087    0.981    -0.1059     9.0    0.981    0.925
+       cell 0 tick 2    0     -0.096    0.945    -0.0906     9.0    0.945    0.963
+       cell 0 tick 2    1     -0.088    0.930    -0.0955    11.0    0.930    0.950
+       cell 0 tick 2    2     -0.098    0.937    -0.1021     9.0    0.937    0.937
+       cell 0 tick 2    3     -0.106    0.952    -0.1069     8.0    0.952    0.940
+       cell 1 tick 2    0     -0.077    0.960    -0.0309     9.0    0.960    0.944
+       cell 1 tick 2    1     -0.092    0.830    -0.0351    11.0    0.830    0.948
+       cell 1 tick 2    2     -0.101    0.820    -0.0360    11.0    0.820    0.937
+       cell 1 tick 2    3     -0.108    0.822    -0.0365    11.0    0.822    0.933
+       cell 2 tick 2    0     -0.083    0.987    -0.1012    10.0    0.987    0.945
+       cell 2 tick 2    1     -0.076    0.977    -0.0991    11.0    0.977    0.943
+       cell 2 tick 2    2     -0.079    0.976    -0.1006    10.0    0.976    0.936
+       cell 2 tick 2    3     -0.079    0.978    -0.0987    10.0    0.978    0.931
+
+=== bridge: the two fields at the agent's own cell, against the level's gap ===
+
+          input conv   fields reach the agent on 0 levels; skipped
+              conv 1   fields reach the agent on 15 levels; skipped
+       cell 0 tick 0   corr -0.404   slope -0.0352 per step   zero at gap +3.87   n 256
+       cell 1 tick 0   corr -0.425   slope -0.0429 per step   zero at gap +3.29   n 256
+       cell 2 tick 0   corr -0.561   slope -0.0347 per step   zero at gap +9.64   n 256
+       cell 0 tick 1   corr -0.398   slope -0.0331 per step   zero at gap +4.92   n 256
+       cell 1 tick 1   corr -0.351   slope -0.0336 per step   zero at gap +7.09   n 256
+       cell 2 tick 1   corr -0.554   slope -0.0373 per step   zero at gap +6.33   n 256
+       cell 0 tick 2   corr -0.360   slope -0.0310 per step   zero at gap +3.19   n 256
+       cell 1 tick 2   corr -0.440   slope -0.0482 per step   zero at gap +1.86   n 256
+       cell 2 tick 2   corr -0.579   slope -0.0430 per step   zero at gap +4.85   n 256
+
+wrote /workspace/data/figures-data/gain-vs-factorised/e12/novalue11g1.s9012.json
+FIELD_DECOMP_DONE

@@ -1,15 +1,3 @@
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/__init__.py:53: UserWarning: [33mWARN: `gymnasium.vector.make(...)` is deprecated and will be replaced by `gymnasium.make_vec(...)` in v1.0[0m
-  gym.logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.single_action_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.single_action_space` for environment variables.[0m
-  logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.observation_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.observation_space` for environment variables.[0m
-  logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/__init__.py:53: UserWarning: [33mWARN: `gymnasium.vector.make(...)` is deprecated and will be replaced by `gymnasium.make_vec(...)` in v1.0[0m
-  gym.logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.single_action_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.single_action_space` for environment variables.[0m
-  logger.warn(
-/workspace/code/arch-swap/.venv/lib/python3.11/site-packages/gymnasium/vector/vector_env.py:389: UserWarning: [33mWARN: env.observation_space to get variables from other wrappers is deprecated and will be removed in v1.0, to get this variable you can do `env.unwrapped.observation_space` for environment variables.[0m
-  logger.warn(
 script 015_value_or_gap.py
 commit 6b50d42
 argv   --base /workspace/data/runs/resnet11novalue.s1234-cp130M/local-files/cp_130191360 --arms /workspace/data/runs/resnet11novalue.s1234-cp130M/arms --levels /workspace/data/levels/values/1.00-0.50@500k --arm-steps 400000 --skip-behaviour

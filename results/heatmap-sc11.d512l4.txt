@@ -1,0 +1,2 @@
+sc11.d512l4.s1 @ step 30,000; test.rho100 (hide_values=True)
+wrote /workspace/data/figures-data/plan-probes/plan.sc11.d512l4.npz  (12 episodes)

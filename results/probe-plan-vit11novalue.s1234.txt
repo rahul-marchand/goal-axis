@@ -1,0 +1,14 @@
+script 003_probe_plan.py
+commit e904aa5
+argv   /workspace/data/runs/vit11novalue.s1234/local-files/cp_249999360 --levels /workspace/data/levels/values/1.00-0.50@1M --split test --think 0 --test-correlations 1.0
+checkpoint cp_249999360  (update 48828)
+TransformerSpec, 11x11, rho=1.0, 256 train / 128 test episodes
+
+ think test rho               probe      AUC          95% CI   bal.acc  episodes
+     0     1.00             trained    0.630  [0.603, 0.661]     0.581       128
+     0     1.00           untrained    0.593  [0.564, 0.623]     0.580       128
+     0     1.00         observation    0.600  [0.586, 0.616]     0.580       128
+
+The trained probe must beat the *untrained* one. Beating only the
+observation shows the network has a receptive field, which it has
+before any training at all.

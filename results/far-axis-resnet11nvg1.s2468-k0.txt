@@ -1,0 +1,60 @@
+script far_axis_fit.py
+commit e904aa5
+argv   /workspace/data/runs/resnet11nvg1.s2468 --family k0 --base-value 1.0 --far 0.0 0.1 0.2 0.3 --levels /workspace/data/levels/values/1.00-0.50@500k --json /workspace/data/figures-data/far-axis/resnet11nvg1.s2468-k0.json
+
+base       /workspace/data/runs/resnet11nvg1.s2468/local-files/cp_090132480   (1,234,405 parameters)
+window     o0: 8 arms at offsets -0.40..+0.40
+far        k0: 4 arms at offsets -1.00..-0.70
+
+=== the far axis against the window axis ===
+
+  |axis| per unit value   window 4.604   far 15.92
+  |drift|                 window 1.627   far 13.75
+  cos(axis_far, axis_window)    +0.005
+  cos(drift_far, axis_window)   -0.029
+  cos(drift_far, drift_window)  +0.049
+  |far arm| mean 4.093   |window arm| mean 3.375
+
+=== graded and predictive? leave-one-out within the far set ===
+
+    value  offset   |delta|  held-out R^2  held-out cos   implied
+     0.00   -1.00     4.115         0.909        -0.981     -0.81
+     0.10   -0.90     4.005         0.923        -0.963     -0.84
+     0.20   -0.80     4.072         0.924        -0.965     -0.88
+     0.30   -0.70     4.179         0.916        -0.982     -0.90
+
+  readback slope (implied on true offset)   window 0.07   far -0.31
+  far arms read by the window axis: implied -0.09, -0.11, -0.10, -0.09   slope 0.02
+
+
+=== written within the reversed regime, each arm from a fit that never saw it ===
+
+                                         steps    95% interval    reached
+               v=0.00 fine-tuned    -6.5  [ -6.9,  -6.2]      97.6%
+        v=0.00 written from base    -4.1  [ -4.5,  -3.7]      70.3%
+      v=0.00 written from v=0.10    -4.1  [ -4.5,  -3.8]      75.2%
+       v=0.00 random from v=0.10    -3.7  [ -4.0,  -3.4]      96.3%
+               v=0.10 fine-tuned    -3.7  [ -4.0,  -3.4]      97.1%
+        v=0.10 written from base    -4.7  [ -4.9,  -4.4]      99.4%
+      v=0.10 written from v=0.00    -4.8  [ -5.1,  -4.6]      99.3%
+       v=0.10 random from v=0.00    -6.6  [ -6.8,  -6.2]      98.2%
+               v=0.20 fine-tuned    -2.8  [ -3.1,  -2.6]      95.9%
+        v=0.20 written from base    -3.0  [ -3.2,  -2.8]      99.5%
+      v=0.20 written from v=0.30    -3.2  [ -3.4,  -2.9]      99.6%
+       v=0.20 random from v=0.30    -1.8  [ -2.0,  -1.5]      98.9%
+               v=0.30 fine-tuned    -1.7  [ -1.9,  -1.5]      98.4%
+        v=0.30 written from base    -0.9  [ -1.1,  -0.6]      79.4%
+      v=0.30 written from v=0.20    -1.0  [ -1.3,  -0.7]      73.6%
+       v=0.30 random from v=0.20    -2.9  [ -3.2,  -2.6]      95.8%
+
+    value  fine-tuned  from base    err  from nbr    err   random    err  nbr arm
+     0.00        -6.5       -4.1   +2.4      -4.1   +2.4     -3.7   +2.8     -3.7
+     0.10        -3.7       -4.7   -1.0      -4.8   -1.2     -6.6   -2.9     -6.5
+     0.20        -2.8       -3.0   -0.2      -3.2   -0.3     -1.8   +1.1     -1.7
+     0.30        -1.7       -0.9   +0.8      -1.0   +0.7     -2.9   -1.2     -2.8
+
+  median |error|   from base 0.9   from neighbour 0.9   random 2.0 steps
+  neighbour write: asked to move 2.0 steps (median), moved 1.6; slope of moved on asked 0.52
+  slope of written on fine-tuned across far arms   from base 0.57   from neighbour 0.55
+
+wrote /workspace/data/figures-data/far-axis/resnet11nvg1.s2468-k0.json

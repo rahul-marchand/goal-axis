@@ -1,0 +1,7 @@
+PROBE_RESULT a peak=4e-4 floor=4e-6 at=cp_070103040 reached 49.9%  chose optimal 76.4%
+PROBE_RESULT b peak=4e-4 floor=4e-5 at=cp_080117760 reached 50.3%  chose optimal 78.1%
+PROBE_RESULT d peak=1e-3 floor=1e-5 at=cp_080117760 reached 61.2%  chose optimal 76.7%
+PROBE_RESULT e peak=1e-3 floor=1e-4 at=cp_080117760 reached 61.2%  chose optimal 76.7%
+PROBE_RESULT c peak=4e-4 floor=4e-4 at=cp_080117760 reached 50.3%  chose optimal 78.1%
+PROBE_RESULT f peak=2e-4 floor=2e-5 at=cp_080117760 reached 34.7%  chose optimal 72.0%
+PROBE_RESULT g peak=2.5e-3 floor=2.5e-4 at=cp_080117760 reached 6.2%  chose optimal 69.8%

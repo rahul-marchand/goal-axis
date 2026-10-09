@@ -1,0 +1,17 @@
+script bc_arm_thresholds.py
+commit e904aa5
+argv   /workspace/data/offline/runs/bcnv11.s1 --family k0 --base-value 1.0 --demos /workspace/data/offline/demos/test.rho100
+
+run        /workspace/data/offline/runs/bcnv11.s1
+family     k0, 6 arms, decoded on test.rho100
+
+=== what the arms themselves do ===
+
+                                   steps   95% interval     reached
+                 base, untouched    11.3  [ 10.9,  11.8]      97.3%
+               v=0.00 fine-tuned   -10.3  [-11.0,  -9.6]      94.6%
+               v=0.10 fine-tuned    -7.7  [ -8.1,  -7.3]      94.9%
+               v=0.20 fine-tuned    -5.0  [ -5.3,  -4.6]      95.4%
+               v=0.30 fine-tuned    -2.6  [ -2.9,  -2.3]      95.9%
+               v=0.40 fine-tuned    -0.7  [ -1.0,  -0.4]      95.8%
+               v=0.50 fine-tuned     1.5  [  1.2,   1.8]      96.2%

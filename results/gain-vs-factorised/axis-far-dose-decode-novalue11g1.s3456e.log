@@ -1,0 +1,147 @@
+script axis_far_dose.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s3456e --levels /workspace/data/levels/values/1.00-0.50@500k --split test --out /workspace/data/figures-data/axis-far-dose/novalue11g1.s3456e --sweep o1 --arm-steps 400000 --fit-window 0.45 --episodes 16384 --coarse-episodes 4096 --num-envs 128 --seed 0
+
+base /workspace/data/runs/novalue11g1.s3456e/local-files/cp_37498880, values (1.0, 0.5)
+
+=== base ===
+                            base  tau   5.30  reached 99.9%  route 86.6%  1,460 eps/s
+|axis| 8.18; gain per unit offset colour 0 -0.061, colour 1 +0.125; input conv rescale x1.89
+
+=== axis writes ===
+                       axis+0.15  tau   4.04  reached 99.9%  route 87.1%  1,595 eps/s
+                       axis+0.30  tau   3.12  reached 99.8%  route 87.1%  936 eps/s
+                       axis+0.45  tau   2.41  reached 99.8%  route 86.2%  706 eps/s
+                       axis+0.70  tau   1.51  reached 99.5%  route 83.1%  640 eps/s
+                       axis+1.00  tau   0.76  reached 97.9%  route 76.5%  1,114 eps/s
+                       axis+1.50  tau  -0.02  reached 81.0%  route 63.6%  401 eps/s
+                       axis+2.00  tau  -0.44  reached 47.0%  route 61.9%  258 eps/s
+                       axis+2.50  tau  -0.68  reached 28.1%  route 65.3%  194 eps/s
+
+=== colour-1 brightness ===
+                   bright-c1x1.5  tau   2.56  reached 99.8%  route 88.3%  554 eps/s
+                     bright-c1x2  tau   0.94  reached 99.6%  route 88.2%  664 eps/s
+                     bright-c1x3  tau  -0.82  reached 98.1%  route 82.4%  415 eps/s
+                     bright-c1x4  tau  -1.73  reached 90.1%  route 74.2%  600 eps/s
+                     bright-c1x5  tau  -2.38  reached 73.3%  route 72.7%  343 eps/s
+
+=== coarse curves ===
+                   coarse-c1x0.8  tau   7.24  reached 99.9%  route 85.4%  1,193 eps/s
+                  coarse-c1x1.25  tau   3.84  reached 99.8%  route 87.8%  1,322 eps/s
+                   coarse-c1x1.5  tau   2.69  reached 99.8%  route 88.2%  1,308 eps/s
+                     coarse-c1x2  tau   0.92  reached 99.7%  route 88.2%  1,249 eps/s
+                   coarse-c1x2.5  tau  -0.20  reached 99.4%  route 86.5%  1,095 eps/s
+                     coarse-c1x3  tau  -1.00  reached 98.4%  route 81.9%  1,052 eps/s
+                     coarse-c1x4  tau  -1.98  reached 90.3%  route 73.0%  728 eps/s
+                     coarse-c1x5  tau  -2.37  reached 72.1%  route 71.4%  517 eps/s
+                   coarse-c1x6.5  tau  -3.28  reached 47.3%  route 78.2%  384 eps/s
+                     coarse-c1x8  tau  -3.98  reached 35.4%  route 79.8%  386 eps/s
+                  coarse-c0x1.25  tau   6.06  reached 99.7%  route 82.0%  1,313 eps/s
+                   coarse-c0x0.8  tau   4.60  reached 99.9%  route 86.8%  1,365 eps/s
+                   coarse-c0x0.6  tau   2.70  reached 99.9%  route 86.4%  1,360 eps/s
+                  coarse-c0x0.45  tau  -0.06  reached 99.8%  route 83.8%  1,073 eps/s
+                  coarse-c0x0.35  tau  -3.13  reached 99.9%  route 81.7%  1,453 eps/s
+                  coarse-c0x0.25  tau  -8.47  reached 99.9%  route 78.1%  1,297 eps/s
+                  coarse-c0x0.18  tau -13.93  reached 99.8%  route 76.7%  1,099 eps/s
+                  coarse-c0x0.12  tau -20.61  reached 99.8%  route 75.8%  1,165 eps/s
+                  coarse-two-0.2  tau   7.33  reached 99.9%  route 84.7%  1,281 eps/s
+                  coarse-two+0.2  tau   3.67  reached 99.9%  route 87.8%  1,295 eps/s
+                  coarse-two+0.4  tau   1.65  reached 99.7%  route 88.6%  1,214 eps/s
+                  coarse-two+0.7  tau  -1.23  reached 99.9%  route 88.4%  1,271 eps/s
+                    coarse-two+1  tau  -3.05  reached 99.3%  route 83.9%  848 eps/s
+                  coarse-two+1.3  tau  -4.58  reached 92.3%  route 72.7%  780 eps/s
+                  coarse-two+1.6  tau  -5.94  reached 66.6%  route 67.2%  186 eps/s
+                    coarse-two+2  tau  -6.26  reached 32.9%  route 82.1%  296 eps/s
+                  coarse-two+2.5  tau  -5.29  reached 18.8%  route 84.4%  170 eps/s
+
+=== brightness matched to each axis write ===
+                   match+0.15-c1  tau   3.89  reached 99.9%  route 87.4%  575 eps/s
+                   match+0.15-c0  tau   3.97  reached 99.9%  route 87.2%  773 eps/s
+                  match+0.15-two  tau   3.81  reached 99.9%  route 87.9%  479 eps/s
+                   match+0.30-c1  tau   2.98  reached 99.8%  route 88.0%  1,037 eps/s
+                   match+0.30-c0  tau   3.10  reached 99.9%  route 87.0%  575 eps/s
+                  match+0.30-two  tau   2.93  reached 99.9%  route 88.6%  640 eps/s
+                   match+0.45-c1  tau   2.30  reached 99.8%  route 88.3%  510 eps/s
+                   match+0.45-c0  tau   2.38  reached 99.9%  route 86.5%  875 eps/s
+                  match+0.45-two  tau   2.33  reached 99.9%  route 88.9%  476 eps/s
+                   match+0.70-c1  tau   1.44  reached 99.7%  route 88.5%  357 eps/s
+                   match+0.70-c0  tau   1.59  reached 99.9%  route 86.0%  1,206 eps/s
+                  match+0.70-two  tau   1.44  reached 99.8%  route 89.0%  501 eps/s
+                   match+1.00-c1  tau   0.76  reached 99.6%  route 88.0%  414 eps/s
+                   match+1.00-c0  tau   0.88  reached 99.8%  route 85.3%  589 eps/s
+                  match+1.00-two  tau   0.69  reached 99.8%  route 89.0%  1,026 eps/s
+                   match+1.50-c1  tau   0.08  reached 99.3%  route 86.7%  424 eps/s
+                   match+1.50-c0  tau   0.07  reached 99.9%  route 84.5%  485 eps/s
+                  match+1.50-two  tau   0.02  reached 99.8%  route 88.9%  627 eps/s
+                   match+2.00-c1  tau  -0.32  reached 99.1%  route 85.3%  1,242 eps/s
+                   match+2.00-c0  tau  -0.28  reached 99.9%  route 84.1%  1,486 eps/s
+                  match+2.00-two  tau  -0.37  reached 99.8%  route 88.9%  1,445 eps/s
+                   match+2.50-c1  tau  -0.54  reached 98.7%  route 84.2%  1,269 eps/s
+                   match+2.50-c0  tau  -0.50  reached 99.9%  route 84.0%  1,427 eps/s
+                  match+2.50-two  tau  -0.54  reached 99.8%  route 88.9%  1,377 eps/s
+
+=== parts ===
+                      gainw+0.30  tau   4.96  reached 99.9%  route 86.9%  1,538 eps/s
+                      gainb+0.30  tau   4.96  reached 99.9%  route 86.9%  1,494 eps/s
+                      input+0.30  tau   4.08  reached 99.9%  route 87.2%  1,569 eps/s
+                     inputx+0.30  tau   3.20  reached 99.8%  route 87.7%  1,376 eps/s
+                     nogain+0.30  tau   3.36  reached 99.8%  route 86.7%  1,423 eps/s
+                      gainw+0.70  tau   4.47  reached 99.9%  route 87.2%  1,512 eps/s
+                      gainb+0.70  tau   4.46  reached 99.9%  route 87.2%  1,678 eps/s
+                      input+0.70  tau   2.74  reached 99.9%  route 88.0%  1,458 eps/s
+                     inputx+0.70  tau   0.98  reached 99.7%  route 86.5%  1,415 eps/s
+                     nogain+0.70  tau   1.89  reached 99.6%  route 82.7%  1,314 eps/s
+                      gainw+1.00  tau   4.12  reached 99.9%  route 87.5%  1,674 eps/s
+                      gainb+1.00  tau   4.11  reached 99.9%  route 87.5%  1,474 eps/s
+                      input+1.00  tau   1.88  reached 99.8%  route 87.5%  1,446 eps/s
+                     inputx+1.00  tau  -0.60  reached 99.2%  route 83.2%  1,293 eps/s
+                     nogain+1.00  tau   1.22  reached 97.8%  route 76.3%  1,123 eps/s
+                      gainw+1.50  tau   3.62  reached 99.9%  route 88.1%  1,726 eps/s
+                      gainb+1.50  tau   3.62  reached 99.9%  route 88.1%  1,532 eps/s
+                      input+1.50  tau   0.46  reached 99.6%  route 85.7%  1,456 eps/s
+                     inputx+1.50  tau  -2.97  reached 95.4%  route 74.6%  1,071 eps/s
+                     nogain+1.50  tau   0.44  reached 80.6%  route 63.8%  711 eps/s
+                      gainw+2.00  tau   3.12  reached 99.9%  route 88.4%  1,607 eps/s
+                      gainb+2.00  tau   3.12  reached 99.9%  route 88.4%  1,685 eps/s
+                      input+2.00  tau  -0.87  reached 99.1%  route 82.2%  1,308 eps/s
+                     inputx+2.00  tau  -5.15  reached 77.9%  route 67.4%  716 eps/s
+                     nogain+2.00  tau   0.07  reached 47.5%  route 61.1%  424 eps/s
+                      gainw+2.50  tau   2.59  reached 99.9%  route 88.9%  1,586 eps/s
+                      gainb+2.50  tau   2.59  reached 99.9%  route 88.9%  1,757 eps/s
+                      input+2.50  tau  -2.17  reached 97.6%  route 77.5%  1,201 eps/s
+                     inputx+2.50  tau  -6.34  reached 52.8%  route 60.6%  472 eps/s
+                     nogain+2.50  tau   0.15  reached 27.9%  route 64.1%  340 eps/s
+
+=== random writes ===
+                      rand0+0.30  tau   5.34  reached 99.9%  route 85.5%  1,594 eps/s
+                      rand0+0.70  tau   5.58  reached 99.8%  route 81.6%  1,548 eps/s
+                      rand0+1.00  tau   5.62  reached 99.4%  route 78.0%  1,267 eps/s
+                      rand0+1.50  tau   5.78  reached 97.0%  route 71.9%  1,228 eps/s
+                      rand0+2.00  tau   5.66  reached 90.4%  route 68.3%  791 eps/s
+                      rand0+2.50  tau   5.18  reached 77.0%  route 67.7%  531 eps/s
+                      rand1+0.30  tau   5.30  reached 99.8%  route 86.4%  1,274 eps/s
+                      rand1+0.70  tau   5.30  reached 99.6%  route 84.7%  906 eps/s
+                      rand1+1.00  tau   5.46  reached 99.2%  route 81.4%  596 eps/s
+                      rand1+1.50  tau   5.70  reached 97.3%  route 74.3%  592 eps/s
+                      rand1+2.00  tau   5.99  reached 90.9%  route 66.2%  403 eps/s
+                      rand1+2.50  tau   6.42  reached 77.4%  route 56.2%  270 eps/s
+                      rand2+0.30  tau   5.28  reached 99.9%  route 85.6%  1,258 eps/s
+                      rand2+0.70  tau   5.47  reached 99.6%  route 80.9%  642 eps/s
+                      rand2+1.00  tau   5.62  reached 98.6%  route 75.3%  604 eps/s
+                      rand2+1.50  tau   5.48  reached 90.7%  route 64.3%  473 eps/s
+                      rand2+2.00  tau   4.86  reached 64.1%  route 55.1%  332 eps/s
+                      rand2+2.50  tau   3.33  reached 32.7%  route 47.9%  231 eps/s
+                   modrand0+0.30  tau   0.12  reached 7.2%  route 93.2%  286 eps/s
+                   modrand0+0.70  tau   0.28  reached 12.5%  route 41.7%  294 eps/s
+                   modrand0+1.00  tau  -0.11  reached 14.1%  route 47.5%  294 eps/s
+                   modrand0+1.50  tau   0.12  reached 6.6%  route 100.0%  234 eps/s
+                   modrand0+2.00  tau   0.12  reached 6.6%  route 100.0%  282 eps/s
+                   modrand0+2.50  tau   0.12  reached 6.6%  route 100.0%  287 eps/s
+                   modrand1+0.30  tau   1.62  reached 17.0%  route 43.5%  298 eps/s
+                   modrand1+0.70  tau   0.17  reached 6.9%  route 100.0%  289 eps/s
+                   modrand1+1.00  tau   0.17  reached 6.9%  route 100.0%  290 eps/s
+                   modrand1+1.50  tau   0.17  reached 6.9%  route 100.0%  381 eps/s
+                   modrand1+2.00  tau   0.17  reached 6.9%  route 100.0%  378 eps/s
+                   modrand1+2.50  tau   0.17  reached 6.9%  route 100.0%  373 eps/s
+
+FAR_DOSE_DONE

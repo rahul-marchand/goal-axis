@@ -1,0 +1,17 @@
+script 003_probe_plan.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520 --levels /workspace/data/levels/values/1.00-0.50@1M --split test --think 0 4 --test-correlations 1.0
+checkpoint cp_149995520  (update 29296)
+ConvLSTMConfig, 11x11, rho=1.0, 256 train / 128 test episodes
+
+ think test rho               probe      AUC          95% CI   bal.acc  episodes
+     0     1.00             trained    0.920  [0.900, 0.943]     0.775       128
+     0     1.00           untrained    0.514  [0.487, 0.546]     0.500       128
+     0     1.00         observation    0.585  [0.575, 0.600]     0.575       128
+     4     1.00             trained    0.953  [0.928, 0.973]     0.872       128
+     4     1.00           untrained    0.552  [0.528, 0.575]     0.500       128
+     4     1.00         observation    0.585  [0.575, 0.600]     0.575       128
+
+The trained probe must beat the *untrained* one. Beating only the
+observation shows the network has a receptive field, which it has
+before any training at all.

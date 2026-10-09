@@ -1,0 +1,84 @@
+script far_axis_fit_bc.py
+commit e904aa5
+argv   /workspace/data/offline/runs/bcnv11.s2 --family k1 --far 0.8 0.9 1.0 1.25 1.5 --window-loo --demos /workspace/data/offline/demos/test.rho100 --json /workspace/data/figures-data/far-axis/bcnv11.s2-k1.window.json
+
+base       bcnv11.s2 @ step 30,000   (806,533 parameters)
+window     o1: 24 arms at offsets -0.45..+0.45
+far        k1: 5 arms at offsets +0.80..+1.50
+
+=== the far axis against the window axis ===
+
+  |axis| per unit value   window 2.653   far 1.442
+  |drift|                 window 1.073   far 1.905
+  cos(axis_far, axis_window)    -0.242
+  cos(drift_far, axis_window)   +0.314
+  cos(drift_far, drift_window)  +0.155
+
+=== graded and predictive? leave-one-out within the far set ===
+
+    offset   |delta|  held-out R^2  held-out cos   implied
+     +0.80     1.177         0.816         0.916     +0.96
+     +0.90     1.185         0.857         0.930     +0.99
+     +1.00     1.196         0.895         0.947     +1.04
+     +1.25     1.218         0.897         0.947     +1.22
+     +1.50     1.207         0.840         0.960     +1.16
+
+  readback slope (implied on true offset)   window 0.96   far 0.34
+  far arms read by the window axis: implied +0.13, +0.10, +0.09, +0.04, +0.03   slope -0.13
+
+
+=== the window's own leave-one-out writes, same levels ===
+
+                                         steps    reached
+                      -0.45 fine-tuned    23.3      97.8%
+               -0.45 written, held out    26.9      97.5%
+                      -0.44 fine-tuned    21.8      96.8%
+               -0.44 written, held out    27.0      97.7%
+                      -0.43 fine-tuned    21.6      97.8%
+               -0.43 written, held out    25.7      97.5%
+                      -0.42 fine-tuned    22.3      97.6%
+               -0.42 written, held out    25.1      97.6%
+                      -0.41 fine-tuned    20.5      97.2%
+               -0.41 written, held out    24.1      97.7%
+                      -0.40 fine-tuned    23.2      97.0%
+               -0.40 written, held out    22.8      97.8%
+                      -0.39 fine-tuned    20.4      97.8%
+               -0.39 written, held out    22.7      97.7%
+                      -0.38 fine-tuned    21.3      97.1%
+               -0.38 written, held out    22.0      97.9%
+                      -0.30 fine-tuned    18.6      97.0%
+               -0.30 written, held out    18.9      98.0%
+                      -0.20 fine-tuned    15.3      97.9%
+               -0.20 written, held out    16.3      98.2%
+                      -0.10 fine-tuned    13.3      97.0%
+               -0.10 written, held out    13.4      98.3%
+                      -0.05 fine-tuned    12.0      97.9%
+               -0.05 written, held out    12.1      98.1%
+                      +0.05 fine-tuned     9.7      97.3%
+               +0.05 written, held out     9.8      98.2%
+                      +0.10 fine-tuned     9.0      97.5%
+               +0.10 written, held out     9.0      98.0%
+                      +0.20 fine-tuned     6.8      97.3%
+               +0.20 written, held out     7.4      98.1%
+                      +0.30 fine-tuned     5.1      97.4%
+               +0.30 written, held out     5.9      98.0%
+                      +0.38 fine-tuned     3.4      97.1%
+               +0.38 written, held out     4.7      97.9%
+                      +0.39 fine-tuned     3.1      97.3%
+               +0.39 written, held out     4.5      97.9%
+                      +0.40 fine-tuned     3.1      97.4%
+               +0.40 written, held out     4.3      97.8%
+                      +0.41 fine-tuned     1.9      97.7%
+               +0.41 written, held out     4.2      97.8%
+                      +0.42 fine-tuned     2.2      97.5%
+               +0.42 written, held out     4.2      97.9%
+                      +0.43 fine-tuned     2.0      97.7%
+               +0.43 written, held out     4.0      97.9%
+                      +0.44 fine-tuned     2.1      97.3%
+               +0.44 written, held out     3.9      97.9%
+                      +0.45 fine-tuned     2.0      97.2%
+               +0.45 written, held out     3.9      97.7%
+
+  median |error| 1.3 steps;  slope of written on fine-tuned 1.05
+
+wrote /workspace/data/figures-data/far-axis/bcnv11.s2-k1.window.json

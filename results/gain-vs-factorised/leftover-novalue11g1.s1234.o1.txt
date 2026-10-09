@@ -1,0 +1,177 @@
+script leftover_patch.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s1234 --levels /workspace/data/levels/values/1.00-0.50@500k --json /workspace/data/figures-data/leftover/novalue11g1.s1234.json
+
+base   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms; |axis| 8.2; gain per unit offset colour 0 -0.047, colour 1 +0.169
+
+sizes: 768 valid levels in 10s
+
+=== share of the write's activation change that survives erasing the colour-1 objective ===
+
+  site                       0         1         2         3
+  input conv             0.986     0.220     1.000       nan
+  conv 1                 0.998     0.295     1.000     1.014
+  cell 0 tick 0          0.542     0.048     1.036     0.756
+  cell 1 tick 0          0.520     0.061     0.993     0.717
+  cell 2 tick 0          0.327     0.046     1.043     0.525
+  cell 0 tick 1          0.540     0.049     1.038     0.751
+  cell 1 tick 1          0.507     0.046     0.997     0.708
+  cell 2 tick 1          0.323     0.047     1.066     0.533
+  cell 0 tick 2          0.554     0.050     1.046     0.771
+  cell 1 tick 2          0.526     0.045     1.018     0.740
+  cell 2 tick 2          0.323     0.043     1.076     0.529
+  dense                  0.329     0.036     1.071     0.529
+  logits                 0.161     0.013     1.052     0.293
+  columns: 0 full axis; 1 gain part, in weights; 2 random, module-matched; 3 all but input conv
+
+mediation on 2048 test levels; base threshold 7.20 (reached 100.0%)
+  full axis @ +0.30: write threshold 4.39
+  full axis @ -0.30: write threshold 11.82
+
+=== full axis: fraction of its threshold shift (4.39 vs 11.82) carried by each patch ===
+
+  site group                      full    object-independent      object-dependent
+  cell 0                          0.60                  0.13                  0.45
+  cell 1                          0.66                  0.12                  0.50
+  cell 2                          0.96                  0.04                  0.94
+  all                             1.00                  0.04                  0.96
+  random, module-matched @ +0.30: write threshold 7.06
+  random, module-matched @ -0.30: write threshold 6.11
+
+=== random, module-matched: fraction of its threshold shift (7.06 vs 6.11) carried by each patch ===
+
+  site group                      full    object-independent      object-dependent
+  cell 0                          0.76                  0.39                  0.17
+  cell 1                          0.67                 -0.08                  0.86
+  cell 2                          1.17                  1.08                  0.62
+  all                             1.02                  1.70                 -3.55
+
+signals: 512 valid levels in 22s
+
+=== objective signal at input conv, relative to the base, against the threshold ===
+
+  condition        tau  reached       S0       S1  ln S1/S0
+  base            7.20   100.0%    1.000    1.000     0.000
+  c1 x1           7.20   100.0%    1.000    1.000     0.000
+  c1 x1.25        5.73   100.0%    1.000    1.250     0.223
+  c1 x1.5         4.54   100.0%    1.000    1.500     0.405
+  c1 x2           2.63   100.0%    1.000    2.000     0.693
+  c1 x2.5         1.20   100.0%    1.000    2.500     0.916
+  c1 x3           0.02    99.9%    1.000    3.000     1.099
+  c1 x4          -1.26    98.8%    1.000    4.000     1.386
+  c1 x5          -2.05    71.9%    1.000    5.000     1.609
+  c1 x6.5        -3.30    46.8%    1.000    6.500     1.872
+  c1 x8          -4.01    39.6%    1.000    8.000     2.079
+  c0 x0.8         6.61   100.0%    0.800    1.000     0.223
+  c0 x0.6         5.03   100.0%    0.600    1.000     0.511
+  c0 x0.45        2.68   100.0%    0.450    1.000     0.799
+  c0 x0.35       -0.06   100.0%    0.350    1.000     1.050
+  c0 x0.25       -4.54   100.0%    0.250    1.000     1.386
+  c0 x0.18      -10.39   100.0%    0.180    1.000     1.715
+  c0 x0.12      -19.01   100.0%    0.120    1.000     2.120
+
+=== objective signal at cell 2 tick 2, relative to the base, against the threshold ===
+
+  condition        tau  reached       S0       S1  ln S1/S0
+  base            7.20   100.0%    1.000    1.000     0.000
+  c1 x1           7.20   100.0%    1.000    1.000     0.000
+  c1 x1.25        5.73   100.0%    0.986    1.139     0.145
+  c1 x1.5         4.54   100.0%    0.966    1.259     0.265
+  c1 x2           2.63   100.0%    0.921    1.455     0.458
+  c1 x2.5         1.20   100.0%    0.882    1.602     0.596
+  c1 x3           0.02    99.9%    0.854    1.712     0.695
+  c1 x4          -1.26    98.8%    0.798    1.871     0.853
+  c1 x5          -2.05    71.9%    0.529    2.137     1.397
+  c1 x6.5        -3.30    46.8%    0.280    2.418     2.157
+  c1 x8          -4.01    39.6%    0.245    2.513     2.327
+  c0 x0.8         6.61   100.0%    0.948    1.037     0.091
+  c0 x0.6         5.03   100.0%    0.860    1.132     0.274
+  c0 x0.45        2.68   100.0%    0.756    1.230     0.486
+  c0 x0.35       -0.06   100.0%    0.661    1.293     0.671
+  c0 x0.25       -4.54   100.0%    0.529    1.346     0.934
+  c0 x0.18      -10.39   100.0%    0.410    1.375     1.210
+  c0 x0.12      -19.01   100.0%    0.289    1.387     1.568
+
+=== objective signal at dense, relative to the base, against the threshold ===
+
+  condition        tau  reached       S0       S1  ln S1/S0
+  base            7.20   100.0%    1.000    1.000     0.000
+  c1 x1           7.20   100.0%    1.000    1.000     0.000
+  c1 x1.25        5.73   100.0%    0.979    1.118     0.133
+  c1 x1.5         4.54   100.0%    0.952    1.218     0.247
+  c1 x2           2.63   100.0%    0.895    1.377     0.431
+  c1 x2.5         1.20   100.0%    0.852    1.493     0.561
+  c1 x3           0.02    99.9%    0.820    1.575     0.652
+  c1 x4          -1.26    98.8%    0.748    1.691     0.815
+  c1 x5          -2.05    71.9%    0.452    1.982     1.478
+  c1 x6.5        -3.30    46.8%    0.239    2.402     2.306
+  c1 x8          -4.01    39.6%    0.218    2.721     2.522
+  c0 x0.8         6.61   100.0%    0.958    1.021     0.064
+  c0 x0.6         5.03   100.0%    0.883    1.111     0.229
+  c0 x0.45        2.68   100.0%    0.786    1.226     0.444
+  c0 x0.35       -0.06   100.0%    0.688    1.307     0.642
+  c0 x0.25       -4.54   100.0%    0.550    1.373     0.916
+  c0 x0.18      -10.39   100.0%    0.425    1.402     1.194
+  c0 x0.12      -19.01   100.0%    0.299    1.411     1.551
+
+=== the axis with its gain slice swapped, and the two pure levers matched at first order ===
+
+  |axis| = 8.2
+  |axis, dimming mix| = 8.84
+  |axis, brightening mix| = 8.25
+  |pure dim c0, matched| = 3.71
+  |pure brighten c1, matched| = 1.94
+  |gain part, in weights| = 1.72
+
+  write                       offset     tau  reached   route
+  axis                          0.30    4.39   100.0%   94.9%
+  axis                          0.70    2.14   100.0%   92.4%
+  axis                          1.00    1.46    99.7%   90.3%
+  axis                          1.50    0.03    90.7%   84.2%
+  axis                          2.00   -0.20    71.2%   82.9%
+  axis                          2.50   -0.39    52.8%   81.8%
+  axis                          3.00   -0.78    40.0%   80.3%
+  axis                          4.00   -0.94    29.1%   70.1%
+  axis, dimming mix             0.30    4.37   100.0%   94.5%
+  axis, dimming mix             0.70    2.24   100.0%   92.1%
+  axis, dimming mix             1.00    1.33    99.7%   89.0%
+  axis, dimming mix             1.50   -0.31    90.6%   84.1%
+  axis, dimming mix             2.00   -0.79    72.0%   81.7%
+  axis, dimming mix             2.50   -1.21    53.5%   77.0%
+  axis, dimming mix             3.00   -1.90    36.5%   75.2%
+  axis, dimming mix             4.00   -2.84    21.4%   68.8%
+  axis, brightening mix         0.30    4.34   100.0%   94.9%
+  axis, brightening mix         0.70    2.16   100.0%   92.4%
+  axis, brightening mix         1.00    1.46    99.7%   90.5%
+  axis, brightening mix         1.50    0.07    90.6%   84.7%
+  axis, brightening mix         2.00   -0.26    70.7%   83.3%
+  axis, brightening mix         2.50   -0.26    52.7%   81.8%
+  axis, brightening mix         3.00   -0.55    39.3%   82.8%
+  axis, brightening mix         4.00   -0.30    28.4%   74.7%
+  pure dim c0, matched          0.30    6.92   100.0%   94.7%
+  pure dim c0, matched          0.70    6.80   100.0%   94.4%
+  pure dim c0, matched          1.00    6.52   100.0%   94.2%
+  pure dim c0, matched          1.50    5.82   100.0%   93.5%
+  pure dim c0, matched          2.00    4.57   100.0%   92.1%
+  pure dim c0, matched          2.50    3.02   100.0%   91.3%
+  pure dim c0, matched          3.00    0.03   100.0%   89.6%
+  pure dim c0, matched          4.00  -16.54   100.0%   82.6%
+  pure brighten c1, matched     0.30    6.76   100.0%   95.1%
+  pure brighten c1, matched     0.70    6.26   100.0%   95.0%
+  pure brighten c1, matched     1.00    5.92   100.0%   95.3%
+  pure brighten c1, matched     1.50    5.36   100.0%   95.3%
+  pure brighten c1, matched     2.00    4.89   100.0%   95.5%
+  pure brighten c1, matched     2.50    4.31   100.0%   96.0%
+  pure brighten c1, matched     3.00    3.85   100.0%   95.8%
+  pure brighten c1, matched     4.00    3.00   100.0%   95.7%
+  gain part, in weights         0.30    6.77   100.0%   95.0%
+  gain part, in weights         0.70    6.34   100.0%   95.0%
+  gain part, in weights         1.00    5.99   100.0%   95.2%
+  gain part, in weights         1.50    5.52   100.0%   95.3%
+  gain part, in weights         2.00    5.01   100.0%   95.7%
+  gain part, in weights         2.50    4.44   100.0%   95.6%
+  gain part, in weights         3.00    3.89   100.0%   95.3%
+  gain part, in weights         4.00    2.82   100.0%   95.9%
+
+LEFTOVER_DONE

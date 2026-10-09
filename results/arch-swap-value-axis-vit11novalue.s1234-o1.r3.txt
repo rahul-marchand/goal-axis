@@ -1,0 +1,37 @@
+script 014_value_axis_analysis.py
+commit e904aa5
+argv   --base /workspace/data/runs/vit11novalue.s1234/local-files/cp_249999360 --arms /workspace/data/runs/vit11novalue.s1234/arms --levels /workspace/data/levels/values/1.00-0.50@500k --prefix o1 --base-value 0.5 --arm-steps 400000 --at -1 --replicate 3
+
+base cp_249999360  (update 48828, 2,192,133 parameters)
+
+arms
+  v=0.10  cp_399360  (update 78)  |delta| 9.275
+  v=0.80  cp_399360  (update 78)  |delta| 9.226
+  v=0.90  cp_399360  (update 78)  |delta| 9.177
+
+common component |drift| 6.752   axis per unit value |axis| 13.24
+
+
+=== collinear? cosine between arms, raw ===
+
+            0.10    0.80    0.90
+  0.10     1.000   0.258   0.244
+  0.80     0.258   1.000   0.343
+  0.90     0.244   0.343   1.000
+
+=== and with the common component removed ===
+
+            0.10    0.80    0.90
+  0.10     1.000  -0.687  -0.635
+  0.80    -0.687   1.000  -0.125
+  0.90    -0.635  -0.125   1.000
+
+The raw matrix is positive everywhere, including between arms on opposite
+sides of the base, which is the signature of a direction that means no more
+than 'was fine-tuned'. Once that is removed, arms on the same side should
+agree and arms on opposite sides should oppose. Ordering matters as much as
+sign: neighbouring values should look more alike than distant ones.
+
+=== graded and predictive? ===
+
+    value  offset   |delta|  |residual|  held-out R^2  held-out cos  implied offset

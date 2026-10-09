@@ -1,0 +1,36 @@
+script direction_profile.py
+commit unknown
+argv   /workspace/data/offline/runs/scaling/sc11.d128l4.s1 --offline --demos /workspace/data/offline/demos/scaling --n-levels 256 --sweep o1 --steps-tag 1000 --json /workspace/data/figures-data/gain-vs-factorised/direction-sc11.d128l4.json
+
+base   sc11.d128l4.s1 @ step 30,000  (806,533 parameters), values (1.0, 0.5)
+input  params/cell_in/kernel (4, 128)
+states embedding, block 0, block 1, block 2, block 3
+
+=== relative activation change per state (|dh| / |h|) ===
+  state                     gain        turn        axis      random
+  embedding            3.184e-03   3.178e-03   4.302e-04   8.717e-04
+  block 0              7.748e-03   1.556e-02   1.011e-02   4.875e-03
+  block 1              8.572e-03   1.301e-02   1.217e-02   5.171e-03
+  block 2              9.307e-03   1.353e-02   1.533e-02   5.309e-03
+  block 3              1.133e-02   1.954e-02   1.846e-02   6.944e-03
+
+=== survival: how much of the relative change each stage passed on ===
+  stage                                           gain        turn        axis      random
+  embedding -> block 0                           2.433       4.897      23.490       5.593
+  block 0 -> block 1                             1.106       0.836       1.205       1.061
+  block 1 -> block 2                             1.086       1.040       1.259       1.027
+  block 2 -> block 3                             1.218       1.444       1.204       1.308
+
+=== share of the axis's change explained (R^2) ===
+  state                   gain      turn      both    random
+  embedding              0.000     0.000     0.000     0.002
+  block 0                0.008     0.038     0.044     0.008
+  block 1                0.000     0.041     0.041     0.001
+  block 2                0.001     0.012     0.013     0.003
+  block 3                0.000     0.000     0.001     0.001
+
+=== the first LayerNorm, on the embedding ===
+  gain   ones  0.025  magnitude  0.948  direction  0.027   |dh|/|h| before 3.184e-03 after 4.306e-04   survival 0.135
+  turn   ones  0.023  magnitude  0.001  direction  0.975   |dh|/|h| before 3.178e-03 after 2.575e-03   survival 0.810
+
+wrote /workspace/data/figures-data/gain-vs-factorised/direction-sc11.d128l4.json

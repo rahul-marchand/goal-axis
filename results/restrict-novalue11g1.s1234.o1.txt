@@ -1,0 +1,99 @@
+script restricted_writes.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s1234 --levels /workspace/data/levels/values/1.00-0.50@500k --json figures/data/restricted/novalue11g1.s1234.o1.json
+
+base   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms at [-0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4]; |axis| 8.2
+
+modules, forward order; ranked by share of the sweep-agreeing axis, -axis_o1 . axis_o0 per module
+
+  module                  params  params %   axis %   rank %  rank
+  input conv               1,184      0.08     17.6     28.4     1
+  conv 1                   9,248      0.64      9.1     14.1     3
+  cell 0 input           111,936      7.72      8.8      9.7     6
+  cell 0 recurrent        36,864      2.54      2.1      1.9     8
+  cell 1 input           111,936      7.72      9.5      9.9     5
+  cell 1 recurrent        36,864      2.54      0.8      0.6     9
+  cell 2 input           111,936      7.72     11.8     13.3     4
+  cell 2 recurrent        36,864      2.54      4.1      4.4     7
+  dense                  991,488     68.40     36.2     17.5     2
+  heads                    1,285      0.09      0.1      0.0    10
+
+=== writes, decoded on 2048 held-out levels at the base values ===
+
+                                                 steps   95% interval    reached
+                               base, untouched     6.9  [  6.6,   7.2]    100.0%
+
+                             full axis @ -0.30    12.1  [ 11.7,  12.8]    100.0%
+                       only input conv @ -0.30     8.7  [  8.3,   9.2]    100.0%
+        only input conv, rescaled x2.4 @ -0.30    12.8  [ 12.0,  13.5]    100.0%
+                    all but input conv @ -0.30     9.6  [  9.2,  10.1]    100.0%
+                           only conv 1 @ -0.30     7.4  [  7.0,   7.8]    100.0%
+            only conv 1, rescaled x3.3 @ -0.30     9.0  [  8.5,   9.5]    100.0%
+                        all but conv 1 @ -0.30    11.0  [ 10.6,  11.5]    100.0%
+                     only cell 0 input @ -0.30     7.2  [  6.9,   7.6]    100.0%
+      only cell 0 input, rescaled x3.4 @ -0.30     8.0  [  7.6,   8.4]    100.0%
+                  all but cell 0 input @ -0.30    11.5  [ 11.0,  12.1]    100.0%
+                 only cell 0 recurrent @ -0.30     7.0  [  6.7,   7.4]    100.0%
+  only cell 0 recurrent, rescaled x7.0 @ -0.30     7.4  [  7.0,   7.9]    100.0%
+              all but cell 0 recurrent @ -0.30    12.1  [ 11.6,  12.7]    100.0%
+                     only cell 1 input @ -0.30     7.2  [  6.9,   7.6]    100.0%
+      only cell 1 input, rescaled x3.2 @ -0.30     8.0  [  7.6,   8.3]    100.0%
+                  all but cell 1 input @ -0.30    11.6  [ 11.2,  12.1]    100.0%
+                 only cell 1 recurrent @ -0.30     7.0  [  6.7,   7.4]    100.0%
+  only cell 1 recurrent, rescaled x11.4 @ -0.30     7.2  [  6.9,   7.6]    100.0%
+              all but cell 1 recurrent @ -0.30    12.2  [ 11.7,  12.8]    100.0%
+                     only cell 2 input @ -0.30     7.8  [  7.4,   8.2]    100.0%
+      only cell 2 input, rescaled x2.9 @ -0.30     9.4  [  8.9,   9.9]    100.0%
+                  all but cell 2 input @ -0.30    10.8  [ 10.5,  11.3]    100.0%
+                 only cell 2 recurrent @ -0.30     7.1  [  6.8,   7.5]    100.0%
+  only cell 2 recurrent, rescaled x5.0 @ -0.30     8.0  [  7.7,   8.3]    100.0%
+              all but cell 2 recurrent @ -0.30    11.9  [ 11.4,  12.4]    100.0%
+                            only dense @ -0.30     7.0  [  6.6,   7.3]    100.0%
+             only dense, rescaled x1.7 @ -0.30     7.0  [  6.6,   7.3]    100.0%
+                         all but dense @ -0.30    12.2  [ 11.7,  12.7]    100.0%
+                            only heads @ -0.30     6.9  [  6.6,   7.3]    100.0%
+            only heads, rescaled x32.7 @ -0.30     6.6  [  6.2,   7.0]     92.0%
+                         all but heads @ -0.30    12.1  [ 11.6,  12.7]    100.0%
+                largest 1 (input conv) @ -0.30     8.7  [  8.3,   9.2]    100.0%
+         largest 2 (input conv, dense) @ -0.30     8.8  [  8.4,   9.2]    100.0%
+  largest 3 (input conv, dense, conv 1) @ -0.30     9.5  [  9.2,  10.1]    100.0%
+  largest 4 (input conv, dense, conv 1, cell 2 input) @ -0.30    10.4  [ 10.0,  10.9]    100.0%
+
+                             full axis @ +0.30     4.4  [  4.2,   4.7]    100.0%
+                       only input conv @ +0.30     5.8  [  5.5,   6.2]    100.0%
+        only input conv, rescaled x2.4 @ +0.30     4.1  [  3.8,   4.3]    100.0%
+                    all but input conv @ +0.30     5.4  [  5.1,   5.7]    100.0%
+                           only conv 1 @ +0.30     6.6  [  6.3,   6.9]    100.0%
+            only conv 1, rescaled x3.3 @ +0.30     5.9  [  5.6,   6.2]    100.0%
+                        all but conv 1 @ +0.30     4.6  [  4.3,   4.8]    100.0%
+                     only cell 0 input @ +0.30     6.7  [  6.3,   7.0]    100.0%
+      only cell 0 input, rescaled x3.4 @ +0.30     6.0  [  5.8,   6.4]    100.0%
+                  all but cell 0 input @ +0.30     4.5  [  4.3,   4.8]    100.0%
+                 only cell 0 recurrent @ +0.30     6.8  [  6.5,   7.1]    100.0%
+  only cell 0 recurrent, rescaled x7.0 @ +0.30     6.6  [  6.3,   7.0]    100.0%
+              all but cell 0 recurrent @ +0.30     4.5  [  4.2,   4.7]    100.0%
+                     only cell 1 input @ +0.30     6.7  [  6.4,   7.1]    100.0%
+      only cell 1 input, rescaled x3.2 @ +0.30     6.2  [  5.9,   6.5]    100.0%
+                  all but cell 1 input @ +0.30     4.4  [  4.2,   4.7]    100.0%
+                 only cell 1 recurrent @ +0.30     6.9  [  6.6,   7.2]    100.0%
+  only cell 1 recurrent, rescaled x11.4 @ +0.30     6.7  [  6.3,   7.0]    100.0%
+              all but cell 1 recurrent @ +0.30     4.4  [  4.2,   4.7]    100.0%
+                     only cell 2 input @ +0.30     6.3  [  6.0,   6.6]    100.0%
+      only cell 2 input, rescaled x2.9 @ +0.30     5.3  [  5.0,   5.5]    100.0%
+                  all but cell 2 input @ +0.30     4.8  [  4.5,   5.0]    100.0%
+                 only cell 2 recurrent @ +0.30     6.8  [  6.4,   7.1]    100.0%
+  only cell 2 recurrent, rescaled x5.0 @ +0.30     6.3  [  6.0,   6.7]    100.0%
+              all but cell 2 recurrent @ +0.30     4.5  [  4.2,   4.7]    100.0%
+                            only dense @ +0.30     6.9  [  6.6,   7.3]    100.0%
+             only dense, rescaled x1.7 @ +0.30     7.0  [  6.6,   7.3]    100.0%
+                         all but dense @ +0.30     4.4  [  4.2,   4.7]    100.0%
+                            only heads @ +0.30     6.9  [  6.6,   7.2]    100.0%
+            only heads, rescaled x32.7 @ +0.30     6.8  [  6.5,   7.1]     98.8%
+                         all but heads @ +0.30     4.4  [  4.1,   4.6]    100.0%
+                largest 1 (input conv) @ +0.30     5.8  [  5.5,   6.2]    100.0%
+         largest 2 (input conv, dense) @ +0.30     5.8  [  5.6,   6.1]    100.0%
+  largest 3 (input conv, dense, conv 1) @ +0.30     5.5  [  5.3,   5.8]    100.0%
+  largest 4 (input conv, dense, conv 1, cell 2 input) @ +0.30     4.9  [  4.7,   5.1]    100.0%
+
+wrote figures/data/restricted/novalue11g1.s1234.o1.json

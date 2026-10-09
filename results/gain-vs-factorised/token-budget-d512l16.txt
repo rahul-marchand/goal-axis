@@ -1,0 +1,18 @@
+script token_budget.py
+commit unknown
+argv   /workspace/data/offline/runs/scaling/sc11.d512l16.s1 --demos /workspace/data/offline/demos/scaling --n-levels 256 --json /workspace/data/figures-data/gain-vs-factorised/token-budget-d512l16.json
+base   sc11.d512l16.s1 @ step 30,000  (50,491,909 parameters)
+       d_model 512, 16 blocks, 4 input channels, size 11
+levels 256 of /workspace/data/offline/demos/scaling/test.rho100
+
+=== what a cell token is made of; shares of ||x||^2 and of its variation across cells ===
+
+  part              of token  of variation  reach after LN
+  colour              0.0224        0.0530          0.1688
+  other content       0.9328        0.8705          0.9863
+  position            0.0448        0.0765          0.7060
+
+  reach after LN = relative change in the post-LayerNorm token when that part is removed;
+  it bounds what an edit confined to that part of the input can do.
+
+wrote /workspace/data/figures-data/gain-vs-factorised/token-budget-d512l16.json

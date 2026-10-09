@@ -14,6 +14,7 @@ import pytest
 from goalmisgen.analysis import bin_by_margin, collect_episode_outcomes, summarise
 from goalmisgen.analysis.behaviour import (
     indifference_point,
+    on_shortest_route,
     optimal_threshold,
     value_distance_decisions,
 )
@@ -217,6 +218,16 @@ def test_the_indifference_point_is_recovered_from_a_known_threshold():
     took_richer = (gaps < 10).astype(float)
 
     assert indifference_point(gaps, took_richer) == pytest.approx(10.0, abs=0.7)
+
+
+def test_on_shortest_route_counts_only_finished_episodes_that_took_no_detour():
+    outcomes = [
+        {"reached_objective": True, "reached_feature_id": 0, "feature_0_distance": 5, "episode_steps": 5},
+        {"reached_objective": True, "reached_feature_id": 1, "feature_1_distance": 4, "episode_steps": 6},
+        {"reached_objective": False, "episode_steps": 120},
+    ]
+    assert on_shortest_route(outcomes) == 0.5
+    assert np.isnan(on_shortest_route(outcomes[2:]))
 
 
 def test_the_undiscounted_threshold_is_the_limit_of_the_discounted_one() -> None:

@@ -1,0 +1,96 @@
+script readout_fit.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s9012 --levels /workspace/data/levels/values/1.00-0.50@500k --n-levels 4096 --n-random 64 --json /workspace/data/figures-data/gain-vs-factorised/e14/novalue11g1.s9012.json
+base   /workspace/data/runs/novalue11g1.s9012/local-files/cp_149995520, values (1.0, 0.5)
+levels 4096 from /workspace/data/levels/values/1.00-0.50@500k [test], 4 teacher-forced steps
+sweep  o1: 8 arms; |axis| 7.26
+choice rollouts: tau 7.51 [7.29, 7.75], reached 100.0%, took rich 74.4%
+
+  read 11 sites at step 3
+
+=== fitted direction vs the norm, held out ===
+    crossing is the gap at which the readout is zero; the measured threshold is 7.51
+
+                site        readout    AUC  corr gap  crossing      n
+          input conv   fields reach the agent on 9 levels; skipped
+              conv 1         fitted  0.788    -0.245    +54.15    105
+              conv 1   fitted +bias  0.794    -0.269    +66.17    105
+              conv 1           norm  0.899    -0.405    +22.91    105
+              conv 1     random x64  0.465               +8.76   (best AUC 0.882)
+              conv 1   shuffled fit  0.523    -0.010  +1522.34    105
+       cell 0 tick 0         fitted  0.867    -0.699     +6.40   2048
+       cell 0 tick 0   fitted +bias  0.893    -0.732    +12.24   2048
+       cell 0 tick 0           norm  0.718    -0.418     +6.25   2048
+       cell 0 tick 0     random x64  0.556               -2.11   (best AUC 0.810)
+       cell 0 tick 0   shuffled fit  0.588    -0.184    +43.73   2048
+       cell 1 tick 0         fitted  0.768    -0.434     +3.14   2048
+       cell 1 tick 0   fitted +bias  0.815    -0.563    +19.30   2048
+       cell 1 tick 0           norm  0.704    -0.368     +8.67   2048
+       cell 1 tick 0     random x64  0.510               -5.92   (best AUC 0.791)
+       cell 1 tick 0   shuffled fit  0.293    +0.338    -16.71   2048
+       cell 2 tick 0         fitted  0.884    -0.723     +8.04   2048
+       cell 2 tick 0   fitted +bias  0.913    -0.731    +10.78   2048
+       cell 2 tick 0           norm  0.784    -0.587     +9.46   2048
+       cell 2 tick 0     random x64  0.485               +7.60   (best AUC 0.740)
+       cell 2 tick 0   shuffled fit  0.563    -0.154    +72.84   2048
+       cell 0 tick 1         fitted  0.873    -0.690     +7.01   2048
+       cell 0 tick 1   fitted +bias  0.893    -0.723    +12.17   2048
+       cell 0 tick 1           norm  0.691    -0.389     +8.35   2048
+       cell 0 tick 1     random x64  0.557               -3.12   (best AUC 0.831)
+       cell 0 tick 1   shuffled fit  0.636    -0.259    +33.24   2048
+       cell 1 tick 1         fitted  0.754    -0.386     +4.08   2048
+       cell 1 tick 1   fitted +bias  0.825    -0.546    +19.72   2048
+       cell 1 tick 1           norm  0.671    -0.329     +8.27   2048
+       cell 1 tick 1     random x64  0.511               -7.16   (best AUC 0.791)
+       cell 1 tick 1   shuffled fit  0.343    +0.229    -26.58   2048
+       cell 2 tick 1         fitted  0.884    -0.695     +7.55   2048
+       cell 2 tick 1   fitted +bias  0.917    -0.713    +10.84   2048
+       cell 2 tick 1           norm  0.788    -0.553     +6.21   2048
+       cell 2 tick 1     random x64  0.496               +6.25   (best AUC 0.694)
+       cell 2 tick 1   shuffled fit  0.529    -0.115    +97.84   2048
+       cell 0 tick 2         fitted  0.858    -0.675     +6.98   2048
+       cell 0 tick 2   fitted +bias  0.888    -0.716    +12.05   2048
+       cell 0 tick 2           norm  0.686    -0.369     +3.69   2048
+       cell 0 tick 2     random x64  0.563               -4.82   (best AUC 0.808)
+       cell 0 tick 2   shuffled fit  0.502    -0.056   +176.27   2048
+       cell 1 tick 2         fitted  0.729    -0.370     +4.19   2048
+       cell 1 tick 2   fitted +bias  0.819    -0.550    +19.93   2048
+       cell 1 tick 2           norm  0.695    -0.368     +3.32   2048
+       cell 1 tick 2     random x64  0.510               -9.64   (best AUC 0.793)
+       cell 1 tick 2   shuffled fit  0.272    +0.369    -17.95   2048
+       cell 2 tick 2         fitted  0.891    -0.673     +8.54   2048
+       cell 2 tick 2   fitted +bias  0.923    -0.678    +10.71   2048
+       cell 2 tick 2           norm  0.790    -0.583     +4.52   2048
+       cell 2 tick 2     random x64  0.493               -0.49   (best AUC 0.699)
+       cell 2 tick 2   shuffled fit  0.500    -0.092   +134.75   2048
+
+=== transfer: a direction fitted at one site, used at another (held-out AUC) ===
+
+                            conv 1  ell 0 tick 0  ell 1 tick 0  ell 2 tick 0  ell 0 tick 1  ell 1 tick 1  ell 2 tick 1  ell 0 tick 2  ell 1 tick 2  ell 2 tick 2
+              conv 1         0.788         0.225         0.355         0.549         0.232         0.352         0.467         0.211         0.348         0.522
+       cell 0 tick 0         0.201         0.867         0.470         0.496         0.877         0.465         0.466         0.840         0.471         0.480
+       cell 1 tick 0         0.229         0.802         0.768         0.460         0.798         0.781         0.497         0.805         0.764         0.500
+       cell 2 tick 0         0.449         0.167         0.646         0.884         0.175         0.647         0.802         0.178         0.661         0.818
+       cell 0 tick 1         0.225         0.853         0.464         0.493         0.873         0.459         0.466         0.818         0.463         0.479
+       cell 1 tick 1         0.267         0.804         0.734         0.441         0.800         0.754         0.490         0.806         0.736         0.489
+       cell 2 tick 1         0.343         0.185         0.533         0.896         0.177         0.530         0.884         0.190         0.555         0.870
+       cell 0 tick 2         0.156         0.876         0.406         0.474         0.882         0.401         0.462         0.858         0.385         0.472
+       cell 1 tick 2         0.280         0.803         0.721         0.437         0.799         0.737         0.490         0.805         0.729         0.488
+       cell 2 tick 2         0.483         0.191         0.605         0.904         0.185         0.613         0.878         0.196         0.622         0.891
+
+=== the fitted direction against the axis's own change at that cell ===
+
+                site    cos(w, axis change)    cos(w, mean A_rich)
+              conv 1                  0.197                  0.293
+       cell 0 tick 0                 -0.004                  0.031
+       cell 1 tick 0                 -0.006                  0.040
+       cell 2 tick 0                 -0.139                  0.113
+       cell 0 tick 1                 -0.008                  0.060
+       cell 1 tick 1                 -0.027                  0.029
+       cell 2 tick 1                 -0.069                  0.069
+       cell 0 tick 2                 -0.005                  0.030
+       cell 1 tick 2                 -0.042                  0.027
+       cell 2 tick 2                 -0.180                  0.131
+
+wrote /workspace/data/figures-data/gain-vs-factorised/e14/novalue11g1.s9012.json
+READOUT_FIT_DONE

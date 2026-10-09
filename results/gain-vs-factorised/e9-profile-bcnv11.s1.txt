@@ -1,0 +1,7 @@
+script direction_profile.py
+commit unknown
+argv   /workspace/data/offline/runs/bcnv11.s1 --offline --demos /workspace/data/offline/demos --json /workspace/data/figures-data/gain-vs-factorised/e9/bcnv11.s1.profile.json
+
+base   bcnv11.s1 @ step 30,000  (806,533 parameters), values (1.0, 0.5)
+input  params/cell_in/kernel (4, 128)
+states embedding, block 0, block 1, block 2, block 3

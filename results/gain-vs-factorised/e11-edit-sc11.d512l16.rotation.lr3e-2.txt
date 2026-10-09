@@ -1,0 +1,12 @@
+script cheapest_edit.py
+commit unknown
+argv   /workspace/data/offline/runs/scaling/sc11.d512l16.s1 --offline --demos /workspace/data/offline/demos/scaling --target soft --seeds 0 1 --steps 150 --n-edit 2048 --n-eval 2048 --shifts -4 -2 2 4 --eval-shifts -8 -4 -2 2 4 8 --steps-tag 1000 --sweep o1 --json /workspace/data/figures-data/gain-vs-factorised/e11-d512l16.rotation.lr3e-2.json --save-deltas /workspace/data/figures-data/gain-vs-factorised/e11-d512l16.rotation.lr3e-2.npz --family rotation --lr 3e-2
+
+base   sc11.d512l16.s1 @ step 30,000  (50,491,909 parameters), values (1.0, 0.5)
+levels 2048 to edit on, 2048 held out
+base   threshold 10.61 steps, logistic scale 0.17 (edit levels); held out 10.61
+base   fork margin = +10.295 -0.740 x gap (r -0.701); margin-implied threshold 13.91 vs behavioural 10.61; sign agrees with the rollout choice on 100.0% of levels
+base   fork-sign threshold 10.5; 99.9% of levels agree with it and are trained on; doses ask to flip 9.2%, 4.2%, 3.3%, 7.3%
+base   fork P(rich) by gap: -12:1.00  -9:1.00  -6:1.00  -3:1.00  +0:1.00  +3:1.00  +6:1.00  +9:1.00  +12:0.03
+base   mean fork margin by gap: -12:+16.34  -9:+16.34  -6:+16.34  -3:+16.34  +0:+16.34  +3:+16.34  +6:+16.34  +9:+8.85  +12:-7.33
+no edit: fixed-level loss 0.6696 (nav 0.0001, fork 0.6695, fork error 0.056)

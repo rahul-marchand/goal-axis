@@ -1,0 +1,153 @@
+script restricted_writes.py
+commit e904aa5
+argv   /workspace/data/runs/vit11nvg1.s9012 --levels /workspace/data/levels/values/1.00-0.50@500k --doses 0.5 1 2 4 8 --json figures/data/restricted/vit11nvg1.s9012.dose.json
+
+base   /workspace/data/runs/vit11nvg1.s9012/local-files/cp_249999360  (2,192,133 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms at [-0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4]; |axis| 10.4
+
+modules, forward order; ranked by share of the sweep-agreeing axis, -axis_o1 . axis_o0 per module
+
+  module                  params  params %   axis %   rank %  rank
+  patch embed              8,064      0.37      0.7      1.2    10
+  block 0 attention       16,640      0.76      1.1      2.4     8
+  block 0 mlp             33,088      1.51      3.1      6.8     3
+  block 1 attention       16,640      0.76      1.4      2.3     9
+  block 1 mlp             33,088      1.51      3.7      5.7     5
+  block 2 attention       16,640      0.76      1.9      3.4     7
+  block 2 mlp             33,088      1.51      3.7      5.5     6
+  block 3 attention       16,640      0.76      3.1      7.6     2
+  block 3 mlp             33,088      1.51      3.9      6.0     4
+  dense                1,982,848     90.45     77.2     58.8     1
+  heads                    1,285      0.06      0.1      0.1    12
+  other                    1,024      0.05      0.1      0.1    11
+
+=== writes, decoded on 2048 held-out levels at the base values ===
+
+                                                 steps   95% interval    reached
+                               base, untouched     5.2  [  4.8,   5.8]     94.6%
+
+                             full axis @ -0.30     7.2  [  6.6,   7.6]     92.4%
+                 only patch embed x0.5 @ -0.30     5.3  [  4.9,   5.8]     94.4%
+                   only patch embed x1 @ -0.30     5.3  [  4.8,   5.8]     94.4%
+                   only patch embed x2 @ -0.30     5.6  [  5.2,   6.1]     94.0%
+                   only patch embed x4 @ -0.30     6.1  [  5.7,   6.6]     93.2%
+                   only patch embed x8 @ -0.30     7.0  [  6.5,   7.6]     91.1%
+           only block 0 attention x0.5 @ -0.30     5.4  [  4.9,   5.8]     94.5%
+             only block 0 attention x1 @ -0.30     5.6  [  5.1,   6.0]     94.2%
+             only block 0 attention x2 @ -0.30     6.0  [  5.5,   6.4]     93.4%
+             only block 0 attention x4 @ -0.30     6.5  [  6.0,   7.2]     91.7%
+             only block 0 attention x8 @ -0.30     9.1  [  8.6,   9.7]     84.2%
+                 only block 0 mlp x0.5 @ -0.30     5.4  [  5.0,   5.9]     94.3%
+                   only block 0 mlp x1 @ -0.30     5.7  [  5.1,   6.2]     94.2%
+                   only block 0 mlp x2 @ -0.30     6.1  [  5.5,   6.6]     93.5%
+                   only block 0 mlp x4 @ -0.30     6.9  [  6.4,   7.5]     93.0%
+                   only block 0 mlp x8 @ -0.30    10.3  [  9.6,  11.0]     87.1%
+           only block 1 attention x0.5 @ -0.30     5.2  [  4.8,   5.7]     94.4%
+             only block 1 attention x1 @ -0.30     5.3  [  4.9,   5.7]     94.4%
+             only block 1 attention x2 @ -0.30     5.4  [  4.9,   5.9]     94.3%
+             only block 1 attention x4 @ -0.30     5.6  [  5.2,   6.1]     94.0%
+             only block 1 attention x8 @ -0.30     6.3  [  5.8,   6.9]     93.2%
+                 only block 1 mlp x0.5 @ -0.30     5.3  [  4.9,   5.8]     94.5%
+                   only block 1 mlp x1 @ -0.30     5.5  [  5.1,   6.1]     94.2%
+                   only block 1 mlp x2 @ -0.30     5.8  [  5.3,   6.3]     94.1%
+                   only block 1 mlp x4 @ -0.30     6.4  [  5.9,   7.0]     93.6%
+                   only block 1 mlp x8 @ -0.30     7.7  [  7.2,   8.2]     92.0%
+           only block 2 attention x0.5 @ -0.30     5.3  [  4.9,   5.8]     94.5%
+             only block 2 attention x1 @ -0.30     5.4  [  5.0,   5.9]     94.5%
+             only block 2 attention x2 @ -0.30     5.6  [  5.1,   6.0]     94.3%
+             only block 2 attention x4 @ -0.30     5.8  [  5.3,   6.2]     93.4%
+             only block 2 attention x8 @ -0.30     6.3  [  5.8,   6.8]     92.3%
+                 only block 2 mlp x0.5 @ -0.30     5.2  [  4.8,   5.7]     94.3%
+                   only block 2 mlp x1 @ -0.30     5.3  [  4.9,   5.8]     94.2%
+                   only block 2 mlp x2 @ -0.30     5.5  [  5.1,   5.9]     93.9%
+                   only block 2 mlp x4 @ -0.30     5.7  [  5.3,   6.2]     93.7%
+                   only block 2 mlp x8 @ -0.30     6.1  [  5.5,   6.6]     92.6%
+           only block 3 attention x0.5 @ -0.30     5.3  [  4.9,   5.7]     94.7%
+             only block 3 attention x1 @ -0.30     5.3  [  4.8,   5.7]     94.5%
+             only block 3 attention x2 @ -0.30     5.4  [  4.9,   5.8]     94.2%
+             only block 3 attention x4 @ -0.30     5.5  [  5.0,   6.0]     93.8%
+             only block 3 attention x8 @ -0.30     5.7  [  5.3,   6.3]     92.3%
+                 only block 3 mlp x0.5 @ -0.30     5.3  [  4.8,   5.7]     94.5%
+                   only block 3 mlp x1 @ -0.30     5.3  [  4.9,   5.8]     94.4%
+                   only block 3 mlp x2 @ -0.30     5.4  [  5.0,   5.9]     94.2%
+                   only block 3 mlp x4 @ -0.30     5.6  [  5.1,   6.1]     93.9%
+                   only block 3 mlp x8 @ -0.30     5.9  [  5.4,   6.2]     93.6%
+                       only dense x0.5 @ -0.30     5.2  [  4.8,   5.8]     94.4%
+                         only dense x1 @ -0.30     5.3  [  4.8,   5.8]     94.1%
+                         only dense x2 @ -0.30     5.4  [  4.9,   5.8]     94.0%
+                         only dense x4 @ -0.30     5.5  [  5.0,   5.9]     92.7%
+                         only dense x8 @ -0.30     5.4  [  4.9,   5.9]     85.6%
+                       only heads x0.5 @ -0.30     5.2  [  4.8,   5.7]     94.5%
+                         only heads x1 @ -0.30     5.2  [  4.8,   5.7]     94.6%
+                         only heads x2 @ -0.30     5.2  [  4.8,   5.7]     94.7%
+                         only heads x4 @ -0.30     5.2  [  4.8,   5.7]     94.5%
+                         only heads x8 @ -0.30     5.1  [  4.7,   5.5]     93.5%
+                       only other x0.5 @ -0.30     5.2  [  4.8,   5.7]     94.5%
+                         only other x1 @ -0.30     5.3  [  4.8,   5.7]     94.4%
+                         only other x2 @ -0.30     5.3  [  4.9,   5.8]     94.3%
+                         only other x4 @ -0.30     5.5  [  5.0,   5.9]     94.3%
+                         only other x8 @ -0.30     5.8  [  5.3,   6.3]     93.8%
+
+                             full axis @ +0.30     3.6  [  3.1,   4.1]     95.1%
+                 only patch embed x0.5 @ +0.30     5.1  [  4.6,   5.6]     94.6%
+                   only patch embed x1 @ +0.30     5.0  [  4.6,   5.5]     94.6%
+                   only patch embed x2 @ +0.30     4.9  [  4.4,   5.3]     94.8%
+                   only patch embed x4 @ +0.30     4.5  [  4.1,   5.0]     94.9%
+                   only patch embed x8 @ +0.30     3.8  [  3.3,   4.2]     93.3%
+           only block 0 attention x0.5 @ +0.30     5.1  [  4.7,   5.5]     94.7%
+             only block 0 attention x1 @ +0.30     5.0  [  4.5,   5.4]     94.8%
+             only block 0 attention x2 @ +0.30     4.7  [  4.3,   5.1]     94.7%
+             only block 0 attention x4 @ +0.30     4.0  [  3.5,   4.4]     94.5%
+             only block 0 attention x8 @ +0.30     2.6  [  2.2,   3.0]     92.2%
+                 only block 0 mlp x0.5 @ +0.30     5.1  [  4.6,   5.6]     94.6%
+                   only block 0 mlp x1 @ +0.30     5.0  [  4.5,   5.5]     94.8%
+                   only block 0 mlp x2 @ +0.30     4.7  [  4.2,   5.0]     95.1%
+                   only block 0 mlp x4 @ +0.30     3.8  [  3.3,   4.2]     94.9%
+                   only block 0 mlp x8 @ +0.30     2.3  [  1.9,   2.7]     93.5%
+           only block 1 attention x0.5 @ +0.30     5.2  [  4.8,   5.7]     94.7%
+             only block 1 attention x1 @ +0.30     5.2  [  4.8,   5.7]     94.7%
+             only block 1 attention x2 @ +0.30     5.1  [  4.7,   5.5]     94.7%
+             only block 1 attention x4 @ +0.30     5.0  [  4.5,   5.4]     94.5%
+             only block 1 attention x8 @ +0.30     4.7  [  4.2,   5.1]     94.2%
+                 only block 1 mlp x0.5 @ +0.30     5.1  [  4.7,   5.6]     94.6%
+                   only block 1 mlp x1 @ +0.30     5.0  [  4.6,   5.5]     94.7%
+                   only block 1 mlp x2 @ +0.30     4.8  [  4.4,   5.3]     94.7%
+                   only block 1 mlp x4 @ +0.30     4.3  [  3.9,   4.7]     94.7%
+                   only block 1 mlp x8 @ +0.30     3.5  [  3.0,   3.9]     94.3%
+           only block 2 attention x0.5 @ +0.30     5.1  [  4.7,   5.6]     94.7%
+             only block 2 attention x1 @ +0.30     5.1  [  4.6,   5.6]     94.8%
+             only block 2 attention x2 @ +0.30     5.0  [  4.6,   5.5]     94.7%
+             only block 2 attention x4 @ +0.30     4.7  [  4.2,   5.1]     95.0%
+             only block 2 attention x8 @ +0.30     4.2  [  3.8,   4.6]     94.5%
+                 only block 2 mlp x0.5 @ +0.30     5.2  [  4.7,   5.6]     94.6%
+                   only block 2 mlp x1 @ +0.30     5.1  [  4.7,   5.5]     94.7%
+                   only block 2 mlp x2 @ +0.30     5.1  [  4.6,   5.5]     94.9%
+                   only block 2 mlp x4 @ +0.30     4.9  [  4.5,   5.3]     95.1%
+                   only block 2 mlp x8 @ +0.30     4.6  [  4.1,   5.0]     94.9%
+           only block 3 attention x0.5 @ +0.30     5.2  [  4.8,   5.6]     94.5%
+             only block 3 attention x1 @ +0.30     5.2  [  4.8,   5.6]     94.6%
+             only block 3 attention x2 @ +0.30     5.1  [  4.7,   5.6]     94.6%
+             only block 3 attention x4 @ +0.30     5.0  [  4.6,   5.5]     94.4%
+             only block 3 attention x8 @ +0.30     4.8  [  4.4,   5.3]     94.2%
+                 only block 3 mlp x0.5 @ +0.30     5.2  [  4.7,   5.7]     94.6%
+                   only block 3 mlp x1 @ +0.30     5.1  [  4.7,   5.6]     94.6%
+                   only block 3 mlp x2 @ +0.30     5.1  [  4.6,   5.5]     94.7%
+                   only block 3 mlp x4 @ +0.30     5.0  [  4.6,   5.4]     94.7%
+                   only block 3 mlp x8 @ +0.30     4.7  [  4.2,   5.2]     94.1%
+                       only dense x0.5 @ +0.30     5.2  [  4.8,   5.7]     94.7%
+                         only dense x1 @ +0.30     5.2  [  4.8,   5.6]     94.2%
+                         only dense x2 @ +0.30     5.0  [  4.5,   5.5]     93.8%
+                         only dense x4 @ +0.30     5.0  [  4.5,   5.6]     92.1%
+                         only dense x8 @ +0.30     4.8  [  4.3,   5.2]     83.5%
+                       only heads x0.5 @ +0.30     5.2  [  4.7,   5.7]     94.5%
+                         only heads x1 @ +0.30     5.2  [  4.8,   5.7]     94.4%
+                         only heads x2 @ +0.30     5.2  [  4.8,   5.7]     94.4%
+                         only heads x4 @ +0.30     5.2  [  4.7,   5.7]     94.3%
+                         only heads x8 @ +0.30     5.2  [  4.8,   5.7]     93.5%
+                       only other x0.5 @ +0.30     5.2  [  4.7,   5.6]     94.5%
+                         only other x1 @ +0.30     5.1  [  4.7,   5.6]     94.5%
+                         only other x2 @ +0.30     5.1  [  4.7,   5.7]     94.6%
+                         only other x4 @ +0.30     5.1  [  4.7,   5.5]     94.4%
+                         only other x8 @ +0.30     5.0  [  4.6,   5.4]     93.8%
+
+wrote figures/data/restricted/vit11nvg1.s9012.dose.json

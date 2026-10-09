@@ -1,0 +1,36 @@
+script control_writes.py
+commit unknown
+argv   /workspace/data/runs/novalue11g1.s9012 --levels /workspace/data/levels/values/1.00-0.50@500k --edits late=/workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s9012.late.npz:seed0 readout=/workspace/GoalMisgeneralisation/figures/data/gain_vs_factorised/e4/novalue11g1.s9012.readout.npz:seed0 contingent=/workspace/data/figures-data/gain-vs-factorised/contingent-novalue11g1.s9012.npz:seed0 --split-match contingent --rounds 3 --rotation /workspace/data/figures-data/gain-vs-factorised/rotation-novalue11g1.s9012.json --pairs /workspace/data/figures-data/control/novalue11g1.s9012.npz --json /workspace/data/figures-data/gain-vs-factorised/control-novalue11g1.s9012.json
+
+base   /workspace/data/runs/novalue11g1.s9012/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms; |axis| 7.26
+
+base threshold 7.25 (reached 100.0%, on route 90.6%; 17s incl. compile)
+axis  @ +-0.3: 4.00 vs 12.33  -> target shift -8.33 steps
+match  late: scale 4.16 -> +5.77, scale -6.01 -> -7.15, scale -7 -> -5.64  (kept -6.01, -7.15, error 1.18)
+match  readout: scale 4.16 -> +0.39, scale -33.3 -> -2.32, scale -120 -> +0.61  (kept -33.3, -2.32, error 6.01)
+match  contingent (on split): scale 4.16 -> +5.59, scale -6.21 -> -7.55, scale -6.84 -> -8.30  (kept -6.84, -8.30, error 0.03)
+match  rotation: scale 4.16 -> +2.21, scale -15.7 -> -33.70, scale -3.88 -> -2.10  (kept -3.88, -2.10, error 6.23)
+match  brightness colour 1: 0.1: -1.82, 0.2: -4.01, 0.3: -5.90, 0.4: -7.48, 0.5: -9.92, 0.6: -13.23, 0.7: -16.92  -> +0.4
+
+=== what each knob does, every knob at the axis's own threshold shift ===
+
+  write                tau   reached  on route  took rich  tau above  tau below   split
+  base                7.25    100.0%     90.6%      75.1%       7.35       7.18    0.17
+  axis +              4.00    100.0%     91.1%      65.7%       4.22       3.80    0.42
+  axis -             12.33    100.0%     87.1%      85.6%      12.60      12.04    0.56
+  brightness +        4.81    100.0%     92.3%      68.2%       4.97       4.66    0.30
+  brightness -       12.29    100.0%     87.4%      85.4%      12.28      12.29   -0.01
+  late +              3.72     95.7%     85.7%      63.5%       4.08       3.39    0.70
+  late -             10.87     97.5%     79.6%      81.1%       9.36      12.48   -3.13
+  readout +           3.72     20.0%     99.8%      63.2%      -1.08       5.95   -7.04
+  readout -           6.04     30.4%     66.3%      72.6%       5.34       7.32   -1.98
+  contingent +        3.85     73.6%     63.5%      63.8%       0.90       6.99   -6.10
+  contingent -        5.09     66.0%     77.1%      69.1%      10.64       0.13   10.51
+  rotation +          6.71    100.0%     91.2%      73.7%       6.82       6.64    0.18
+  rotation -          8.81    100.0%     89.4%      78.7%       9.16       8.43    0.73
+
+  split = tau(rich above) - tau(rich below); the base's is +0.17. A value knob keeps it,
+  a contingent edit pulls it apart, which is what makes it the cleanest distractor.
+
+wrote /workspace/data/figures-data/control/novalue11g1.s9012.npz (4 knobs) and /workspace/data/figures-data/gain-vs-factorised/control-novalue11g1.s9012.json

@@ -1,0 +1,153 @@
+script restricted_writes.py
+commit e904aa5
+argv   /workspace/data/runs/resnet11nvg1.s3456 --levels /workspace/data/levels/values/1.00-0.50@500k --doses 0.5 1 2 4 8 --json figures/data/restricted/resnet11nvg1.s3456.dose.json
+
+base   /workspace/data/runs/resnet11nvg1.s3456/local-files/cp_149995520  (1,234,405 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms at [-0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4]; |axis| 5.37
+
+modules, forward order; ranked by share of the sweep-agreeing axis, -axis_o1 . axis_o0 per module
+
+  module                  params  params %   axis %   rank %  rank
+  input conv               1,184      0.10      2.0      4.2     6
+  stage 0                 18,496      1.50     10.4     13.9     4
+  stage 1                 27,744      2.25     20.3     31.2     1
+  stage 2                 27,744      2.25     18.5     27.5     2
+  stage 3                 27,744      2.25     13.7     14.5     3
+  stage 4                 27,744      2.25      9.9      5.0     5
+  stage 5                 27,744      2.25      8.5      1.9     7
+  stage 6                 27,744      2.25      7.9      1.2     8
+  stage 7                 27,744      2.25      6.2      0.4     9
+  stage 8                 27,744      2.25      0.2      0.0    11
+  dense                  991,488     80.32      2.1      0.2    10
+  heads                    1,285      0.10      0.3     -0.1    12
+
+=== writes, decoded on 2048 held-out levels at the base values ===
+
+                                                 steps   95% interval    reached
+                               base, untouched     8.6  [  8.3,   8.9]     99.6%
+
+                             full axis @ -0.30    13.1  [ 12.8,  13.5]     98.6%
+                  only input conv x0.5 @ -0.30     9.0  [  8.7,   9.3]     99.7%
+                    only input conv x1 @ -0.30     9.5  [  9.2,   9.9]     99.7%
+                    only input conv x2 @ -0.30    10.6  [ 10.3,  10.9]     98.9%
+                    only input conv x4 @ -0.30    15.8  [ 14.9,  16.8]     73.4%
+                    only input conv x8 @ -0.30     5.1  [  3.5,   6.8]     13.0%
+                     only stage 0 x0.5 @ -0.30     8.8  [  8.5,   9.0]     99.8%
+                       only stage 0 x1 @ -0.30     9.1  [  8.9,   9.4]     99.7%
+                       only stage 0 x2 @ -0.30     9.7  [  9.4,  10.0]     99.5%
+                       only stage 0 x4 @ -0.30    10.8  [ 10.5,  11.1]     97.6%
+                       only stage 0 x8 @ -0.30    11.7  [ 10.7,  12.6]     47.4%
+                     only stage 1 x0.5 @ -0.30     9.0  [  8.8,   9.3]     99.7%
+                       only stage 1 x1 @ -0.30     9.8  [  9.5,  10.1]     99.7%
+                       only stage 1 x2 @ -0.30    11.1  [ 10.8,  11.4]     99.2%
+                       only stage 1 x4 @ -0.30    14.2  [ 13.6,  14.9]     90.3%
+                       only stage 1 x8 @ -0.30    11.6  [ 10.0,  13.3]     27.9%
+                     only stage 2 x0.5 @ -0.30     8.9  [  8.7,   9.2]     99.6%
+                       only stage 2 x1 @ -0.30     9.3  [  9.0,   9.5]     99.7%
+                       only stage 2 x2 @ -0.30    10.1  [  9.8,  10.4]     99.2%
+                       only stage 2 x4 @ -0.30    11.8  [ 11.4,  12.2]     97.5%
+                       only stage 2 x8 @ -0.30    15.7  [ 14.7,  16.7]     66.6%
+                     only stage 3 x0.5 @ -0.30     8.7  [  8.5,   9.0]     99.7%
+                       only stage 3 x1 @ -0.30     9.0  [  8.8,   9.3]     99.8%
+                       only stage 3 x2 @ -0.30     9.4  [  9.1,   9.7]     99.7%
+                       only stage 3 x4 @ -0.30    10.4  [ 10.0,  10.7]     99.5%
+                       only stage 3 x8 @ -0.30    12.5  [ 12.1,  13.0]     97.1%
+                     only stage 4 x0.5 @ -0.30     8.6  [  8.4,   8.9]     99.7%
+                       only stage 4 x1 @ -0.30     8.7  [  8.4,   9.0]     99.7%
+                       only stage 4 x2 @ -0.30     8.8  [  8.5,   9.0]     99.7%
+                       only stage 4 x4 @ -0.30     9.0  [  8.7,   9.3]     99.9%
+                       only stage 4 x8 @ -0.30     9.3  [  9.0,   9.6]     99.4%
+                     only stage 5 x0.5 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                       only stage 5 x1 @ -0.30     8.6  [  8.3,   8.9]     99.7%
+                       only stage 5 x2 @ -0.30     8.6  [  8.4,   8.9]     99.8%
+                       only stage 5 x4 @ -0.30     8.6  [  8.4,   8.9]     99.8%
+                       only stage 5 x8 @ -0.30     8.7  [  8.4,   9.0]     99.0%
+                     only stage 6 x0.5 @ -0.30     8.6  [  8.4,   8.9]     99.6%
+                       only stage 6 x1 @ -0.30     8.6  [  8.4,   8.9]     99.5%
+                       only stage 6 x2 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                       only stage 6 x4 @ -0.30     8.6  [  8.3,   8.8]     99.5%
+                       only stage 6 x8 @ -0.30     8.6  [  8.4,   8.9]     96.2%
+                     only stage 7 x0.5 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                       only stage 7 x1 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                       only stage 7 x2 @ -0.30     8.6  [  8.4,   8.9]     99.5%
+                       only stage 7 x4 @ -0.30     8.6  [  8.3,   8.9]     99.4%
+                       only stage 7 x8 @ -0.30     8.6  [  8.3,   8.8]     99.2%
+                     only stage 8 x0.5 @ -0.30     8.6  [  8.4,   8.8]     99.7%
+                       only stage 8 x1 @ -0.30     8.6  [  8.3,   8.8]     99.7%
+                       only stage 8 x2 @ -0.30     8.6  [  8.3,   8.8]     99.8%
+                       only stage 8 x4 @ -0.30     8.6  [  8.3,   8.8]     99.3%
+                       only stage 8 x8 @ -0.30     8.5  [  8.2,   8.8]     87.1%
+                       only dense x0.5 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x1 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x2 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x4 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x8 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                       only heads x0.5 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x1 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x2 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x4 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x8 @ -0.30     8.6  [  8.3,   8.9]     99.6%
+
+                             full axis @ +0.30     4.5  [  4.2,   4.7]     99.2%
+                  only input conv x0.5 @ +0.30     8.2  [  7.9,   8.5]     99.6%
+                    only input conv x1 @ +0.30     7.6  [  7.3,   7.8]     99.6%
+                    only input conv x2 @ +0.30     6.0  [  5.8,   6.2]     99.3%
+                    only input conv x4 @ +0.30     2.4  [  2.2,   2.6]     97.8%
+                    only input conv x8 @ +0.30    -1.6  [ -2.1,  -1.2]     71.9%
+                     only stage 0 x0.5 @ +0.30     8.4  [  8.2,   8.7]     99.7%
+                       only stage 0 x1 @ +0.30     8.0  [  7.7,   8.3]     99.5%
+                       only stage 0 x2 @ +0.30     7.3  [  7.0,   7.5]     99.7%
+                       only stage 0 x4 @ +0.30     5.0  [  4.7,   5.2]     99.4%
+                       only stage 0 x8 @ +0.30     2.1  [  1.9,   2.3]     97.9%
+                     only stage 1 x0.5 @ +0.30     8.2  [  7.9,   8.4]     99.6%
+                       only stage 1 x1 @ +0.30     7.4  [  7.2,   7.7]     99.6%
+                       only stage 1 x2 @ +0.30     6.0  [  5.8,   6.3]     99.3%
+                       only stage 1 x4 @ +0.30     3.3  [  3.0,   3.5]     97.9%
+                       only stage 1 x8 @ +0.30     1.6  [  1.3,   1.9]     72.7%
+                     only stage 2 x0.5 @ +0.30     8.4  [  8.1,   8.7]     99.7%
+                       only stage 2 x1 @ +0.30     8.1  [  7.8,   8.4]     99.6%
+                       only stage 2 x2 @ +0.30     7.5  [  7.3,   7.8]     99.5%
+                       only stage 2 x4 @ +0.30     6.0  [  5.8,   6.3]     98.3%
+                       only stage 2 x8 @ +0.30     2.9  [  2.5,   3.4]     66.0%
+                     only stage 3 x0.5 @ +0.30     8.4  [  8.2,   8.7]     99.6%
+                       only stage 3 x1 @ +0.30     8.3  [  8.0,   8.5]     99.6%
+                       only stage 3 x2 @ +0.30     8.1  [  7.9,   8.4]     99.5%
+                       only stage 3 x4 @ +0.30     7.5  [  7.2,   7.7]     98.2%
+                       only stage 3 x8 @ +0.30     7.1  [  6.7,   7.5]     82.7%
+                     only stage 4 x0.5 @ +0.30     8.5  [  8.3,   8.8]     99.6%
+                       only stage 4 x1 @ +0.30     8.5  [  8.3,   8.8]     99.6%
+                       only stage 4 x2 @ +0.30     8.5  [  8.3,   8.8]     99.5%
+                       only stage 4 x4 @ +0.30     8.5  [  8.2,   8.7]     98.6%
+                       only stage 4 x8 @ +0.30     8.0  [  7.7,   8.4]     89.2%
+                     only stage 5 x0.5 @ +0.30     8.6  [  8.3,   8.9]     99.7%
+                       only stage 5 x1 @ +0.30     8.6  [  8.3,   8.9]     99.7%
+                       only stage 5 x2 @ +0.30     8.6  [  8.3,   8.9]     99.8%
+                       only stage 5 x4 @ +0.30     8.6  [  8.4,   8.9]     99.4%
+                       only stage 5 x8 @ +0.30     8.5  [  8.3,   8.8]     97.8%
+                     only stage 6 x0.5 @ +0.30     8.6  [  8.3,   8.8]     99.7%
+                       only stage 6 x1 @ +0.30     8.6  [  8.3,   8.8]     99.8%
+                       only stage 6 x2 @ +0.30     8.6  [  8.3,   8.8]     99.8%
+                       only stage 6 x4 @ +0.30     8.6  [  8.3,   8.9]     99.7%
+                       only stage 6 x8 @ +0.30     8.7  [  8.5,   9.0]     97.8%
+                     only stage 7 x0.5 @ +0.30     8.6  [  8.3,   8.9]     99.7%
+                       only stage 7 x1 @ +0.30     8.6  [  8.3,   8.8]     99.8%
+                       only stage 7 x2 @ +0.30     8.6  [  8.4,   8.8]     99.7%
+                       only stage 7 x4 @ +0.30     8.6  [  8.3,   8.9]     99.8%
+                       only stage 7 x8 @ +0.30     8.6  [  8.3,   8.8]     99.8%
+                     only stage 8 x0.5 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                       only stage 8 x1 @ +0.30     8.6  [  8.3,   8.9]     99.7%
+                       only stage 8 x2 @ +0.30     8.6  [  8.3,   8.8]     99.8%
+                       only stage 8 x4 @ +0.30     8.6  [  8.3,   8.8]     99.8%
+                       only stage 8 x8 @ +0.30     8.5  [  8.2,   8.8]     97.6%
+                       only dense x0.5 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x1 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x2 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x4 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only dense x8 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                       only heads x0.5 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x1 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x2 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x4 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+                         only heads x8 @ +0.30     8.6  [  8.3,   8.9]     99.6%
+
+wrote figures/data/restricted/resnet11nvg1.s3456.dose.json

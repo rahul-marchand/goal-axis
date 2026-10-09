@@ -1,0 +1,24 @@
+script 025_bc_probe_plan.py
+commit e904aa5
+argv   /workspace/data/offline/runs/scaling/sc11.d512l4.s1 --demos /workspace/data/offline/demos/scaling/test.rho100 --train-episodes 512 --test-episodes 256
+
+sc11.d512l4.s1 @ step 30,000; test.rho100 (rho=1.0); 512 train / 256 test episodes
+
+   depth         probe      AUC            95% CI   bal.acc
+   embed       trained    0.612    [0.582, 0.641]     0.573
+   embed     untrained    0.582    [0.561, 0.606]     0.584
+   embed   observation    0.586    [0.579, 0.592]     0.584
+ block 1       trained    0.628    [0.612, 0.645]     0.576
+ block 1     untrained    0.597    [0.581, 0.613]     0.547
+ block 2       trained    0.666    [0.636, 0.692]     0.600
+ block 2     untrained    0.579    [0.561, 0.600]     0.585
+ block 3       trained    0.790    [0.770, 0.812]     0.670
+ block 3     untrained    0.615    [0.599, 0.634]     0.580
+ block 4       trained    0.779    [0.760, 0.799]     0.659
+ block 4     untrained    0.616    [0.599, 0.635]     0.575
+     all       trained    0.846    [0.825, 0.867]     0.672
+     all     untrained    0.596    [0.579, 0.614]     0.582
+
+The trained probe must beat the untrained one at the same depth. Beating
+only the observation shows the network mixes cells, which it does before
+any training at all.

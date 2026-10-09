@@ -1,0 +1,22 @@
+script cheapest_edit.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s1234 --levels /workspace/data/levels/values/1.00-0.50@500k --family dense --lr 3e-4 --l2 0 --max-norm 1 --steps 600 --n-edit 2048 --n-eval 1024 --eval-shifts -8 -4 4 8 --seeds 0 1 --json figures/data/cheapest_edit/c.pilot.ball1.novalue11g1.s1234.json --save-deltas /workspace/data/cheapest_edit/c.pilot.ball1.novalue11g1.s1234.npz
+
+base   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+levels 2048 to edit on, 1024 held out
+base   threshold 7.18 steps, logistic scale 1.55 (edit levels); held out 7.13
+base   fork margin = +1.549 -0.175 x gap (r -0.769); margin-implied threshold 8.86 vs behavioural 7.18; sign agrees with the rollout choice on 97.8% of levels
+base   mean fork margin by gap: -12:+3.31  -9:+3.31  -6:+3.22  -3:+3.20  +0:+2.85  +3:+2.10  +6:+0.38  +9:-1.64  +12:-2.47
+no edit: fixed-level loss 21.6131 (nav 0.0000, fork 21.6131, fork error 2.724)
+
+fine-tuned axis o1: 8 arms, |v| 8.202 per unit value, slope -12.40 steps per unit, |v| 0.6613 per step, split-half reliability 0.605
+v per step: fixed-level loss 22.1524 (nav 0.0750, fork 21.4027, fork error 2.553)
+
+  fine-tuned axis, written per step
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.87    2.39  [  2.0,   2.7]   100.0%   94.5%    1.92    2.84
+    -4.0     3.13    3.94  [  3.5,   4.4]   100.0%   95.9%    3.31    4.53
+    -2.0*    5.13    5.07  [  4.7,   5.5]   100.0%   95.5%    4.61    5.49
+    +2.0*    9.13    9.20  [  8.6,   9.7]   100.0%   95.4%    8.53    9.87
+    +4.0*   11.13   12.22  [ 11.4,  12.8]   100.0%   94.2%   11.45   12.94
+    +8.0    15.13   21.65  [ 19.0,  24.4]    99.8%   88.3%   19.46   23.84

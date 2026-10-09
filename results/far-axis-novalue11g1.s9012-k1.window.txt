@@ -1,0 +1,54 @@
+script far_axis_fit.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s9012 --family k1 --base-value 0.5 --far 1.2 1.3 1.4 1.5 1.75 2.0 --window-loo --levels /workspace/data/levels/values/1.00-0.50@500k --json /workspace/data/figures-data/far-axis/novalue11g1.s9012-k1.window.json
+
+base       /workspace/data/runs/novalue11g1.s9012/local-files/cp_149995520   (1,449,605 parameters)
+window     o1: 8 arms at offsets -0.40..+0.40
+far        k1: 6 arms at offsets +0.70..+1.50
+
+=== the far axis against the window axis ===
+
+  |axis| per unit value   window 7.265   far 6.443
+  |drift|                 window 1.732   far 8.277
+  cos(axis_far, axis_window)    -0.202
+  cos(drift_far, axis_window)   +0.539
+  cos(drift_far, drift_window)  +0.277
+  |far arm| mean 5.827   |window arm| mean 3.542
+
+=== graded and predictive? leave-one-out within the far set ===
+
+    value  offset   |delta|  held-out R^2  held-out cos   implied
+     1.20   +0.70      5.48         0.758         0.904     +0.96
+     1.30   +0.80      5.68         0.770         0.884     +0.91
+     1.40   +0.90     5.904         0.788         0.889     +0.94
+     1.50   +1.00     5.884         0.777         0.883     +0.94
+     1.75   +1.25     6.149         0.819         0.908     +1.16
+     2.00   +1.50     5.867         0.728         0.920     +1.09
+
+  readback slope (implied on true offset)   window 0.66   far 0.27
+  far arms read by the window axis: implied +0.44, +0.44, +0.44, +0.43, +0.36, +0.31   slope -0.18
+
+
+=== the window's own leave-one-out writes, same seeds and episodes ===
+
+                                         steps    95% interval    reached
+               v=0.10 fine-tuned    13.8  [ 13.2,  14.3]     100.0%
+        v=0.10 written, held out    14.9  [ 14.3,  15.6]      99.7%
+               v=0.20 fine-tuned    13.3  [ 12.8,  13.8]      99.9%
+        v=0.20 written, held out    12.9  [ 12.4,  13.5]     100.0%
+               v=0.30 fine-tuned    11.8  [ 11.3,  12.3]     100.0%
+        v=0.30 written, held out    11.0  [ 10.5,  11.5]     100.0%
+               v=0.40 fine-tuned     9.4  [  9.1,   9.9]      99.9%
+        v=0.40 written, held out     9.4  [  9.0,   9.7]     100.0%
+               v=0.60 fine-tuned     6.3  [  6.0,   6.6]     100.0%
+        v=0.60 written, held out     6.1  [  5.8,   6.4]     100.0%
+               v=0.70 fine-tuned     4.8  [  4.6,   5.1]     100.0%
+        v=0.70 written, held out     4.9  [  4.7,   5.2]      99.9%
+               v=0.80 fine-tuned     3.3  [  3.0,   3.5]     100.0%
+        v=0.80 written, held out     4.0  [  3.8,   4.3]     100.0%
+               v=0.90 fine-tuned     2.7  [  2.5,   3.0]     100.0%
+        v=0.90 written, held out     3.3  [  3.1,   3.6]      99.9%
+
+  median |error| 0.5 steps;  slope of written on fine-tuned 0.97
+
+wrote /workspace/data/figures-data/far-axis/novalue11g1.s9012-k1.window.json

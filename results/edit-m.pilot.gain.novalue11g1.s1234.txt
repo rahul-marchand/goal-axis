@@ -1,0 +1,91 @@
+script cheapest_edit.py
+commit e904aa5
+argv   /workspace/data/runs/novalue11g1.s1234 --levels /workspace/data/levels/values/1.00-0.50@500k --family gain --lr 3e-2 --l2 0 --steps 300 --n-edit 2048 --n-eval 1024 --eval-shifts -8 -4 4 8 --seeds 0 1 --json figures/data/cheapest_edit/m.pilot.gain.novalue11g1.s1234.json --save-deltas /workspace/data/cheapest_edit/m.pilot.gain.novalue11g1.s1234.npz
+
+base   /workspace/data/runs/novalue11g1.s1234/local-files/cp_149995520  (1,449,605 parameters), values (1.0, 0.5)
+levels 2048 to edit on, 1024 held out
+base   threshold 7.18 steps, logistic scale 1.55 (edit levels); held out 7.13
+base   fork margin = +1.549 -0.175 x gap (r -0.769); margin-implied threshold 8.85 vs behavioural 7.18; sign agrees with the rollout choice on 97.8% of levels
+no edit: fixed-level loss 8.0000 (nav 0.0000, fork 8.0000, fork error 2.667)
+
+fine-tuned axis o1: 8 arms, |v| 8.202 per unit value, slope -12.40 steps per unit, |v| 0.6613 per step, split-half reliability 0.605
+v per step: fixed-level loss 33.5363 (nav 0.0750, fork 32.7866, fork error 3.472)
+
+  fine-tuned axis, written per step
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.87    2.39  [  2.0,   2.7]   100.0%   94.5%    1.92    2.84
+    -4.0     3.13    3.94  [  3.5,   4.4]   100.0%   95.9%    3.31    4.53
+    -2.0*    5.13    5.07  [  4.7,   5.5]   100.0%   95.5%    4.61    5.49
+    +2.0*    9.13    9.20  [  8.6,   9.7]   100.0%   95.4%    8.53    9.87
+    +4.0*   11.13   12.22  [ 11.4,  12.8]   100.0%   94.2%   11.45   12.94
+    +8.0    15.13   21.65  [ 19.0,  24.4]    99.8%   88.3%   19.46   23.84
+
+=== search: family gain, seed 0 ===
+  step     0  loss 8.0000  nav 0.0000  fork 8.0000  fork error 2.667  |delta| 0
+  step    25  loss 5.6798  nav 0.0042  fork 5.6382  fork error 2.124  |delta| 0.5538
+  step    50  loss 6.4070  nav 0.0118  fork 6.2894  fork error 2.102  |delta| 1.408
+  step    75  loss 6.5613  nav 0.0099  fork 6.4626  fork error 2.073  |delta| 1.176
+  step   100  loss 5.5653  nav 0.0068  fork 5.4971  fork error 2.100  |delta| 0.5986
+  step   125  loss 7.1454  nav 0.0128  fork 7.0169  fork error 2.147  |delta| 0.7627
+  step   150  loss 5.4225  nav 0.0067  fork 5.3559  fork error 1.882  |delta| 0.8477
+  step   175  loss 5.1652  nav 0.0063  fork 5.1023  fork error 1.985  |delta| 0.6374
+  step   200  loss 5.2739  nav 0.0081  fork 5.1927  fork error 1.987  |delta| 0.6081
+  step   225  loss 5.6024  nav 0.0050  fork 5.5528  fork error 2.093  |delta| 0.4725
+  step   250  loss 5.1895  nav 0.0046  fork 5.1437  fork error 2.019  |delta| 0.4555
+  step   275  loss 5.8555  nav 0.0046  fork 5.8097  fork error 2.131  |delta| 0.6322
+  step   299  loss 5.2903  nav 0.0047  fork 5.2431  fork error 1.983  |delta| 0.4995
+  fixed-level loss 6.1899 (nav 0.0067, fork 6.1226, fork error 2.112)
+
+  seed 0: |delta| 0.5065 per step, 2 edit parameters
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.87    4.59  [  4.1,   5.0]   100.0%   95.8%    3.94    5.17
+    -4.0     3.13    5.75  [  5.3,   6.2]   100.0%   95.4%    5.31    6.14
+    -2.0*    5.13    6.30  [  5.8,   6.8]   100.0%   95.5%    5.62    6.91
+    +2.0*    9.13    7.62  [  7.1,   8.0]   100.0%   95.0%    6.93    8.28
+    +4.0*   11.13    8.03  [  7.4,   8.5]   100.0%   95.2%    7.44    8.59
+    +8.0    15.13    9.14  [  8.6,   9.7]   100.0%   94.8%    8.13   10.13
+
+=== search: family gain, seed 1 ===
+  step     0  loss 8.0000  nav 0.0000  fork 8.0000  fork error 2.667  |delta| 0
+  step    25  loss 7.1448  nav 0.0068  fork 7.0763  fork error 2.272  |delta| 0.3721
+  step    50  loss 4.4058  nav 0.0088  fork 4.3181  fork error 1.797  |delta| 0.6006
+  step    75  loss 5.4499  nav 0.0103  fork 5.3471  fork error 2.026  |delta| 0.5236
+  step   100  loss 5.5060  nav 0.0100  fork 5.4055  fork error 2.045  |delta| 0.6929
+  step   125  loss 10.7032  nav 0.0106  fork 10.5977  fork error 2.451  |delta| 0.5211
+  step   150  loss 4.7762  nav 0.0052  fork 4.7245  fork error 1.846  |delta| 0.4738
+  step   175  loss 4.7195  nav 0.0040  fork 4.6794  fork error 1.877  |delta| 0.5965
+  step   200  loss 5.5284  nav 0.0045  fork 5.4838  fork error 2.110  |delta| 0.4637
+  step   225  loss 5.0964  nav 0.0041  fork 5.0556  fork error 1.960  |delta| 0.4313
+  step   250  loss 6.4069  nav 0.0052  fork 6.3549  fork error 2.268  |delta| 0.58
+  step   275  loss 6.0904  nav 0.0050  fork 6.0402  fork error 2.198  |delta| 0.587
+  step   299  loss 9.9266  nav 0.0096  fork 9.8305  fork error 2.209  |delta| 0.6355
+  fixed-level loss 6.6632 (nav 0.0088, fork 6.5749, fork error 2.110)
+
+  seed 1: |delta| 0.6366 per step, 2 edit parameters
+    shift  target     tau   95% interval   reached   route   above   below
+    -8.0    -0.87    4.18  [  3.7,   4.6]   100.0%   94.6%    3.76    4.57
+    -4.0     3.13    5.57  [  5.2,   6.1]   100.0%   95.3%    5.10    6.00
+    -2.0*    5.13    6.30  [  5.8,   6.8]   100.0%   95.4%    5.62    6.91
+    +2.0*    9.13    7.68  [  7.2,   8.1]   100.0%   94.9%    6.99    8.34
+    +4.0*   11.13    8.19  [  7.6,   8.7]   100.0%   95.3%    7.52    8.84
+    +8.0    15.13    9.44  [  8.8,  10.0]   100.0%   94.4%    8.61   10.27
+
+seed-to-seed cos(u_i, u_j): +0.997
+cos(u, v): seed0 +0.182, seed1 +0.175, mean +0.178
+function-space cos(J u, J v): seed0 +0.933, seed1 +0.925, mean +0.929
+|J u| / |J v| per step: seed0 0.280, seed1 0.331, mean 0.305
+
+  module                u share  v share     cos
+  input conv             100.0%    17.6%  +0.425
+  conv 1                   0.0%     9.1%    +nan
+  cell 0 input             0.0%     8.8%    +nan
+  cell 0 recurrent         0.0%     2.1%    +nan
+  cell 1 input             0.0%     9.5%    +nan
+  cell 1 recurrent         0.0%     0.8%    +nan
+  cell 2 input             0.0%    11.8%    +nan
+  cell 2 recurrent         0.0%     4.1%    +nan
+  dense                    0.0%    36.2%    +nan
+  heads                    0.0%     0.1%    +nan
+
+wrote figures/data/cheapest_edit/m.pilot.gain.novalue11g1.s1234.json
+wrote /workspace/data/cheapest_edit/m.pilot.gain.novalue11g1.s1234.npz

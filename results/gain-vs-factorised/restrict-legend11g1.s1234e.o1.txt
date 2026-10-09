@@ -1,0 +1,99 @@
+script restricted_writes.py
+commit e904aa5
+argv   /workspace/data/runs/legend11g1.s1234e --levels /workspace/data/levels/values/1.00-0.50@500k --sweep o1 --json /workspace/data/figures-data/gain-vs-factorised/restrict-legend11g1.s1234e.o1.json
+
+base   /workspace/data/runs/legend11g1.s1234e/local-files/cp_62494720  (1,638,021 parameters), values (1.0, 0.5)
+sweep  o1: 8 arms at [-0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4]; |axis| 6.17
+
+modules, forward order; ranked by share of the sweep-agreeing axis, -axis_o1 . axis_o0 per module
+
+  module                  params  params %   axis %   rank %  rank
+  input conv               1,184      0.07     10.4     15.8     2
+  conv 1                   9,248      0.56      3.0      3.8     3
+  cell 0 input           111,936      6.83      2.5      1.8     5
+  cell 0 recurrent        36,864      2.25      0.7      0.4     8
+  cell 1 input           111,936      6.83      3.2      1.2     6
+  cell 1 recurrent        36,864      2.25      0.6      0.2    10
+  cell 2 input           111,936      6.83      3.8      2.7     4
+  cell 2 recurrent        36,864      2.25      1.0      0.7     7
+  dense                1,179,904     72.03     74.6     73.1     1
+  heads                    1,285      0.08      0.2      0.3     9
+
+=== writes, decoded on 2048 held-out levels at the base values ===
+
+                                                 steps   95% interval    reached
+                               base, untouched     0.9  [  0.6,   1.3]     99.8%
+
+                             full axis @ -0.30     1.5  [  1.1,   1.8]     99.9%
+                       only input conv @ -0.30     0.9  [  0.6,   1.3]     99.8%
+        only input conv, rescaled x3.1 @ -0.30     1.2  [  0.8,   1.5]     99.8%
+                    all but input conv @ -0.30     1.4  [  1.0,   1.7]     99.9%
+                           only conv 1 @ -0.30     1.0  [  0.6,   1.4]     99.8%
+            only conv 1, rescaled x5.8 @ -0.30     1.3  [  0.9,   1.7]     99.7%
+                        all but conv 1 @ -0.30     1.4  [  1.0,   1.8]     99.8%
+                     only cell 0 input @ -0.30     0.9  [  0.5,   1.3]     99.7%
+      only cell 0 input, rescaled x6.3 @ -0.30     1.1  [  0.7,   1.6]     98.9%
+                  all but cell 0 input @ -0.30     1.5  [  1.1,   1.8]     99.8%
+                 only cell 0 recurrent @ -0.30     1.0  [  0.7,   1.4]     99.7%
+  only cell 0 recurrent, rescaled x11.9 @ -0.30     0.7  [  0.4,   1.1]     98.3%
+              all but cell 0 recurrent @ -0.30     1.5  [  1.1,   1.8]     99.8%
+                     only cell 1 input @ -0.30     1.0  [  0.7,   1.4]     99.9%
+      only cell 1 input, rescaled x5.6 @ -0.30     0.8  [  0.3,   1.2]     98.8%
+                  all but cell 1 input @ -0.30     1.3  [  0.9,   1.7]     99.9%
+                 only cell 1 recurrent @ -0.30     0.9  [  0.5,   1.3]     99.7%
+  only cell 1 recurrent, rescaled x12.4 @ -0.30     1.1  [  0.7,   1.5]     99.5%
+              all but cell 1 recurrent @ -0.30     1.4  [  1.1,   1.8]     99.8%
+                     only cell 2 input @ -0.30     0.9  [  0.6,   1.3]     99.9%
+      only cell 2 input, rescaled x5.1 @ -0.30     1.0  [  0.7,   1.4]     99.9%
+                  all but cell 2 input @ -0.30     1.4  [  1.0,   1.7]     99.7%
+                 only cell 2 recurrent @ -0.30     0.9  [  0.5,   1.3]     99.8%
+  only cell 2 recurrent, rescaled x10.2 @ -0.30     1.4  [  0.9,   1.7]     99.8%
+              all but cell 2 recurrent @ -0.30     1.4  [  1.0,   1.8]     99.8%
+                            only dense @ -0.30     1.0  [  0.6,   1.3]     99.7%
+             only dense, rescaled x1.2 @ -0.30     1.0  [  0.6,   1.3]     99.7%
+                         all but dense @ -0.30     1.4  [  1.1,   1.8]     99.8%
+                            only heads @ -0.30     0.9  [  0.5,   1.3]     99.7%
+            only heads, rescaled x22.2 @ -0.30     1.0  [  0.7,   1.5]     87.5%
+                         all but heads @ -0.30     1.5  [  1.1,   1.9]     99.9%
+                     largest 1 (dense) @ -0.30     1.0  [  0.6,   1.3]     99.7%
+         largest 2 (dense, input conv) @ -0.30     1.0  [  0.7,   1.4]     99.8%
+  largest 3 (dense, input conv, conv 1) @ -0.30     1.2  [  0.8,   1.5]     99.8%
+  largest 4 (dense, input conv, conv 1, cell 2 input) @ -0.30     1.1  [  0.8,   1.5]     99.8%
+
+                             full axis @ +0.30     0.5  [  0.2,   0.9]     99.7%
+                       only input conv @ +0.30     0.8  [  0.4,   1.2]     99.8%
+        only input conv, rescaled x3.1 @ +0.30     0.8  [  0.4,   1.2]     99.8%
+                    all but input conv @ +0.30     0.5  [  0.1,   0.9]     99.8%
+                           only conv 1 @ +0.30     0.9  [  0.6,   1.3]     99.7%
+            only conv 1, rescaled x5.8 @ +0.30     0.5  [  0.2,   0.9]     99.8%
+                        all but conv 1 @ +0.30     0.5  [  0.1,   0.9]     99.7%
+                     only cell 0 input @ +0.30     0.8  [  0.4,   1.2]     99.9%
+      only cell 0 input, rescaled x6.3 @ +0.30     0.8  [  0.4,   1.1]     99.7%
+                  all but cell 0 input @ +0.30     0.5  [  0.1,   0.9]     99.7%
+                 only cell 0 recurrent @ +0.30     0.9  [  0.5,   1.3]     99.9%
+  only cell 0 recurrent, rescaled x11.9 @ +0.30     0.9  [  0.5,   1.2]     98.8%
+              all but cell 0 recurrent @ +0.30     0.4  [ -0.0,   0.8]     99.6%
+                     only cell 1 input @ +0.30     0.9  [  0.5,   1.3]     99.8%
+      only cell 1 input, rescaled x5.6 @ +0.30     0.7  [  0.2,   1.1]     99.0%
+                  all but cell 1 input @ +0.30     0.5  [  0.1,   0.9]     99.9%
+                 only cell 1 recurrent @ +0.30     1.0  [  0.5,   1.4]     99.9%
+  only cell 1 recurrent, rescaled x12.4 @ +0.30     1.0  [  0.6,   1.5]     99.7%
+              all but cell 1 recurrent @ +0.30     0.6  [  0.2,   0.9]     99.7%
+                     only cell 2 input @ +0.30     0.9  [  0.5,   1.2]     99.7%
+      only cell 2 input, rescaled x5.1 @ +0.30     0.4  [  0.0,   0.7]     99.1%
+                  all but cell 2 input @ +0.30     0.6  [  0.3,   1.0]     99.8%
+                 only cell 2 recurrent @ +0.30     0.9  [  0.5,   1.2]     99.7%
+  only cell 2 recurrent, rescaled x10.2 @ +0.30     0.9  [  0.5,   1.2]     99.6%
+              all but cell 2 recurrent @ +0.30     0.5  [  0.1,   0.9]     99.8%
+                            only dense @ +0.30     0.8  [  0.4,   1.2]     99.7%
+             only dense, rescaled x1.2 @ +0.30     0.8  [  0.4,   1.2]     99.7%
+                         all but dense @ +0.30     0.6  [  0.2,   0.9]     99.7%
+                            only heads @ +0.30     0.8  [  0.4,   1.3]     99.8%
+            only heads, rescaled x22.2 @ +0.30     0.1  [ -0.4,   0.5]     86.1%
+                         all but heads @ +0.30     0.6  [  0.2,   1.0]     99.8%
+                     largest 1 (dense) @ +0.30     0.8  [  0.4,   1.2]     99.7%
+         largest 2 (dense, input conv) @ +0.30     0.8  [  0.5,   1.2]     99.8%
+  largest 3 (dense, input conv, conv 1) @ +0.30     0.7  [  0.3,   1.1]     99.8%
+  largest 4 (dense, input conv, conv 1, cell 2 input) @ +0.30     0.7  [  0.3,   1.1]     99.9%
+
+wrote /workspace/data/figures-data/gain-vs-factorised/restrict-legend11g1.s1234e.o1.json
