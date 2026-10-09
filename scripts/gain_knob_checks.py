@@ -81,7 +81,7 @@ def r2_and_slope(x, y):
 
 
 print(header())
-print("bcnv11 value-axis grid, robustness checks behind UtilityRule.md part 3.\n")
+print("bcnv11 value-axis grid, robustness checks behind docs/UtilityRule.md part 3.\n")
 print("== 1. the exponential, with and without the ceiling (theta > 20 dropped) ==")
 print(f"{'series':<14} {'c all':>6} {'R2 all':>7} | {'c <=20':>6} {'R2 <=20':>8} {'n kept':>7}")
 for sweep in ("o0", "o1"):

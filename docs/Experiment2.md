@@ -25,7 +25,7 @@ Find a value register I can intervene on.
 
 Trained in the maze with the following inputs
 
-![](figures/fig9_no_value_task.png)
+![](../figures/fig9_no_value_task.png)
 
 Figure 1: what the agent sees. Four channels passed in walls, the agent, and one per objective. In the rendered maze on the left, blue is the agent, red is colour 0 at 11 steps away and green is colour 1 at 4. In this case colour 0 is worth the walk.
 
@@ -85,7 +85,7 @@ Seed 5678's arms ran 750k steps rather than 3M and everything is smaller: $\lVer
 
 Applying the axis to the non finetuned weights produces the desired behaviour, at 100% reach throughout, and norm-matched random directions of the same length do nothing.
 
-![](figures/fig10_written_value.png)
+![](../figures/fig10_written_value.png)
 
 Figure 2: Writing a value into the unedited agent (seed 1234). Each written point comes from an axis fitted on the other five arms, so nothing about the arm it predicts went into the direction that produces it. The dotted line is the unedited agent.
 
@@ -109,7 +109,7 @@ Writing far outside the fitted grid, in both directions and from both sweeps.
 The x axis is the *gap* each write asks for, since moving colour 0 up by $\delta$
 and colour 1 down by $\delta$ ask for the same thing.
 
-![](figures/fig11_ood_writes.png)
+![](../figures/fig11_ood_writes.png)
 
 Figure 3: both sweeps written well outside their grids. Dashed lines are the
 optimal threshold for each sweep; open markers are writes that cost the agent

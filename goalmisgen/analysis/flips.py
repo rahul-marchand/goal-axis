@@ -11,7 +11,7 @@ target for probes: a probe reads the model's estimate to the extent it
 predicts the flip point better than the true gap does.
 
 The fit is a per-level step function, not a logistic - the method note in
-UtilityRule.md applies here too.
+docs/UtilityRule.md applies here too.
 """
 
 from __future__ import annotations

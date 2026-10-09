@@ -1,6 +1,6 @@
 """Per-level scalar probes: reading the route model's own distance estimates.
 
-UtilityRule.md part 3 ends in a gauge: behaviour alone cannot say whether the
+docs/UtilityRule.md part 3 ends in a gauge: behaviour alone cannot say whether the
 per-level residual xi is a wobbling threshold or a misread of the distance
 gap, because only the comparison's sign is observable. Breaking the gauge
 needs a second, independent measurement of the model's gap estimate. These

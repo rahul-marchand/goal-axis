@@ -1,10 +1,10 @@
 """Ore fields: the level distribution the Craftax task is run on.
 
 A Craftax world for the stage-2 task is an ordinary :class:`~goalmisgen.envs.level.Level`
-rendered into the engine - walls become stone, free cells grass, objectives ore
-tiles - so the level store, the splits, the colour schemes and the value schemes
-are the maze's. What differs is the layout generator: an open field with
-scattered stone rather than a perfect maze, because that is the shape of the
+rendered into the engine - walls become bedrock (``blocks.BEDROCK``), free
+cells grass, objectives ore tiles - so the level store, the splits, the colour
+schemes and the value schemes are the maze's. What differs is the layout generator: an open field with
+scattered obstacles rather than a perfect maze, because that is the shape of the
 terrain the engine's own worlds have, and because the maze's single winding
 corridor would make the field look like nothing Craftax draws.
 
@@ -46,9 +46,9 @@ _NEIGHBOURS: tuple[tuple[int, int], ...] = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 @dataclasses.dataclass(frozen=True)
 class OreFieldGenerator:
-    """An open field with a stone border and scattered stone obstacles.
+    """An open field with a wall border and scattered wall obstacles (rendered as bedrock).
 
-    Every interior cell is stone with probability ``obstacle_density``; the
+    Every interior cell is a wall with probability ``obstacle_density``; the
     largest connected free region is kept and every other free cell is filled,
     so the layout is connected and the sampler's reachability check almost
     never rejects. Shapes must be odd, like the maze's, so the two share one

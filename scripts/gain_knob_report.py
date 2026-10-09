@@ -1,4 +1,4 @@
-"""Part 3 of UtilityRule.md: is the threshold a stored count or a gain?
+"""Part 3 of docs/UtilityRule.md: is the threshold a stored count or a gain?
 
     uv run python scripts/gain_knob_report.py | tee results/utility-rule-gain-bcnv11.txt
 
@@ -14,7 +14,7 @@ Three witnesses, all read from the decoded grid (``scripts/decode_grid.py``):
    fresh idiosyncrasy an edit injects.
 
 Everything is read off binned rates, never fitted -- see the method note in
-``UtilityRule.md``.
+``docs/UtilityRule.md``.
 """
 
 from __future__ import annotations

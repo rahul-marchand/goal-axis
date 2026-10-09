@@ -24,7 +24,7 @@ account has something to be accountable to.
 
 ## 1. Showing the model has an internal (noisy) binary threshold on difference in distance
 
-![Choice as a function of the two distances](figures/fig_distance_rule.png)
+![Choice as a function of the two distances](../figures/fig_distance_rule.png)
 
 Choice is a deterministic function of the whole level:
 
@@ -194,7 +194,7 @@ whether the result behaves like the fine-tuned model:
 $$w \;=\; w_{\text{base}} \;+\; \text{offset}\cdot\mathrm{axis}$$
 
 
-![Writing the axis moves the threshold](figures/fig_axis_dial.png)
+![Writing the axis moves the threshold](../figures/fig_axis_dial.png)
 
 ### The axis controls over a wide range
 
@@ -300,7 +300,7 @@ the edit. Each curve in Fig 4 is one model, the base or a write, decoded on
 the same 20,000 held-out mazes. A curve's crossing is that model's
 $\bar\theta$ and its width is that model's $\xi$.
 
-![The threshold is a gain, not a stored count](figures/fig_gain_knob.png)
+![The threshold is a gain, not a stored count](../figures/fig_gain_knob.png)
 
 ### The curve stretches
 
@@ -328,7 +328,7 @@ crossing, bin floors of 25 or 100 levels, and dropping every model with
 $\bar\theta > 20$ each move the ratio statistics by less than 0.02, and
 holding $d_{\mathrm{poor}}$ to a fixed band leaves the collapse in place. So
 neither the reading method, the ceiling, nor level composition is carrying the
-result ([`results/utility-rule-gain-checks-bcnv11.txt`](results/utility-rule-gain-checks-bcnv11.txt)).
+result ([`results/utility-rule-gain-checks-bcnv11.txt`](../results/utility-rule-gain-checks-bcnv11.txt)).
 
 ### The axis is log-linear inside its working range
 
@@ -453,7 +453,7 @@ whole curve, which is why the top writes crowd toward $\bar\theta \approx 29$.
 
 | | |
 |---|---|
-| numbers | [`results/utility-rule-bcnv11.txt`](results/utility-rule-bcnv11.txt) (parts 1-2), [`results/utility-rule-gain-bcnv11.txt`](results/utility-rule-gain-bcnv11.txt) (part 3) |
+| numbers | [`results/utility-rule-bcnv11.txt`](../results/utility-rule-bcnv11.txt) (parts 1-2), [`results/utility-rule-gain-bcnv11.txt`](../results/utility-rule-gain-bcnv11.txt) (part 3) |
 | data | `figures/data/h1/`: per-level decodes (3 seeds), level features. `figures/data/h1/grid/`: 159 models of the value-axis grid. `figures/data/h1/deep/`: writes beyond the trained range. `figures/data/h1/masked/`: single-block writes |
 | rebuild | `scripts/utility_rule_report.py`, `scripts/gain_knob_report.py`, `scripts/gain_knob_checks.py`, `figures/make_distance_rule.py`, `figures/make_axis_dial.py`, `figures/make_gain_knob.py` |
 | decode | `scripts/decode_h1.py` (part 1, 50k), `scripts/decode_grid.py` (part 2, 20k), `scripts/decode_written.py` (deep writes), `scripts/decode_masked.py` (single-block writes), on `offline/demos/test.rho100` |
@@ -468,4 +468,4 @@ $d_{\mathrm{poor}}$), it put the $\mathrm{IQR}$ at 6.58 against a measured
 third of a step of over-pursuit into a whole one. Every number above is read
 off binned rates instead.
 
-[`CLAIMS.md`](CLAIMS.md) · [`Experiment2.md`](Experiment2.md)
+[`THREADS.md`](../THREADS.md) · [`Experiment2.md`](Experiment2.md)

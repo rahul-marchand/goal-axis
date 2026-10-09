@@ -10,7 +10,7 @@ achieved exchange rate lands closest to that arm's expert target.
 
 One scalar per cell, read off one arm's behaviour. It cannot reach the axis,
 which is fitted from how a cell's arms differ from *each other* at a fixed
-budget -- see the 2026-08-22 amendment in ``Preregistration-scaling.md`` for why
+budget -- see the 2026-08-22 amendment in the scaling preregistration (``git show b353c0e:Preregistration-scaling.md``) for why
 the budget is fixed rather than itself behavioural.
 
 Reads ``eval.csv``, so it needs the arms to have been trained with

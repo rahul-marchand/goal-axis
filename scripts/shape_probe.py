@@ -3,7 +3,7 @@
     uv run python scripts/shape_probe.py --all --batch 1024
     uv run python scripts/shape_probe.py --d-model 512 --layers 16 --batch 1024 --no-remat
 
-Everything in ``Preregistration-scaling.md`` about what the campaign costs rests
+Everything in the scaling preregistration (``git show b353c0e:Preregistration-scaling.md``) about what the campaign costs rests
 on two estimates: that ``nn.remat`` takes the largest cell's activations from
 about 161 GB to about 16 GB, and that a step is fast enough for the nine bases
 to finish in a few hours. Both are arithmetic until a card has run them. This

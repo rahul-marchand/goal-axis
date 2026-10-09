@@ -6,7 +6,7 @@ it asks and what would refute it.
 
 | script | asks |
 |---|---|
-| `001_maze_repro.py` | Trains a DRC agent on multi-objective mazes. Every base agent came from here. |
+| `001_maze_repro.py` | Trains an RL agent on multi-objective mazes (`--net` for DRC, ResNet or ViT; `--gamma`, `--hide-values`). Every RL base came from here. |
 | `002_measure_proxy.py` | How much does the agent follow colour rather than value, swept across correlations? |
 | `003_probe_plan.py` | Is the route the agent will walk already linearly decodable before it moves? |
 | `005_outcome_keyed_distance.py` | Are distances represented, keyed by which outcome they belong to? |
@@ -25,9 +25,23 @@ it asks and what would refute it.
 | `018_which_channels.py` | Which gates and channels, and do two independent sweeps agree? |
 | `019_restrict_the_axis.py` | Keep only the enriched channels — what still reads, what still writes? |
 | `020_are_they_value_channels.py` | Do those channels carry the decision in the agent's own activations? |
+| `021_own_task.py` | Is each arm actually good at the task it was fine-tuned on? |
+| `022_axis_ladder.py` | When in a base's training does the value axis appear, and when does it become one axis? |
+| `023_train_bc.py` | Trains the route model (a prefix-LM) on expert demonstrations. Every route-model base and arm came from here. |
+| `024_bc_proxy.py` | Does a route model trained on correlated demonstrations follow the colour? (twin of `002`) |
+| `025_bc_probe_plan.py` | Is the route in the residual stream before the first action token? (twin of `003`) |
+| `026_bc_early_warning.py` | Does the probe notice the colour before the decoded routes show it? |
+| `027_bc_value_axis.py` | Is an objective's worth a direction in the route model's weights? (twin of `014`) |
+| `028_bc_value_or_gap.py` | One knob or two, for the route model? (twin of `015`) |
+| `029_axis_shape.py` | How many value axes are there, and is writing one in one place enough? |
+| `030_bc_rewrite_the_plan.py` | Write a route into the residual stream; does the model walk it? (twin of `012`) |
+| `031_bc_outcome_keyed_distance.py` | Does the route model hold a distance to both objectives, or only to its target? (twin of `005`) |
+| `032_bc_write_the_distance.py` | Write a distance into the end-of-input token; does the decision move by that much? |
 
 `004` does not exist; the numbering has a gap rather than a renumbering, so
-references in older results files still resolve.
+references in older results files still resolve. Work since September is mostly
+in `scripts/` rather than here; `results/INDEX.md` names the script behind each
+table.
 
 ---
 
@@ -37,6 +51,11 @@ A record of the questions in the order they were asked, because each one exists
 only because of how the previous one turned out, and that chain is not
 recoverable from the code. `results/README.md` says what each output file is;
 `MANIFEST.md` says what is on the volume; this says why any of it happened.
+
+All of it was done in August 2026 on `novalue11.s1234`, a DRC trained at
+γ=0.995, with experiments `013`-`020`. Where later work showed a statement here
+to be wrong, it is corrected in place with a pointer. The current state is in
+`THREADS.md` and `docs/Experiment3.md`.
 
 Mistakes are included. Three of the results below were wrong the first time and
 the reasons are more useful than the corrections.
@@ -153,6 +172,18 @@ two-objective task, where one scalar suffices.
 ceiling built from three-arm fits, which understates the ceiling and inflates the
 correction. Matching the arm counts is what turned −1.7 into −1.00.
 
+**Later.** "One knob" held up: the wide sweeps gave raw cosines of −0.76 to −0.84
+at reliability ~0.8, and every γ=1 base in all four architectures sits at its
+noise ceiling under a permutation null (`results/one-axis-null.txt`).
+
+**Correction: these channel analyses never looked at the input convolution.**
+`017` grouped it into a single encoder block, and `018`-`019` select ConvLSTM
+kernels only. Module-by-module writes on the γ=1 DRCs later found the input
+conv's 1,184 weights carry most of the effect: written alone and rescaled to the
+axis's length they give 92% of the full write, almost all of it on the two
+colour planes (`docs/Experiment3.md` §2). The channel findings below describe
+the recurrent layers only.
+
 ### 019 — keep only the enriched channels
 
 **Reading improves, writing degrades, monotonically, in the same table.**
@@ -204,28 +235,25 @@ inside a step can rebuild whatever was zeroed. A null here shows no small channe
 set is necessary *at that granularity*. Separating "distributed" from
 "recomputed within the step" needs an intervention inside the tick loop.
 
-### A practical finding about the method
+### A practical finding about the method, since corrected
 
-**Shorter fine-tunes give a cleaner axis.** Split-half reliability falls
-monotonically with arm length — 0.228 at 750k steps, 0.177 at 1.5M, 0.160 at
-2.2M, 0.144 at 3M. Behaviour converges by 750k, so everything after that
-accumulates arm-specific movement without adding signal. Roughly 1.6 times the
-reliability for a quarter of the GPU.
+On this agent, split-half reliability fell with arm length: 0.228 at 750k
+steps, 0.177 at 1.5M, 0.160 at 2.2M, 0.144 at 3M. The conclusion drawn at the
+time, that behaviour converges by 750k and longer arms only add arm-specific
+movement, **was wrong**. The arm-length ladder on the three γ=1 DRCs
+(`results/len-*`, `docs/Experiment3.md` §3) found reliability flat from 400k to
+3M, the fine-tuned slope still rising to about 1M steps (14 to 16-17 steps per
+unit value, against the task's 20), and arms past parity reversing only at
+0.75-1.4M. What grows with length is the drift's share of each arm (22-28% to
+41-51%). Arm length is a parameter to report, not one to minimise.
 
 Reliability scales as `r/(1−r) ∝ |u|²·Σ(offset − mean)²/σ²`, so widening the
 offsets buys more than adding arms — `Σ` grows with the square of the offset and
 only linearly with the count — but it is bounded by nonlinearity, which shows up
 as composition degrading at ±0.2 and extrapolation failing outside the grid.
 
-### Open
+### What happened next
 
-- **Everything here is one agent, one seed.** The most valuable remaining
-  experiment is a second base agent at a different seed — not to transfer the
-  axis, which cannot work across independently trained networks with arbitrary
-  channel orderings, but to see whether the *phenomena* replicate.
-- Whether the three-objective agent holds one knob, only differences, or three
-  registers. Three symmetric axes summing to zero put every pairwise cosine at
-  −0.5; three registers put them near 0; one knob puts them at −1, where the
-  two-objective agent sits.
-- A specificity control: sweep the step penalty, which moves the exchange rate
-  without changing any value, and see whether it uses the same channels.
+The open questions this section used to list (a second seed, the
+three-objective agent's structure, a step-penalty specificity control) are
+threads in `THREADS.md`, with their outcomes.

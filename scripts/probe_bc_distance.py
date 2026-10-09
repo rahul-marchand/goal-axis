@@ -3,7 +3,7 @@
     uv run python scripts/probe_bc_distance.py /workspace/data/offline/runs/bcnv11.s1 \
         --choices figures/data/h1/bcnv11.s1.npz > results/gap-probe-bcnv11.s1.txt
 
-The experiment UtilityRule.md part 3 ends on: behaviour cannot tell a wobbling
+The experiment docs/UtilityRule.md part 3 ends on: behaviour cannot tell a wobbling
 threshold from a misread gap, so read the gap out of the activations and ask
 which. Ridge probes are trained to predict the true ``d_rich``, ``d_poor`` and
 their difference from the prefix residuals - on levels disjoint from the

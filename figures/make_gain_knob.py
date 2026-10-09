@@ -10,7 +10,7 @@ Panels A/B show the stretch and the collapse on one write series; panel C shows
 the log-linear dial on all six.
 
 Crossings and rates are read off binned data, never fitted -- the method note in
-``UtilityRule.md`` says why. Numbers behind the figure:
+``docs/UtilityRule.md`` says why. Numbers behind the figure:
 ``scripts/gain_knob_report.py``.
 """
 

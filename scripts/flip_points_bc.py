@@ -5,7 +5,7 @@
 Orders every decoded model of the value-axis grid by its measured crossing and
 fits one step per level (:mod:`goalmisgen.analysis.flips`). The step's location
 is the level's effective gap as the model computes it - ``gap * (1 + eps)`` in
-UtilityRule.md's part-3 rule - measured behaviourally, with no probe involved.
+docs/UtilityRule.md's part-3 rule - measured behaviourally, with no probe involved.
 
 Writes per-seed targets to ``figures/data/h1/flip/bcnv11.s<seed>.npz`` so the
 activation probes can be scored against the model's own estimate rather than

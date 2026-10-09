@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The width/depth scaling campaign, as run on the pod. Registered in
-# Preregistration-scaling.md; read that first, it is what these numbers mean.
+# Preregistration-scaling.md (git show b353c0e:Preregistration-scaling.md); read that first, it is what these numbers mean.
 #
 #   bash scripts/scaling_pod.sh plan                 # what will be generated and trained, and how big
 #   bash scripts/scaling_pod.sh levels               # the base level pool          (CPU, hours)

@@ -45,7 +45,7 @@ ch2 and ch3 exist so I can directly create an explicit spurious correlation. The
 
 Four agents. A **5×5 smoke test** (10M steps) to check the stack works, then three 11×11 runs at 130–150M steps: the **proxy run**, trained at ρ=1.0 so colour perfectly predicts which objective is richer, and two **controls** at ρ=0.5 where colour says nothing — one with the same fixed values, one with values redrawn each episode so that a probe has something to regress against. Referred to below by those names; on the data volume they are `smoke5b`, `maze11`, `clean11fv` and `clean11`.
 
-![](figures/fig1_task.png)
+![](../figures/fig1_task.png)
 *Figure 1: the task and its symbolic encoding. Left: the rendered maze, never passed to the agent. Right: the five observation channels. Here feature 0 is worth 1.0 at 11 steps and feature 1 is worth 0.5 at 4 steps, so feature 0 is the optimal choice.*
 
 
@@ -65,7 +65,7 @@ Linear probes successfully extracted plans. The agent learns to plan to move to 
 | control, random values | 0.916 | 0.600 |
 
 
-![](figures/fig5_example_plan.png)
+![](../figures/fig5_example_plan.png)
 *Figure 2: probe scores at t=0 on four test levels, with the route actually taken overlaid. The agent walks past the nearer objective when the further one is worth more (left two panels) and takes the nearer one when it is not (right two).*
 
 Probes can be written back as well as read. I take the route as a 5-class direction per cell (up/down/left/right/never), fit a linear 1×1 probe on the ConvLSTM cell state, and write its class vectors back into that cell state before every step. My mazes are perfect, so there is no second route to divert onto as in Bush's shortcut; instead I write the route to the objective the agent is *not* taking. The ρ=0.5 control, 512 test episodes per arm, at the largest write that costs no competence:
@@ -82,7 +82,7 @@ Writing its own route back removes its mistakes entirely, and split by utility m
 
 Fitting the point at which the agent gives up on the richer objective, it will walk 8.3 extra steps for it; the task's reward structure says it should walk 10.0, so it over-values distance behaving as though a step cost 0.060 rather than 0.05 and this is where its remaining 4% of wrong choices comes from. Writing the other route drops that to 6.7 steps, and writing its own route raises it to 10.0 both with the agent still reaching an objective 100% of the time, and neither interval overlapping the baseline.
 
-![](figures/fig8_intervention.png)
+![](../figures/fig8_intervention.png)
 *Figure 3: left, the same write at increasing strength. The route to the other objective pulls the exchange rate down, the agent's own route pushes it up to the task optimum, and norm-matched random vectors move it nowhere. Bands are 95% intervals; dotted past the point where the write starts costing the agent episodes, which is where the numbers stop meaning a shifted trade-off. Right, % taking the other objective by utility margin the write is followed where switching is cheap and refused where it is not.*
 
 ### Summary of Initial Simple Misgeneralisation Experiment
@@ -91,17 +91,17 @@ A direct, explicit proxy objective: train at a fixed ρ, then sweep ρ at test.
 
 2,048 episodes per arm:
 
-![](figures/fig2_rho_response.png)
+![](../figures/fig2_rho_response.png)
 *Figure 4: left to right -- 5x5 and 11x11 trained at ρ=1.0 (feature 0 always marks the higher-value objective), then 11x11 control trained at ρ=0.5 (channel varied randomly).*
 
 The control is on the right hand side, trained with the channel randomised.
 
-![](figures/fig3_margin.png)
+![](../figures/fig3_margin.png)
 *Figure 5: % chose optimal by utility margin, on identical levels. The control is flat across ρ in every band; the proxy run loses 64 points in the 0.15–0.35 band and 31 on the easiest decisions.*
 
 Interestingly in the 11x11 maze the model learns to complete the task optimally before it learns the direct proxy. See figure 6 below.
 
-![](figures/fig4_dynamics.png)
+![](../figures/fig4_dynamics.png)
 *Figure 6: returns hide the effect — the three test correlations are indistinguishable. Subtracting them, the proxy run's ρ=1.0 − ρ=0.0 gap settles at +0.165 and the control's at −0.001, and neither moves before competence at ~20M. From cleanba's in-training eval, so only the within-run gap is comparable.*
 
 

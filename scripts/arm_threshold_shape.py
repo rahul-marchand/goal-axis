@@ -20,7 +20,7 @@ say whether the axis moved w or g -- those differ by a common rescaling of both
 sides, which is invisible to behaviour.
 
 Reads the per-arm decodes written by ``scripts/decode_h1.py``; see
-``UtilityRule.md`` for the base-model measurement this extends.
+``docs/UtilityRule.md`` for the base-model measurement this extends.
 """
 
 from __future__ import annotations

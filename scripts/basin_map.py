@@ -78,7 +78,7 @@ def parse_args() -> argparse.Namespace:
 # ----------------------------------------------------------------------
 
 # The behavioural indifference point of the base agent, in steps of extra
-# distance to the richer objective (Experiment2.md). Used only to score
+# distance to the richer objective (docs/Experiment2.md). Used only to score
 # candidate levels for a balanced starting split; nothing downstream trusts it.
 BASE_THRESHOLD = 7.7
 

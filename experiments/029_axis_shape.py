@@ -22,10 +22,10 @@ restricted to a group, or to the largest ``k`` groups, written into the base's
 own weights, and the *behaviour* is read -- the same greedy decode on the same
 held-out levels ``027`` uses, so the exchange rates are directly comparable.
 
-What would refute the campaign's registered predictions, in the terms of
-``Preregistration-scaling.md``: a residual direction replicating above 0.50 (P3),
-or a single block reaching within the tolerance of the full-axis write at
-``L = 16`` (P4).
+What would refute the campaign's registered predictions, in the terms of the
+scaling preregistration (``git show b353c0e:Preregistration-scaling.md``): a
+residual direction replicating above 0.50 (P3), or a single block reaching
+within the tolerance of the full-axis write at ``L = 16`` (P4).
 """
 
 from __future__ import annotations

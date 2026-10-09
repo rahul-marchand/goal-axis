@@ -16,7 +16,7 @@ than the measurement.
 
 This is a problem of design, not of sample size. Halving the spacing over the
 same range adds arms that each contribute almost nothing, because contribution
-goes as the *square* of the offset. ``Experiment2.md`` already observed the same
+goes as the *square* of the offset. ``docs/Experiment2.md`` already observed the same
 thing from the other end: the axis share of ‖Δθ‖² runs 4% at an offset of 0.1 and
 54% at 0.4. Signal grows with the offset and noise does not.
 

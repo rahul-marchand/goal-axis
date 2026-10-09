@@ -1,6 +1,6 @@
 """The Craftax task against the real engine.
 
-Invariants (Craftax.md): the expert's route, executed by ``craftax_step``,
+Invariants (docs/Craftax.md): the expert's route, executed by ``craftax_step``,
 collects the target in exactly ``distance`` steps and nothing else; the
 rendered observation equals what the model trained on; the outcome dict is a
 superset of the maze's with the shared keys agreeing; and the engine facts the

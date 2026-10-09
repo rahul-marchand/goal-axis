@@ -370,7 +370,7 @@ note = """
 A third seed of novalue11, identical but for the seed. Two seeds cannot put an
 interval on anything, so this is the smallest number that lets "DRC agents
 trained this way do X" be said at all. Predictions for it were registered in
-Preregistration.md before it was trained, including two expected to fail: its
+Preregistration.md (git show 1ba7180:Preregistration.md) before it was trained, including two expected to fail: its
 indifference point should match neither existing seed, and its channel
 localisation should overlap theirs at chance.
 """
@@ -397,7 +397,7 @@ Abandoned. This was to be the value grid on an agent that has a value channel,
 as a control against novalue11 which does not, but fine-tuning a value-channel
 agent is not a question this project wants to spend on. Any partial arms here
 were deleted; the directory should not exist. See the 2026-08-16 amendment in
-Preregistration.md.
+Preregistration.md (git show 1ba7180:Preregistration.md).
 """
 
 
