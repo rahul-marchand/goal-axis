@@ -41,7 +41,7 @@ from cleanba.cleanba_impala import load_train_state
 from goalmisgen import provenance
 from goalmisgen.analysis.weights import fit_axis_and_drift
 from goalmisgen.configs.env import MazeConfig
-from goalmisgen.volume import parse_arm_dirname, sweep_index
+from goalmisgen.volume import iter_arms, sweep_index
 
 GATES = ("input", "candidate", "forget", "output")
 """``i, j, f, o = split(gates, 4, axis=-1)`` in cleanba's ConvLSTM cell."""
@@ -84,10 +84,7 @@ def kernels(params, cell: int) -> dict[str, np.ndarray]:
 def sweep_axis(root: Path, prefix: str, base_value: float, at: int, config, cell: int, halves: bool = False):
     """Axis and shared component for one sweep, as gate kernels."""
     offsets, arms = [], []
-    for run in sorted(root.iterdir()):
-        parsed = parse_arm_dirname(run.name)
-        if parsed is None or parsed.sweep != f"o{sweep_index(prefix)}":
-            continue
+    for parsed, run in iter_arms(root, f"o{sweep_index(prefix)}"):
         checkpoints = sorted((run / "local-files").glob("cp_*"))
         if not checkpoints:
             continue

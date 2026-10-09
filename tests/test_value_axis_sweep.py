@@ -255,3 +255,35 @@ def test_an_arm_that_reached_its_length_is_left_alone(volume: Path) -> None:
     (arm / "cp_399360").mkdir()
 
     assert "o1+045@400k already complete" in dry_run(volume, "novalue11.s1234", "--steps", "400000")
+
+
+def run_sweep(root: Path, tag: str, *extra: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, str(REPO / "scripts" / "value_axis_sweep.py"), "--data", str(root), "--agent", tag, "--dry-run", *extra],
+        capture_output=True,
+        text=True,
+        cwd=REPO,
+    )
+
+
+def test_one_sided_arms_go_into_the_family_asked_for(volume: Path) -> None:
+    out = dry_run(volume, "novalue11.s1234", "--objectives", "1", "--values", "1.2", "--family", "k", "--allow-reorder")
+    assert "k1+070@750k" in out
+
+
+def test_a_family_without_values_is_refused(volume: Path) -> None:
+    """The symmetric grid is the fitted family; renaming it would hide it from the fit."""
+    result = run_sweep(volume, "novalue11.s1234", "--family", "k")
+    assert result.returncode != 0
+    assert "always 'o'" in result.stderr
+
+
+def test_the_fitted_family_cannot_be_named_for_one_sided_arms(volume: Path) -> None:
+    result = run_sweep(volume, "novalue11.s1234", "--objectives", "1", "--values", "1.2", "--family", "o")
+    assert result.returncode != 0
+
+
+def test_replicates_of_one_sided_arms_are_refused(volume: Path) -> None:
+    result = run_sweep(volume, "novalue11.s1234", "--objectives", "1", "--values", "1.2", "--replicate", "2")
+    assert result.returncode != 0
+    assert "no replicates" in result.stderr

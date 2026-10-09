@@ -18,6 +18,8 @@ from pathlib import Path
 
 import pytest
 
+from goalmisgen.configs import saved
+
 SCRIPT = Path(__file__).resolve().parents[1] / "experiments" / "013_value_axis.py"
 spec = importlib.util.spec_from_file_location("value_axis", SCRIPT)
 assert spec is not None and spec.loader is not None
@@ -82,13 +84,13 @@ def test_the_value_channel_is_read_from_the_base_not_assumed(tmp_path) -> None:
     withvalue.mkdir()
     (withvalue / "cfg.json").write_text(json.dumps({"cfg": {"train_env": {"colour_is_the_only_value_cue": False}}}))
 
-    assert value_axis.base_hides_values(novalue) is True
-    assert value_axis.base_hides_values(withvalue) is False
+    assert saved.hides_values(novalue) is True
+    assert saved.hides_values(withvalue) is False
 
 
 def test_an_unreadable_base_config_keeps_the_old_behaviour(tmp_path) -> None:
     """Every existing sweep was on an agent without a value channel."""
-    assert value_axis.base_hides_values(tmp_path) is True
+    assert saved.hides_values(tmp_path) is True
 
 
 def test_an_agent_recording_only_value_encoding_is_read_correctly(tmp_path) -> None:
@@ -104,8 +106,8 @@ def test_an_agent_recording_only_value_encoding_is_read_correctly(tmp_path) -> N
     novalue.mkdir()
     (novalue / "cfg.json").write_text(json.dumps({"cfg": {"train_env": {"value_encoding": "none"}}}))
 
-    assert value_axis.base_hides_values(withvalue) is False
-    assert value_axis.base_hides_values(novalue) is True
+    assert saved.hides_values(withvalue) is False
+    assert saved.hides_values(novalue) is True
 
 
 def test_the_network_is_read_from_the_base_not_assumed(tmp_path) -> None:
@@ -143,6 +145,28 @@ def test_the_network_is_read_from_the_base_not_assumed(tmp_path) -> None:
 def test_an_unreadable_base_config_builds_the_drc(tmp_path) -> None:
     from cleanba.convlstm import ConvLSTMConfig
 
-    assert value_axis.base_net(tmp_path) is None
+    assert saved.trained_net(tmp_path) is None
     args = run([str(tmp_path), "--value", "0.7", "--levels", "/tmp/levels", "--run-dir", "/tmp/run"])
     assert isinstance(value_axis.finetune_config(args).net, ConvLSTMConfig)
+
+
+def test_gamma_is_read_from_the_base_not_the_preset(tmp_path) -> None:
+    """An arm is a nudge to the base's own objective: fine-tuning a gamma=1.0
+    agent at the preset's 0.995 would quietly optimise a different exchange
+    rate than the one being measured, and reset_checkpoint rewrites cfg.json
+    so cleanba's config-diff at resume cannot catch it."""
+    import json
+
+    base = tmp_path / "undiscounted"
+    base.mkdir()
+    (base / "cfg.json").write_text(json.dumps({"cfg": {"loss": {"gamma": 1.0}}}))
+
+    args = run([str(base), "--levels", "/tmp/levels", "--run-dir", "/tmp/run", "--value", "0.7"])
+    assert value_axis.finetune_config(args).loss.gamma == 1.0
+
+
+def test_a_base_without_a_recorded_gamma_keeps_the_preset_default(tmp_path) -> None:
+    args = run([str(tmp_path), "--levels", "/tmp/levels", "--run-dir", "/tmp/run", "--value", "0.7"])
+    from goalmisgen.configs.presets import maze_drc33
+
+    assert value_axis.finetune_config(args).loss.gamma == maze_drc33().loss.gamma

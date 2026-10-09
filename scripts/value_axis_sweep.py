@@ -38,6 +38,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from goalmisgen.design import (  # noqa: E402
+    ONE_SIDED_FAMILIES,
     arm_values,
     check_no_preference_flip,
     estimated_hours,
@@ -45,7 +46,7 @@ from goalmisgen.design import (  # noqa: E402
     one_sided_arms,
     sweep_arms,
 )
-from goalmisgen.volume import arm_is_complete, dataset_dirname  # noqa: E402
+from goalmisgen.volume import arm_is_complete, dataset_dirname, is_colour_keyed  # noqa: E402
 
 # Seconds to construct one level, by objective count: a maze plus a
 # breadth-first search per objective, and a mutual reachability check beyond two.
@@ -93,6 +94,23 @@ def parse_args() -> argparse.Namespace:
         "objectives that is the agent being asked to hold the opposite preference, and the "
         "writes fail there. With three it is deliberate -- the grid has to span rank changes, "
         "because a task whose choice reduces to one difference cannot need two dimensions.",
+    )
+    parser.add_argument(
+        "--replicate",
+        type=int,
+        default=1,
+        help="Re-run the same grid from fresh seeds. Replicate k trains with seeds offset by "
+        "1000*(k-1) into directories suffixed .rk, so it can never collide with the original "
+        "sweep. For seed bands: the same arms, drawn more than once.",
+    )
+    parser.add_argument(
+        "--family",
+        choices=sorted(ONE_SIDED_FAMILIES),
+        default=None,
+        help="Which held-out family --values arms belong to (default x). 'x' is the original "
+        "extension; 'k' is the same but with colours pinned to objectives, which is what an arm "
+        "past parity needs to ask for a reversed preference rather than a relabelled one. The "
+        "colouring follows from the family, so it is always visible in the directory name.",
     )
     parser.add_argument("--arm-levels", type=int, default=150_000)
     parser.add_argument("--lr", type=float, default=1e-4)
@@ -167,9 +185,18 @@ def main() -> None:
     if args.values:
         if len(objectives) != 1:
             sys.exit("--values sweeps one objective; say which with --objectives")
-        arms = one_sided_arms(objectives[0], base_values[objectives[0]], tuple(args.values))
+        if args.replicate != 1:
+            sys.exit("--replicate re-runs the symmetric grid; one-sided --values arms have no replicates")
+        family = args.family or "x"
+        arms = one_sided_arms(objectives[0], base_values[objectives[0]], tuple(args.values), family=family)
     else:
-        arms = [arm for objective in objectives for arm in sweep_arms(objective, offsets=offsets)]
+        if args.family is not None:
+            sys.exit("--family names a held-out family for --values arms; the symmetric grid is always 'o'")
+        arms = [
+            arm
+            for objective in objectives
+            for arm in sweep_arms(objective, offsets=offsets, replicate=args.replicate)
+        ]
     problems = check_no_preference_flip(base_values, arms)
     if problems and args.allow_reorder:
         print(f"  {len(problems)} arms reorder the objectives, allowed explicitly")
@@ -249,6 +276,7 @@ def main() -> None:
                     str(args.size),
                     "--seed",
                     str(arm.seed),
+                    *(["--colour-keyed"] if is_colour_keyed(arm.sweep) else []),
                     "--note",
                     f"{arm.sweep}{arm.offset:+.2f} of the wide value grid on {args.agent}.",
                 ],

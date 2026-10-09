@@ -189,6 +189,27 @@ def value_distance_decisions(outcomes, n_features: int = 2):
     return np.array(gaps), np.array(took_richer), np.array(gap_in_value)
 
 
+def optimal_threshold(v0, v1, step_penalty: float, gamma: float):
+    """Extra steps worth walking for colour 0 rather than colour 1: the task's own threshold.
+
+    Setting the two discounted returns equal gives ``g^D (c + v0) = c + v1`` with
+    ``c = step_penalty / (1 - g)``, so ``D = log((c + v1) / (c + v0)) / log g``.
+    The distance already walked cancels: the threshold depends on the two values
+    alone. At ``gamma >= 1`` that form divides by zero; its ``g -> 1`` limit is
+    the undiscounted ``(v0 - v1) / step_penalty``, returned directly.
+
+    Signed, and relative to colour 0 specifically. Arms are scored at the *base*
+    values, where colour 0 is the richer objective, so negative means something
+    real -- the agent should prefer colour 1 -- and an absolute value would fold
+    arms trained past the flip back on top of the ones before it. Accepts arrays.
+    """
+    v0, v1 = np.asarray(v0, dtype=float), np.asarray(v1, dtype=float)
+    if gamma >= 1.0:
+        return (v0 - v1) / step_penalty
+    c = step_penalty / (1 - gamma)
+    return np.log((c + v1) / (c + v0)) / np.log(gamma)
+
+
 def indifference_point(gaps: np.ndarray, took_richer: np.ndarray) -> float:
     """Distance gap at which the agent is equally likely to take either.
 

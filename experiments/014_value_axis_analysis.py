@@ -124,6 +124,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Which sweep to read when the agent has been swept at more than one arm length.",
     )
+    parser.add_argument(
+        "--replicate",
+        type=int,
+        default=1,
+        help="Which replicate of the grid to analyse; 1 is the original, unsuffixed sweep.",
+    )
     return parser.parse_args()
 
 
@@ -145,7 +151,9 @@ def eval_config(args: argparse.Namespace) -> MazeConfig:
     )
 
 
-def arm_checkpoints(root: Path, at: int = -1, prefix: str = "v", steps: int | None = None) -> dict[float, Path]:
+def arm_checkpoints(
+    root: Path, at: int = -1, prefix: str = "v", steps: int | None = None, replicate: int = 1
+) -> dict[float, Path]:
     """One checkpoint from every arm of one sweep, keyed by the value it trained at.
 
     Arms are only comparable when read at the same number of updates, so the
@@ -153,7 +161,9 @@ def arm_checkpoints(root: Path, at: int = -1, prefix: str = "v", steps: int | No
     that saved a different number of checkpoints would otherwise be silently
     compared at a different budget from the rest.
     """
-    return discover_arms(root, sweep_index(prefix), BASE_VALUE, steps=steps, at=at, family=sweep_family(prefix))
+    return discover_arms(
+        root, sweep_index(prefix), BASE_VALUE, steps=steps, at=at, family=sweep_family(prefix), replicate=replicate
+    )
 
 
 def measure(params, policy, get_action, envs, args, label: str) -> tuple[float, float, float, float]:
@@ -199,7 +209,7 @@ def main() -> None:
     print(f"base {args.base.name}  (update {update}, {base_flat.size:,} parameters)\n")
 
     print("arms")
-    selected = arm_checkpoints(args.arms, args.at, args.prefix, args.arm_steps)
+    selected = arm_checkpoints(args.arms, args.at, args.prefix, args.arm_steps, args.replicate)
     steps = {int(path.name.removeprefix("cp_")) for path in selected.values()}
     if len(steps) > 1:
         print(f"  WARNING: arms are at different budgets {sorted(steps)}, so their diffs are not comparable")

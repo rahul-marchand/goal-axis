@@ -168,7 +168,9 @@ def main() -> None:
             )
 
             controls = d["behaviour"]["controls"]
-            extra = {k: v for k, v in controls.items() if k.startswith("extrapolate_")}
+            # The axis-only convention, matching the written series; 027 also
+            # stores extrapolate_with_drift_<o>, which this figure does not draw.
+            extra = {k: v for k, v in controls.items() if k.startswith("extrapolate_") and "with_drift" not in k}
             if extra:
                 xs = [swept_value(sweep, float(k.split("_")[1])) for k in extra]
                 ys = [v["indifference"] for v in extra.values()]

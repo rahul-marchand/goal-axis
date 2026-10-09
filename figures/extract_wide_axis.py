@@ -83,9 +83,17 @@ def main() -> None:
     if not parsed_files:
         raise SystemExit("no wide-sweep results found — run scripts on the wide grid first")
 
+    # cfg.loss.gamma of the agents the arms were fine-tuned from, inferred from
+    # the family tag: g1 names the undiscounted retrain, everything earlier
+    # trained at 0.995. These scripts see only results text, not the volume, so
+    # the name is the one place the fact is available — and a mixed batch has
+    # no single optimal curve, so it is refused rather than averaged.
+    g1_flags = {agent: "g1" in agent for agent, _ in series}
+    if len(set(g1_flags.values())) > 1:
+        raise SystemExit(f"mixed discount families in one extraction: {g1_flags}; run them separately")
     payload = {
         "step_penalty": 0.05,
-        "discount": 0.995,
+        "discount": 1.0 if any(g1_flags.values()) else 0.995,
         # What the *other* objective pays, per sweep: o1 sweeps colour 1 with
         # colour 0 held at 1.0, o0 sweeps colour 0 with colour 1 held at 0.5.
         "other_objective": {"o1": 1.0, "o0": 0.5},

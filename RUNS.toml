@@ -661,3 +661,103 @@ The single-variable control for the bc11.rho100 runs, trained on
 `offline/demos/train.rho050` where colour carries nothing. Same levels, same
 routes, same model, same seeds; only the colours differ.
 """
+
+[[entry]]
+match = "runs/novalue11g1.s5678"
+note = """
+g1 DRC that missed: still mid-takeoff at the 150M budget (success ~0.60 and
+rising), so it was dropped rather than banked. Kept as the record of the
+in-budget convergence rate, which was 2 of 6 seeds at gamma=1.
+"""
+
+[[entry]]
+match = "runs/novalue11g1.s3456"
+note = """
+g1 DRC that missed the 150M bell (~0.60, mid-takeoff). Its extension
+`novalue11g1.s3456e` is the banked base; this is the run it continued from.
+"""
+
+[[entry]]
+match = "runs/novalue11g1.s3456e"
+note = """
+Banked g1 DRC base: novalue11g1.s3456 continued for +37.5M steps at the tail
+learning rate (4e-6), which finished its takeoff (decode reach 100%). BASE.json
+pins cp_37498880. One of the three DRC bases behind every g1 figure, with
+s1234 and s9012.
+"""
+
+[[entry]]
+match = "runs/novalue11g1.s7890"
+note = """
+g1 DRC reroll that also missed the 150M bell (~0.50, mid-takeoff). Not banked.
+"""
+
+[[entry]]
+match = "runs/novalue11g1.*"
+note = """
+The g1 campaign, 2026-08-29: novalue11 retrained with gamma=1.0 so the agent
+optimises the exact undiscounted objective the solver and every analysis metric
+score. 150M steps, otherwise identical to novalue11. Banked bases: s1234
+(threshold 6.9 steps), s9012 (8.0) and s3456e (see its own entry); the others
+missed the budget. The core-figure DRC family; the gamma=0.995 novalue11 runs
+remain as the record of the discounted era.
+"""
+
+[[entry]]
+match = "runs/resnet11nvg1.s[56]*"
+note = """
+g1 ResNets that failed: at gamma=1 the larger value targets made the
+unnormalised value head diverge (loss 1e8-1e9 against 0.2 at gamma=0.995), and
+these were killed and rerolled under a stated gate (value loss > 1e3 at 10M).
+Not banked.
+"""
+
+[[entry]]
+match = "runs/resnet11nvg1.*"
+note = """
+g1 campaign: resnet11novalue retrained at gamma=1.0, 150M steps. Banked bases
+s1234 (BASE.json at cp120M), s2468 (cp90M) and s3456. BASE.json is written by
+the campaign's healthy-checkpoint picker because every converged ResNet
+collapsed late (see resnet11novalue.s1234-cp130M); the picker rescued two of
+the three. s9012 was likewise dropped.
+"""
+
+[[entry]]
+match = "runs/vit11nvg1lr.*"
+note = """
+g1 ViTs at a tuned learning rate (peak 1e-3, floor 1e-4), three seeds, 250M
+steps, after an LR probe found the peak interior and bracketed (2e-4 34.7%,
+4e-4 ~50%, 1e-3 61.2%, 2.5e-3 collapses at 80M). They finished at argmax
+success 0.74/0.69/0.65 -- worse than the untuned s9012 -- because raising the
+floor tenfold left the terminal LR 25x the inherited 4e-6 and the greedy policy
+never settled. No value axis (reliability 0.05-0.13). Kept as negative controls.
+"""
+
+[[entry]]
+match = "runs/probe/*"
+note = """
+The ViT learning-rate probe: the real 250M schedule killed at ~75-80M and
+decoded greedily on 1,024 episodes. Each run is one (peak, floor) pair; see
+vit11nvg1lr.* for what it chose and how that turned out.
+"""
+
+[[entry]]
+match = "runs/vit11nvg1.*"
+note = """
+g1 campaign: vit11novalue retrained at gamma=1.0, 250M steps. Only s9012
+learned the value trade-off (threshold 5.2 steps at 94.6% completion). s1234
+and s5678 looked converged on the sampled training statistic but never
+converged greedily (argmax ~0.5); they run to the nearest goal and ignore
+value, so their arms and measures are excluded. The ViT base rate is about 1
+in 6, which is why the figures carry ViT at n=1.
+"""
+
+[[entry]]
+match = "runs/legend11g1.*"
+note = """
+Gain-vs-factorised E5, 2026-09-15: a DRC on the border-legend observation (one
+objectives plane, legend marks naming the rich objective's row and column), a
+would-be control where value is cued separately from colour. Trained 150M at
+gamma=1, then extended (+62.5M) to converge. It barely uses value -- threshold
+0.9 steps against a task optimum of 10, no axis -- so the control failed.
+"""

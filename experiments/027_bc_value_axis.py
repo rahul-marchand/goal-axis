@@ -273,10 +273,18 @@ def main() -> None:
     m = measure_flat(base, base.flat + drift, demos, indices)
     say("base + drift only", m)
     controls["drift_only"] = m.as_row()
+    # Both conventions, as in the per-offset table above, so an offset outside
+    # the grid is comparable with the ones inside it whichever a reader uses:
+    # ``extrapolate_<o>`` is the axis alone (the ``written`` column) and
+    # ``extrapolate_with_drift_<o>`` adds the common component back.
     for o in args.extrapolate:
+        expected = expected_indifference(base.values, objective, o)
         m = measure_flat(base, base.flat + o * axis, demos, indices)
-        say(f"written {o:+.2f} (outside the grid)", m, expected_indifference(base.values, objective, o))
+        say(f"written {o:+.2f} (outside the grid)", m, expected)
         controls[f"extrapolate_{o:+.2f}"] = m.as_row()
+        m = measure_flat(base, base.flat + drift + o * axis, demos, indices)
+        say(f"written {o:+.2f} + drift (outside the grid)", m, expected)
+        controls[f"extrapolate_with_drift_{o:+.2f}"] = m.as_row()
     out["behaviour"]["controls"] = controls
     print(
         "\nA direction is an axis if the written column tracks the arm column arm by arm,\n"

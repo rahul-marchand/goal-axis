@@ -26,7 +26,9 @@ from goalmisgen.volume import (
     composition_arm_values,
     dataset_dirname,
     discover_arms,
+    is_colour_keyed,
     is_composition_arm,
+    iter_arms,
     offset_tag,
     parse_arm_dirname,
     parse_dataset_dirname,
@@ -255,12 +257,63 @@ def test_sweep_family_reads_the_tag() -> None:
 
 
 def test_the_registry_says_which_families_are_fitted() -> None:
-    """The o/x/m split is a statistical claim, so it is stated once here."""
+    """The o/x/k/m split is a statistical claim, so it is stated once here."""
     assert "o" in FITTED_FAMILIES
-    assert {"x", "m"} <= HELD_OUT_FAMILIES
+    assert {"x", "k", "m"} <= HELD_OUT_FAMILIES
     assert not (FITTED_FAMILIES & HELD_OUT_FAMILIES)
 
 
 def test_a_held_out_sweep_still_parses_its_index() -> None:
     assert sweep_index("x1") == 1
     assert sweep_index("x0") == 0
+
+
+def test_replicate_arm_names_round_trip() -> None:
+    name = arm_dirname("o1", 0.2, 400_000, replicate=2)
+    assert name == "o1+020@400k.r2"
+    parsed = parse_arm_dirname(name)
+    assert parsed == ArmName(sweep="o1", offset=0.2, steps=400_000, replicate=2)
+
+
+def test_the_original_grid_is_replicate_one_with_no_suffix() -> None:
+    assert arm_dirname("o1", 0.2, 400_000) == "o1+020@400k"
+    assert arm_dirname("o1", 0.2, 400_000, replicate=1) == "o1+020@400k"
+    assert parse_arm_dirname("o1+020@400k").replicate == 1
+
+
+def test_replicate_one_never_writes_a_suffix_so_r1_is_not_a_name() -> None:
+    assert parse_arm_dirname("o1+020@400k.r1") is None
+
+
+def test_discover_arms_separates_replicates(tmp_path) -> None:
+    for name in ("o1+020@400k", "o1+020@400k.r2", "o1-020@400k.r2"):
+        (tmp_path / name / "local-files" / "cp_400000").mkdir(parents=True)
+    original = discover_arms(tmp_path, 1, 0.5, steps=400_000)
+    second = discover_arms(tmp_path, 1, 0.5, steps=400_000, replicate=2)
+    assert sorted(original) == [0.7]
+    assert sorted(second) == [0.3, 0.7]
+
+
+def test_iter_arms_hides_replicates_unless_asked(tmp_path) -> None:
+    """Every enumerator goes through iter_arms, so this is the guard for all of them.
+
+    A consumer keying arms by offset would otherwise let ``.r2`` replace the arm it
+    re-runs, because ``.r2`` sorts after the original.
+    """
+    for name in ("o1+020@400k", "o1+020@400k.r2", "k1+020@400k", "o1+020@750k"):
+        (tmp_path / name).mkdir()
+    assert [run.name for _, run in iter_arms(tmp_path, "o1")] == ["o1+020@400k", "o1+020@750k"]
+    assert [run.name for _, run in iter_arms(tmp_path, "o1", steps=400_000)] == ["o1+020@400k"]
+    assert [run.name for _, run in iter_arms(tmp_path, "o1", replicate=2)] == ["o1+020@400k.r2"]
+    assert [run.name for _, run in iter_arms(tmp_path, "k1")] == ["k1+020@400k"]
+
+
+def test_iter_arms_on_a_missing_directory_is_empty(tmp_path) -> None:
+    assert list(iter_arms(tmp_path / "absent", "o1")) == []
+
+
+def test_colour_keying_is_a_property_of_the_family() -> None:
+    """So an arm's directory name always says how its levels were coloured."""
+    assert is_colour_keyed("k1")
+    assert not is_colour_keyed("x1")
+    assert not is_colour_keyed("o1")

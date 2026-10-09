@@ -46,7 +46,7 @@ from goalmisgen.analysis import collect_episode_outcomes, summarise
 from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
 from goalmisgen.analysis.weights import fit_axis_and_drift, projected_offset
 from goalmisgen.configs.env import MazeConfig
-from goalmisgen.volume import parse_arm_dirname, sweep_index
+from goalmisgen.volume import iter_arms, sweep_index
 
 
 def parse_args() -> argparse.Namespace:
@@ -132,10 +132,8 @@ def main() -> None:
     bounds = np.cumsum(sizes)[:-1]
 
     offsets, stack = [], []
-    for run in sorted(args.arms.iterdir()):
-        parsed = parse_arm_dirname(run.name)
-        match = parsed if parsed and parsed.sweep == f"o{sweep_index(args.prefix)}" else None
-        if not match or not (run / "local-files").is_dir():
+    for parsed, run in iter_arms(args.arms, f"o{sweep_index(args.prefix)}"):
+        if not (run / "local-files").is_dir():
             continue
         checkpoints = sorted((run / "local-files").glob("cp_*"))
         if not checkpoints:
@@ -161,10 +159,8 @@ def main() -> None:
     ranking_axis, ranking_drift, ranked_by = axis, drift, f"{args.prefix} (the sweep under test — leaks)"
     if args.rank_from:
         other_offsets, other_stack = [], []
-        for run in sorted(args.arms.iterdir()):
-            parsed = parse_arm_dirname(run.name)
-            match = parsed if parsed and parsed.sweep == f"o{sweep_index(args.rank_from)}" else None
-            if not match or not (run / "local-files").is_dir():
+        for parsed, run in iter_arms(args.arms, f"o{sweep_index(args.rank_from)}"):
+            if not (run / "local-files").is_dir():
                 continue
             checkpoints = sorted((run / "local-files").glob("cp_*"))
             if not checkpoints:

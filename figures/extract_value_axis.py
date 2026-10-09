@@ -75,7 +75,10 @@ def main() -> None:
         "other_objective": 1.0,
         # cfg.loss.gamma of the agent every arm was fine-tuned from. The optimal
         # threshold is what the agent is trained to maximise, which is discounted
-        # return, so the undiscounted (value gap)/penalty overstates it.
+        # return, so the undiscounted (value gap)/penalty overstates it. This
+        # script serves the original 0.995-era seven-point grid only; the g1
+        # (undiscounted) families flow through extract_wide_axis.py and the
+        # fig-3 parser, which carry their own discount.
         "discount": 0.995,
         "base_exchange_rate": base,
         "trained": [{"value": v, "steps": s} for v, s in trained],

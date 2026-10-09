@@ -22,7 +22,9 @@ import numpy as np
 import pandas as pd
 
 mpl.use("Agg")
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # noqa: E402
+
+from goalmisgen.analysis.behaviour import optimal_threshold  # noqa: E402
 
 DATA = Path(__file__).parent / "data"
 OUT = Path(__file__).parent
@@ -195,9 +197,9 @@ def fig_written_value():
     # anything is. The undiscounted (other - v)/p is the g -> 1 limit of this and
     # runs up to 0.9 steps high over the range plotted.
     gamma = d["discount"]
-    c = penalty / (1 - gamma)
     grid = np.linspace(0.14, 1.18, 100)
-    ax.plot(grid, np.log((c + grid) / (c + other)) / np.log(gamma), color=MUTED, lw=1.2, ls="--", zorder=1)
+    curve = optimal_threshold(other, grid, penalty, gamma)
+    ax.plot(grid, curve, color=MUTED, lw=1.2, ls="--", zorder=1)
     ax.annotate("optimal threshold", xy=(0.33, 14.3), color=MUTED, fontsize=8.5)
 
     ax.axhline(base, color=MUTED, lw=0.8, ls=":", zorder=0)
@@ -288,10 +290,9 @@ def fig_ood_writes():
     d = json.loads((DATA / "value_axis.json").read_text())
     penalty, other, base_value = d["step_penalty"], d["other_objective"], d["base_value"]
     gamma = d["discount"]
-    c = penalty / (1 - gamma)
 
     def optimal(v0, v1):
-        return np.log((c + v1) / (c + v0)) / np.log(gamma)
+        return optimal_threshold(v0, v1, penalty, gamma)
 
     # (rows, gap from the written value, optimal at that gap, colour, label)
     sweeps = [
@@ -380,7 +381,6 @@ def fig_written_ood():
     d = json.loads((DATA / "value_axis.json").read_text())
     penalty, other, base = d["step_penalty"], d["other_objective"], d["base_exchange_rate"]
     gamma = d["discount"]
-    c = penalty / (1 - gamma)
 
     fig, ax = plt.subplots(figsize=(6.4, 4.6))
 
@@ -388,9 +388,10 @@ def fig_written_ood():
     ax.axvspan(min(fitted), max(fitted), color=INK2, alpha=0.06, lw=0, zorder=0)
 
     grid = np.linspace(-0.62, 3.12, 300)
+    opt_curve = optimal_threshold(other, grid, penalty, gamma)
     ax.plot(
         grid,
-        np.log((c + grid) / (c + other)) / np.log(gamma),
+        opt_curve,
         color=MUTED,
         lw=1.2,
         ls="--",

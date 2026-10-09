@@ -32,7 +32,7 @@ from goalmisgen.analysis import auc_interval, probe, probe_by_distance
 from goalmisgen.offline.decode import greedy_decode
 from goalmisgen.offline.demos import DemoSet
 from goalmisgen.offline.probe import capture, relabel
-from goalmisgen.offline.train import initial_params, list_checkpoints, load_checkpoint
+from goalmisgen.offline.train import initial_params, list_checkpoints, load_checkpoint, load_run_config
 from goalmisgen.provenance import header
 
 
@@ -70,7 +70,11 @@ def main() -> None:
     checkpoints = list_checkpoints(args.run)
     step, directory = checkpoints[-1] if args.step is None else next(c for c in checkpoints if c[0] == args.step)
     model, params = load_checkpoint(directory)
-    demos = DemoSet.load(args.demos)
+    # The demo format belongs to the run: a hidden-value model reads 4-channel
+    # observations, and loading its demos with the value channel present shifts
+    # every cell token and dies reshaping. Read the flag rather than assume it.
+    hide_values = bool(load_run_config(args.run).get("demos", {}).get("hide_values", False))
+    demos = DemoSet.load(args.demos, hide_values=hide_values)
     cfg = model.config
     print(
         f"{args.run.name} @ step {step:,}; {args.demos.name} (rho={demos.rho}); {args.train_episodes} train / {args.test_episodes} test episodes\n"

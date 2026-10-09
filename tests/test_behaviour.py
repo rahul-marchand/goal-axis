@@ -12,7 +12,11 @@ import numpy as np
 import pytest
 
 from goalmisgen.analysis import bin_by_margin, collect_episode_outcomes, summarise
-from goalmisgen.analysis.behaviour import indifference_point, value_distance_decisions
+from goalmisgen.analysis.behaviour import (
+    indifference_point,
+    optimal_threshold,
+    value_distance_decisions,
+)
 from goalmisgen.configs.env import MazeConfig
 
 
@@ -213,3 +217,18 @@ def test_the_indifference_point_is_recovered_from_a_known_threshold():
     took_richer = (gaps < 10).astype(float)
 
     assert indifference_point(gaps, took_richer) == pytest.approx(10.0, abs=0.7)
+
+
+def test_the_undiscounted_threshold_is_the_limit_of_the_discounted_one() -> None:
+    """Two hand-written gamma=1 branches once disagreed in sign with the formula
+    they replaced; one function, checked against its own limit, prevents that."""
+    for v0, v1 in [(1.0, 0.5), (0.5, 0.9), (1.0, 1.2)]:
+        near = optimal_threshold(v0, v1, 0.05, 1 - 1e-7)
+        assert optimal_threshold(v0, v1, 0.05, 1.0) == pytest.approx(near, abs=1e-3)
+    assert optimal_threshold(1.0, 0.5, 0.05, 1.0) == pytest.approx(10.0)
+    assert optimal_threshold(1.0, 1.2, 0.05, 1.0) < 0  # colour 1 is worth more: prefer it
+
+
+def test_the_discounted_threshold_sits_below_the_undiscounted_one() -> None:
+    """The DRC's discounted optimum is ~9.3 against the undiscounted 10 (CLAUDE.md)."""
+    assert optimal_threshold(1.0, 0.5, 0.05, 0.995) == pytest.approx(9.3, abs=0.1)

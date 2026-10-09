@@ -98,9 +98,10 @@ class Arm:
     objective: int
     offset: float
     seed: int
+    replicate: int = 1
 
     def dirname(self, steps: int) -> str:
-        return arm_dirname(self.sweep, self.offset, steps)
+        return arm_dirname(self.sweep, self.offset, steps, replicate=self.replicate)
 
 
 def leverage(offsets: list[float]) -> float:
@@ -115,6 +116,7 @@ def sweep_arms(
     objective: int,
     offsets: tuple[float, ...] | None = None,
     first_seed: int = 1234,
+    replicate: int = 1,
 ) -> list[Arm]:
     """Every arm of one objective's sweep, deepest offsets first.
 
@@ -125,6 +127,12 @@ def sweep_arms(
     arms that carry the most leverage. A sweep cut off half way through should
     degrade to a smaller version of itself rather than to its least informative
     half.
+
+    ``replicate`` re-runs the same grid from fresh seeds: replicate ``k`` offsets
+    every seed by ``1000 * (k - 1)``, so no replicate shares a seed with any arm
+    of another, and its directories carry the ``.r<k>`` suffix so no replicate
+    shares a directory either. Seed-band figures are the customer: the same arm,
+    trained more than once, with both facts visible in the path.
     """
     offsets = DEFAULT_OFFSETS if offsets is None else offsets
     if any(o <= 0 for o in offsets):
@@ -134,24 +142,34 @@ def sweep_arms(
             f"offsets must be distinct: 014 keys arms by the value they trained at, so a repeat "
             f"would silently replace its twin. Got {offsets}"
         )
+    if replicate < 1:
+        raise ValueError(f"replicate counts from 1, got {replicate}")
     arms: list[Arm] = []
-    seed = first_seed
+    seed = first_seed + 1000 * (replicate - 1)
     for magnitude in sorted(offsets, reverse=True):
         for offset in (magnitude, -magnitude):
-            arms.append(Arm(sweep=f"o{objective}", objective=objective, offset=offset, seed=seed))
+            arms.append(Arm(sweep=f"o{objective}", objective=objective, offset=offset, seed=seed, replicate=replicate))
             seed += 1
-    arms.append(Arm(sweep=f"o{objective}", objective=objective, offset=0.0, seed=seed))
+    arms.append(Arm(sweep=f"o{objective}", objective=objective, offset=0.0, seed=seed, replicate=replicate))
     return arms
 
 
-def one_sided_arms(objective: int, base_value: float, values: tuple[float, ...], first_seed: int = 7000) -> list[Arm]:
+# Held-out families whose arms sit at explicit values on one side of the base.
+ONE_SIDED_FAMILIES: frozenset[str] = frozenset({"x", "k"})
+
+
+def one_sided_arms(
+    objective: int, base_value: float, values: tuple[float, ...], first_seed: int = 7000, family: str = "x"
+) -> list[Arm]:
     """Arms at explicitly given values, on one side of the base.
 
     For asking what happens past the point where the swept objective overtakes
     the other -- which a symmetric grid cannot reach, since mirroring an offset
     that large gives a negative reward.
 
-    Tagged ``x`` rather than ``o`` so they are *excluded* from the axis fit.
+    Tagged ``x`` (or ``k``, the colour-keyed variant -- see
+    ``volume.COLOUR_KEYED_FAMILIES``) rather than ``o`` so they are *excluded*
+    from the axis fit.
     They are deliberately unbalanced about the base, and the whole reason the
     fitted grid is symmetric is that an unbalanced one lets the common
     fine-tuning component leak into the axis -- which is what produced a
@@ -160,9 +178,14 @@ def one_sided_arms(objective: int, base_value: float, values: tuple[float, ...],
     """
     if not values:
         raise ValueError("give at least one value")
+    if family not in ONE_SIDED_FAMILIES:
+        raise ValueError(
+            f"one-sided arms belong to a held-out family {sorted(ONE_SIDED_FAMILIES)}, got {family!r}: "
+            "an unbalanced arm in the fitted family would leak the common fine-tuning component into the axis"
+        )
     arms = []
     for seed, value in enumerate(sorted(values, reverse=True), start=first_seed):
-        arms.append(Arm(sweep=f"x{objective}", objective=objective, offset=round(value - base_value, 10), seed=seed))
+        arms.append(Arm(sweep=f"{family}{objective}", objective=objective, offset=round(value - base_value, 10), seed=seed))
     return arms
 
 

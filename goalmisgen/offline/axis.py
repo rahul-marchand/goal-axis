@@ -20,7 +20,7 @@ from goalmisgen.offline.decode import evaluate
 from goalmisgen.offline.demos import DemoSet
 from goalmisgen.offline.model import RoutePrefixLM
 from goalmisgen.offline.train import list_checkpoints, load_checkpoint, load_run_config
-from goalmisgen.volume import parse_arm_dirname
+from goalmisgen.volume import iter_arms
 
 
 @dataclasses.dataclass(frozen=True)
@@ -60,14 +60,8 @@ def load_base(run_dir: pathlib.Path) -> Base:
 
 def arm_dirs(run_dir: pathlib.Path, sweep: str, steps: int) -> dict[float, pathlib.Path]:
     """Finished arms of one sweep at one budget, keyed by offset."""
-    root = pathlib.Path(run_dir) / "arms"
-    if not root.is_dir():
-        return {}
     found: dict[float, pathlib.Path] = {}
-    for directory in sorted(root.iterdir()):
-        parsed = parse_arm_dirname(directory.name)
-        if parsed is None or parsed.sweep != sweep or parsed.steps != steps:
-            continue
+    for parsed, directory in iter_arms(pathlib.Path(run_dir) / "arms", sweep, steps=steps):
         if not (directory / "done.json").exists() or not list_checkpoints(directory):
             continue
         found[round(parsed.offset, 10)] = directory

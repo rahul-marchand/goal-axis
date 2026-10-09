@@ -49,7 +49,7 @@ from cleanba.cleanba_impala import load_train_state
 from goalmisgen import provenance
 from goalmisgen.analysis.weights import cosine, fit_axis_and_drift
 from goalmisgen.configs.env import MazeConfig
-from goalmisgen.volume import parse_arm_dirname, sweep_index
+from goalmisgen.volume import iter_arms, sweep_index
 
 
 def parse_args() -> argparse.Namespace:
@@ -94,10 +94,7 @@ def sweep(
     root: Path, prefix: str, at: int, config, base_value: float
 ) -> tuple[list[float], list[dict[str, np.ndarray]], list[str]]:
     values, arms, names = [], [], []
-    for run in sorted(root.iterdir()):
-        parsed = parse_arm_dirname(run.name)
-        if parsed is None or parsed.sweep != f"o{sweep_index(prefix)}":
-            continue
+    for parsed, run in iter_arms(root, f"o{sweep_index(prefix)}"):
         checkpoints = sorted((run / "local-files").glob("cp_*"))
         if not checkpoints:
             continue

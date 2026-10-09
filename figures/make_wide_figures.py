@@ -24,6 +24,8 @@ import numpy as np
 mpl.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+from goalmisgen.analysis.behaviour import optimal_threshold  # noqa: E402
+
 DATA = Path(__file__).parent / "data"
 OUT = Path(__file__).parent
 
@@ -48,25 +50,6 @@ mpl.rcParams.update(
         "legend.frameon": False,
     }
 )
-
-
-def optimal_threshold(v0: np.ndarray, v1: np.ndarray, penalty: float, gamma: float) -> np.ndarray:
-    """Extra steps worth walking for colour 0 rather than colour 1.
-
-    Setting the two discounted returns equal gives g^D (c + v0) = c + v1 with
-    c = penalty/(1-g), so D = log((c+v1)/(c+v0))/log g. The distance already
-    walked cancels: the threshold depends on the two values alone.
-
-    Signed, and relative to colour 0 specifically. Every arm is scored on one
-    held-out set at the *base* values, where colour 0 is the richer objective, so
-    that is what ``value_distance_decisions`` measures against for every arm
-    whatever it was trained on. Negative therefore means something real -- the
-    agent should prefer colour 1 -- and an absolute value here would fold the
-    arms trained past the flip back up on top of the ones before it, hiding the
-    one thing they were trained to show.
-    """
-    c = penalty / (1 - gamma)
-    return np.log((c + v1) / (c + v0)) / np.log(gamma)
 
 
 def band(ax, points, colour, label, marker="o"):

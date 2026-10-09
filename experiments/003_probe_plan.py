@@ -47,6 +47,7 @@ from cleanba.cleanba_impala import load_train_state
 from goalmisgen import provenance
 from goalmisgen.analysis import auc_interval, collect_rollouts, probe, probe_by_distance
 from goalmisgen.analysis.probes import ProbeSource
+from goalmisgen.configs import saved
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.nets.readers import state_reader_for
 
@@ -105,9 +106,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     print(provenance.header())
+    hidden = saved.hides_values(args.checkpoint)
 
     def env_config(seed: int, correlation: float | None = None) -> MazeConfig:
-        settings = dict(
+        settings: dict = dict(
             max_episode_steps=120,
             num_envs=args.num_envs,
             min_size=args.size,
@@ -118,6 +120,9 @@ def main() -> None:
             asynchronous=False,
             seed=seed,
         )
+        if hidden:
+            settings["value_encoding"] = "none"
+            settings["colour_is_the_only_value_cue"] = True
         if args.levels:
             settings["dataset_split"] = args.split
         return MazeConfig(**settings)  # type: ignore[arg-type]

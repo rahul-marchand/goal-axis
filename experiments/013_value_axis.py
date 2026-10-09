@@ -50,9 +50,9 @@ import cleanba.cleanba_impala
 import farconf
 from cleanba.cleanba_impala import WandbWriter, train
 from cleanba.config import Args
-from cleanba.network import PolicySpec
 
 from goalmisgen import provenance
+from goalmisgen.configs import saved
 from goalmisgen.configs.presets import maze_drc33
 from goalmisgen.configs.writers import CsvWriter
 
@@ -77,6 +77,14 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="All objectives' values at once, overriding --value and --value-zero. Needed "
         "beyond two objectives, where the choice no longer reduces to a single difference.",
+    )
+    parser.add_argument(
+        "--colour-keyed",
+        action="store_true",
+        help="Pin colour i to objective i for this arm's levels instead of to whichever "
+        "objective is worth most. Only matters when the arm's values cross parity: without "
+        "it the level generator repaints the richer objective as colour 0, so the arm learns "
+        "a relabelled preference rather than a reversed one.",
     )
     parser.add_argument("--levels", type=str, required=True, help="Dataset generated at this objective value.")
     parser.add_argument("--run-dir", type=Path, required=True, help="Full run directory, not a parent of one.")
@@ -116,56 +124,6 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def base_hides_values(checkpoint: Path) -> bool:
-    """Whether the agent being fine-tuned was trained without a value channel.
-
-    Read from the base rather than assumed. This script was written for
-    ``novalue11``, which has no value channel, and hardcoded that -- so
-    fine-tuning ``maze11``, which has one, built a four-channel network against
-    five-channel weights and died on
-    ``ScopeParamShapeError: expected (3, 3, 5, 32) but got (3, 3, 4, 32)``.
-    The observation format belongs to the agent, not to the fine-tune.
-    """
-    try:
-        payload = json.loads((checkpoint / "cfg.json").read_text())
-    except (OSError, json.JSONDecodeError):
-        return True
-    env = payload.get("cfg", payload).get("train_env", {})
-    # ``value_encoding`` is the field to read: every run records it, and it says
-    # directly whether the observation carries a value channel. The first attempt
-    # at this read ``colour_is_the_only_value_cue``, which maze11's config does
-    # not contain at all -- so the lookup returned its default and the fix
-    # silently kept the behaviour it was meant to correct.
-    encoding = env.get("value_encoding")
-    if encoding is not None:
-        return encoding == "none"
-    return bool(env.get("colour_is_the_only_value_cue", True))
-
-
-def base_net(checkpoint: Path) -> PolicySpec | None:
-    """The network the agent being fine-tuned was trained with, read from its cfg.json.
-
-    Read from the base, like the value channel: ``reset_checkpoint`` copies the
-    base's weights byte for byte and writes *this* configuration beside them, so
-    a configuration naming a different network than the weights were trained
-    with would have cleanba build that network against these weights and die on
-    a parameter shape error at resume -- or, for a head of the same shape, not
-    die. The network belongs to the agent, not to the fine-tune. It is the saved
-    spec itself rather than a preset looked up by class, so a transformer of a
-    non-default size comes back at its own size. ``None`` when the base has no
-    readable configuration, in which case the caller keeps the DRC every agent
-    swept before the architecture-swap stream was.
-    """
-    try:
-        payload = json.loads((checkpoint / "cfg.json").read_text())
-    except (OSError, json.JSONDecodeError):
-        return None
-    net = payload.get("cfg", payload).get("net")
-    if net is None:
-        return None
-    return farconf.from_dict(net, PolicySpec)
-
-
 def finetune_config(args: argparse.Namespace) -> Args:
     """The base run's configuration, with the value swapped and the schedule flattened."""
     values = tuple(args.objective_values) if args.objective_values else (args.value_zero, args.value)
@@ -175,12 +133,17 @@ def finetune_config(args: argparse.Namespace) -> Args:
         max_size=args.size,
         n_objectives=len(values),
         objective_values=values,
-        hide_values=base_hides_values(args.checkpoint),
+        hide_values=saved.hides_values(args.checkpoint),
         total_timesteps=args.steps,
         level_dataset=args.levels,
         seed=args.seed,
     )
-    net = base_net(args.checkpoint)
+    if args.colour_keyed:
+        config.train_env = dataclasses.replace(config.train_env, colour_keyed_features=True)
+    gamma = saved.discount(args.checkpoint)
+    if gamma is not None:
+        config.loss = dataclasses.replace(config.loss, gamma=gamma)
+    net = saved.trained_net(args.checkpoint)
     if net is not None:
         config.net = net
 

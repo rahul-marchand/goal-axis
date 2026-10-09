@@ -37,12 +37,16 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Iterator
 
 # ``o1+020@750k``: the colour-1 sweep, trained at 0.20 above the base value, for
-# 750,000 steps. Composition arms that move several values at once do not have a
-# single offset and are named separately; see ``is_composition_arm``.
-_ARM = re.compile(r"^(?P<sweep>[a-z][a-z0-9]*)(?P<sign>[+-])(?P<offset>\d{3})@(?P<steps>\d+[kM])$")
+# 750,000 steps. ``o1+020@750k.r2`` is the same fine-tune run again from a
+# different seed -- a *replicate*. The original grid carries no suffix, so every
+# directory that existed before replicates did still parses, and a replicate can
+# never silently collide with the arm it re-runs. Composition arms that move
+# several values at once do not have a single offset and are named separately;
+# see ``is_composition_arm``.
+_ARM = re.compile(r"^(?P<sweep>[a-z][a-z0-9]*)(?P<sign>[+-])(?P<offset>\d{3})@(?P<steps>\d+[kM])(?:\.r(?P<replicate>[2-9]\d*))?$")
 
 
 # Which sweep families exist, and whether their arms enter the fitted axis.
@@ -50,13 +54,20 @@ _ARM = re.compile(r"^(?P<sweep>[a-z][a-z0-9]*)(?P<sign>[+-])(?P<offset>\d{3})@(?
 # ``o`` is the symmetric grid the axis is fitted from. ``x`` is a one-sided
 # extension -- arms past the point where the swept objective overtakes the other,
 # which a mirrored grid cannot reach without asking for a negative reward. ``m``
-# moves several values at once. ``x`` and ``m`` are *held out of every fit*: both
-# are unbalanced about the base, and an unbalanced grid lets the common
+# moves several values at once. ``k`` is ``x`` with the colours pinned to
+# objectives rather than to value rank, which is the only way an arm past parity
+# asks for a reversed preference rather than a relabelled one. ``x``, ``k`` and
+# ``m`` are *held out of every fit*: all three are unbalanced about the base, and an unbalanced grid lets the common
 # fine-tuning component leak into the axis, which is the failure the symmetric
 # design exists to prevent. That is a statistical claim, not a filing preference,
 # which is why it lives here rather than in whichever script last needed it.
 FITTED_FAMILIES: frozenset[str] = frozenset({"o"})
-HELD_OUT_FAMILIES: frozenset[str] = frozenset({"x", "m"})
+HELD_OUT_FAMILIES: frozenset[str] = frozenset({"x", "m", "k"})
+
+# Families whose levels pin colour i to objective i rather than to value rank.
+# A property of the family, not a per-run flag, so an arm's directory name says
+# how its levels were coloured and the two can never disagree.
+COLOUR_KEYED_FAMILIES: frozenset[str] = frozenset({"k"})
 
 
 @dataclass(frozen=True)
@@ -66,6 +77,15 @@ class ArmName:
     sweep: str
     offset: float
     steps: int
+    replicate: int = 1
+    """Which independent draw of this fine-tune the directory holds.
+
+    Replicate 1 is the original grid and carries no suffix -- the naming rule,
+    not a default that happens to hold. Seed-band figures need the same arm
+    trained more than once, and two runs of ``o1+020@400k`` must not overwrite
+    each other, which is exactly the class of mistake this module exists to
+    make unavailable.
+    """
 
     @property
     def is_null(self) -> bool:
@@ -123,11 +143,14 @@ def offset_tag(offset: float) -> str:
     return f"{'-' if hundredths < 0 else '+'}{abs(hundredths):03d}"
 
 
-def arm_dirname(sweep: str, offset: float, steps: int) -> str:
-    """The directory one arm lives in, e.g. ``o1+020@750k``."""
+def arm_dirname(sweep: str, offset: float, steps: int, replicate: int = 1) -> str:
+    """The directory one arm lives in, e.g. ``o1+020@750k`` (``.r2`` for a replicate)."""
     if not re.fullmatch(r"[a-z][a-z0-9]*", sweep):
         raise ValueError(f"sweep {sweep!r} should be a short lower-case tag like 'o0', 'o1' or 'o2'")
-    return f"{sweep}{offset_tag(offset)}@{steps_tag(steps)}"
+    if replicate < 1:
+        raise ValueError(f"replicate counts from 1, got {replicate}")
+    suffix = "" if replicate == 1 else f".r{replicate}"
+    return f"{sweep}{offset_tag(offset)}@{steps_tag(steps)}{suffix}"
 
 
 def parse_arm_dirname(name: str) -> ArmName | None:
@@ -146,6 +169,7 @@ def parse_arm_dirname(name: str) -> ArmName | None:
         sweep=match.group("sweep"),
         offset=-offset if match.group("sign") == "-" else offset,
         steps=parse_steps_tag(match.group("steps")),
+        replicate=int(match.group("replicate") or 1),
     )
 
 
@@ -297,6 +321,30 @@ def parse_dataset_dirname(name: str) -> tuple[tuple[float, ...], int]:
     return parse_values_tag(tag), _parse_round_tag(count, "a level count")
 
 
+def iter_arms(
+    arms: Path, sweep: str, steps: int | None = None, replicate: int = 1
+) -> Iterator[tuple[ArmName, Path]]:
+    """Every arm directory of one sweep, in listing order, with its parsed name.
+
+    The one place that decides which directories belong to a sweep, so every
+    consumer agrees on it. ``sweep`` is the full tag (``o1``, ``k0``), which is
+    what keeps held-out families out of anything asking for the fitted one.
+    ``replicate`` defaults to the original grid: replicates are separate draws of
+    the same arms, and a consumer keying arms by offset would otherwise let a
+    ``.r2`` directory silently replace the arm it re-runs. ``steps=None`` accepts
+    every length -- callers that fit must pass it, see :func:`discover_arms`.
+    """
+    if not arms.is_dir():
+        return
+    for run in sorted(arms.iterdir()):
+        parsed = parse_arm_dirname(run.name)
+        if parsed is None or parsed.sweep != sweep or parsed.replicate != replicate:
+            continue
+        if steps is not None and parsed.steps != steps:
+            continue
+        yield parsed, run
+
+
 def discover_arms(
     arms: Path,
     objective: int,
@@ -304,6 +352,7 @@ def discover_arms(
     steps: int | None = None,
     at: int = -1,
     family: str = "o",
+    replicate: int = 1,
 ) -> dict[float, Path]:
     """One sweep's arms, keyed by the value each was trained at.
 
@@ -318,19 +367,12 @@ def discover_arms(
     means. ``014`` already warned about this within a directory; this makes the
     mistake unavailable rather than reported.
     """
-    if not arms.is_dir():
-        return {}
     found: dict[float, Path] = {}
     lengths: set[int] = set()
-    for run in sorted(arms.iterdir()):
-        parsed = parse_arm_dirname(run.name)
-        # ``family`` is what keeps the held-out arms out of a fit: the default
-        # sees only ``o``, so ``x`` and ``m`` arms are invisible unless asked for
-        # by name. See FITTED_FAMILIES.
-        if parsed is None or parsed.sweep != f"{family}{objective}":
-            continue
-        if steps is not None and parsed.steps != steps:
-            continue
+    # ``family`` is what keeps the held-out arms out of a fit: the default sees
+    # only ``o``, so ``x``, ``k`` and ``m`` arms are invisible unless asked for by
+    # name. See FITTED_FAMILIES.
+    for parsed, run in iter_arms(arms, f"{family}{objective}", steps=steps, replicate=replicate):
         checkpoints = sorted((run / "local-files").glob("cp_*"))
         if not checkpoints:
             continue
@@ -357,13 +399,18 @@ def arm_lengths(arms: Path) -> set[int]:
 
 
 def sweep_family(prefix: str) -> str:
-    """Which family a sweep belongs to: ``o`` fitted, ``x`` held out."""
+    """Which family a sweep belongs to: ``o`` fitted; ``x``, ``k`` and ``m`` held out."""
     cleaned = prefix.strip().rstrip("_")
     if cleaned in ("v", "c"):
         return "o"
     if cleaned and cleaned[0].isalpha() and cleaned[0] in FITTED_FAMILIES | HELD_OUT_FAMILIES:
         return cleaned[0]
     return "o"
+
+
+def is_colour_keyed(sweep: str) -> bool:
+    """Whether an arm of this sweep trains on colour-keyed levels; see COLOUR_KEYED_FAMILIES."""
+    return sweep_family(sweep) in COLOUR_KEYED_FAMILIES
 
 
 def sweep_index(prefix: str) -> int:

@@ -181,3 +181,22 @@ def test_the_estimate_includes_what_starting_an_arm_costs() -> None:
     # Shorter arms are dominated by it; longer ones are not.
     assert estimated_hours(1, 400_000) * 3600 > 1.3 * (400_000 / MEASURED_SPS)
     assert estimated_hours(1, 3_000_000) * 3600 < 1.1 * (3_000_000 / MEASURED_SPS)
+
+
+def test_replicate_sweeps_share_no_seeds_or_directories() -> None:
+    first = sweep_arms(1, offsets=(0.1, 0.2))
+    second = sweep_arms(1, offsets=(0.1, 0.2), replicate=2)
+    assert {a.seed for a in first} & {a.seed for a in second} == set()
+    assert {a.dirname(400_000) for a in first} & {a.dirname(400_000) for a in second} == set()
+    assert all(a.dirname(400_000).endswith(".r2") for a in second)
+
+
+def test_one_sided_arms_can_be_colour_keyed() -> None:
+    arms = one_sided_arms(objective=1, base_value=0.5, values=(1.2,), family="k")
+    assert [arm.sweep for arm in arms] == ["k1"]
+
+
+def test_one_sided_arms_refuse_the_fitted_family() -> None:
+    """An unbalanced arm named ``o`` would be fitted, leaking the common component."""
+    with pytest.raises(ValueError, match="held-out family"):
+        one_sided_arms(objective=1, base_value=0.5, values=(1.2,), family="o")

@@ -54,6 +54,29 @@ def parse_args() -> argparse.Namespace:
         help="Which policy network. Everything else in the preset is identical across choices.",
     )
     parser.add_argument("--correlation", type=float, default=None, help="Training rho.")
+    parser.add_argument(
+        "--lr",
+        type=float,
+        default=None,
+        help="Peak learning rate. The preset's schedule was tuned for the DRC; a different "
+        "architecture may need its own, and saying so explicitly is better than inheriting.",
+    )
+    parser.add_argument(
+        "--final-lr",
+        type=float,
+        default=None,
+        help="Learning rate at the end of the anneal. The default divides the peak by 100, which "
+        "leaves an agent still improving at the end of its budget with almost no rate left to "
+        "improve with.",
+    )
+    parser.add_argument(
+        "--gamma",
+        type=float,
+        default=None,
+        help="Discount factor. 1.0 trains on the exact undiscounted objective the solver and "
+        "every analysis metric score (value - step_penalty * steps); the preset's 0.995 "
+        "remains the default for reproducing older runs.",
+    )
     parser.add_argument("--total-timesteps", type=int, default=None)
     parser.add_argument("--min-size", type=int, default=None)
     parser.add_argument("--max-size", type=int, default=None)
@@ -102,6 +125,7 @@ def main() -> None:
         name: value
         for name, value in (
             ("feature_value_correlation", args.correlation),
+            ("gamma", args.gamma),
             ("min_size", args.min_size),
             ("max_size", args.max_size),
             ("step_penalty", args.step_penalty),
@@ -119,6 +143,12 @@ def main() -> None:
     if args.hide_values:
         overrides["hide_values"] = True
     config = with_final_checkpoint(preset_for(args.net)(**overrides))
+    # Set after the preset rather than through it: the schedule is a property of
+    # the run, not of the maze, and every preset shares maze_drc33's optimiser.
+    if args.lr is not None:
+        config.learning_rate = args.lr
+    if args.final_lr is not None:
+        config.final_learning_rate = args.final_lr
     config.base_run_dir = args.run_dir
     args.run_dir.mkdir(parents=True, exist_ok=True)
     if args.note:
