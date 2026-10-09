@@ -1,0 +1,13 @@
+cxcraft15.s1t @ step 20000: ModelConfig(size=15, n_channels=15, n_actions=17, max_actions=128, d_model=512, n_layers=4, n_heads=16, mlp_ratio=4)
+
+== held out: 512 fields, expert routes mean 30.7 actions
+teacher-forced token accuracy 0.986; whole-route accuracy 0.648
+accuracy by position: 0:0.98  5:0.99  10:0.98  15:0.98  20:0.98  30:0.98  40:1.00
+first teacher-forced error falls in: 1 gathering wood (after 0 trees): 15; 1 gathering wood (after 1 trees): 24; 1 gathering wood (after 2 trees): 29; 4 stone / fourth tree / back to table: 106; 5 to the ore (after stone pickaxe): 6; no error: 332
+most common first error (expert -> model): UP->DOWN: 22; UP->LEFT: 19; RIGHT->DOWN: 18; LEFT->DOWN: 18; DOWN->UP: 17; DOWN->LEFT: 16
+decoded: mean length 32.3, eos 0.00; contains PLACE_TABLE 0.99, MAKE_WOOD_PICKAXE 0.99, MAKE_STONE_PICKAXE 0.30
+engine: reached 0.98, illegal moves/route 0.0, wasted/route 0.0, walls mined/route 0.31, matched expert 0.70
+iron-target fields (161): reached 0.99; decoded route first departs in: 1 gathering wood (after 0 trees): 3; 1 gathering wood (after 1 trees): 12; 1 gathering wood (after 2 trees): 8; 4 stone / fourth tree / back to table: 47; 5 to the ore (after stone pickaxe): 2; identical: 89
+   failing (2): after the wood pickaxe, mined a stone 1, emitted MAKE_STONE_PICKAXE 0; actions: UP 46%, DOWN 42%, RIGHT 6%, LEFT 4%, DO 2%
+coal-target fields (351): reached 0.98; decoded route first departs in: 1 gathering wood (after 0 trees): 12; 1 gathering wood (after 1 trees): 14; 1 gathering wood (after 2 trees): 11; 4 stone / fourth tree / back to table: 47; identical: 267
+   failing (6): after the wood pickaxe, mined a stone 3, emitted MAKE_STONE_PICKAXE 1; actions: DOWN 39%, UP 36%, RIGHT 13%, LEFT 10%, DO 1%, MAKE_STONE_PICKAXE 0%

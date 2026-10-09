@@ -1,0 +1,78 @@
+script 027_bc_value_axis.py
+commit unknown
+argv   /workspace/data/offline/runs/scaling/sc11.L64.s1 --sweep o0 --steps 1000 --demos /workspace/data/offline/demos/scaling/test.rho100 --json /workspace/data/offline/results/scaling/027.L64.o0.json
+
+base sc11.L64.s1 @ step 30,000; 50,571,525 parameters; values (1.0, 0.5); values hidden
+sweep o0: 12 arms at offsets -0.45..+0.45 + null arm
+|delta theta| per arm  3.329 +- 1.47  (min 1.119, max 5.299)
+|drift| 2.119   |axis| per unit value 7.103   cos(drift, axis) -0.215
+null arm |delta| 1.656, cos(null, drift) +0.006, cos(null - drift, axis) +0.160
+
+=== collinear? mean pairwise cosine between arms ===
+                                 same side    opposite
+                     raw diffs      +0.719      -0.103
+      common component removed      +0.476      -0.536
+  Raw positive everywhere = 'was fine-tuned'. With drift removed, same side should agree and opposite sides oppose.
+
+=== graded and predictive? leave-one-out fit ===
+    offset   |delta|   |resid|  held-out R2  held-out cos   implied
+     -0.45     5.299     3.916        0.618        -0.786     -0.45
+     -0.42     5.272     3.891        0.614        -0.786     -0.45
+     -0.39     4.637     3.342        0.769        -0.881     -0.43
+     -0.30     3.433     2.594        0.438        -0.673     -0.25
+     -0.20     2.246     2.116        0.105        -0.401     -0.13
+     -0.10     1.273     2.144       -0.057        -0.060     -0.02
+     +0.10     1.119     2.199        0.163        +0.422     +0.14
+     +0.20      1.93     2.195        0.493        +0.708     +0.23
+     +0.30     2.749     2.417        0.767        +0.876     +0.30
+     +0.39     4.051     3.174        0.659        +0.813     +0.37
+     +0.42     3.471     2.792        0.746        +0.887     +0.34
+     +0.45     4.462     3.467        0.466        +0.714     +0.35
+      null     1.656     2.681            -        +0.160     +0.06
+  implied offset vs trained offset: correlation +0.987, slope 0.94 (1 = the axis reads the offset back at scale)
+  split-half reliability of the axis +0.933
+
+=== writable? greedy decode on 2048 held-out levels at the base values ===
+                                      indiff.   expert   optimal  reached   legal      f0
+  base, untouched                       10.61     10.0     0.999    1.000   1.000   0.821
+  null arm (fine-tuned at base values)    10.63     10.0     1.000    1.000   1.000   0.822
+
+  each offset: the arm itself | written from an axis fitted WITHOUT it (base + o*axis) | the same plus drift
+    offset  expert     arm  written   +drift| reach arm   writ +drift| optimal arm   writ +drift
+     -0.45     1.0    1.61     4.50     2.82      0.999  1.000  0.999        0.750  0.855  0.795
+     -0.42     1.6    1.70     4.83     3.27      0.999  1.000  0.999        0.753  0.866  0.811
+     -0.39     2.2    2.52     5.20     3.73      0.999  1.000  0.999        0.784  0.878  0.827
+     -0.30     4.0    4.48     6.43     4.67      0.999  1.000  1.000        0.854  0.917  0.860
+     -0.20     6.0    6.52     7.74     6.41      1.000  1.000  1.000        0.920  0.954  0.916
+     -0.10     8.0    8.54     8.69     8.23      1.000  1.000  1.000        0.976  0.979  0.967
+     +0.10    12.0   12.59    12.57    11.43      1.000  1.000  1.000        0.963  0.963  0.985
+     +0.20    14.0   14.66    14.47    13.46      1.000  1.000  1.000        0.930  0.933  0.949
+     +0.30    16.0   16.99    16.90    16.02      1.000  1.000  1.000        0.900  0.901  0.912
+     +0.39    17.8   18.05    19.64    18.86      0.999  1.000  1.000        0.890  0.876  0.882
+     +0.42    18.4   19.14    20.66    19.47      1.000  0.999  1.000        0.880  0.869  0.877
+     +0.45    19.0   19.78    21.50    20.60      1.000  0.998  1.000        0.875  0.865  0.869
+
+  arms' exchange rates span 1.6..19.8 steps (expert 1.0..19.0)
+  leave-one-out write error, mean |written - arm|: 1.43 steps (signed mean +1.38); with drift 0.82 (+0.20)
+  slope of exchange rate vs offset: arms +20.4, written +18.5, expert +20.0 steps per unit value
+
+  controls and extrapolation (full axis)
+                                      indiff.   expert   optimal  reached   legal      f0
+  random, |.| = |0.45 axis| #0          10.61              0.999    1.000   1.000   0.821
+  random, |.| = |0.45 axis| #1          10.63              0.999    1.000   1.000   0.822
+  random, |.| = |0.45 axis| #2          10.61              0.999    1.000   1.000   0.821
+  random, |.| = |0.20 axis| #0          10.61              0.999    1.000   1.000   0.821
+  random, |.| = |0.20 axis| #1          10.61              0.999    1.000   1.000   0.821
+  random, |.| = |0.20 axis| #2          10.61              0.999    1.000   1.000   0.821
+  base + drift only                     10.07              0.994    1.000   1.000   0.810
+  written +0.60 (outside the grid)      29.88     22.0     0.844    0.974   0.980   0.979
+  written -0.60 (outside the grid)       2.88     -2.0     0.797    0.992   0.999   0.603
+  written +0.90 (outside the grid)      24.61     28.0     0.888    0.729   0.806   0.948
+  written -0.90 (outside the grid)       0.72     -8.0     0.729    0.920   0.979   0.543
+
+A direction is an axis if the written column tracks the arm column arm by arm,
+random directions of the same length leave the base where it was, and the null
+arm only drifts. Absolute levels may sit off the expert's (the base's own
+exchange rate does too); the slope is the reading.
+
+wrote /workspace/data/offline/results/scaling/027.L64.o0.json

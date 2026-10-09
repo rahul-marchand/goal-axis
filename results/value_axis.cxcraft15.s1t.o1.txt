@@ -1,0 +1,70 @@
+script 027_bc_value_axis.py
+commit 30fb705
+argv   /workspace/data/craftax/craft/runs/cxcraft15.s1t --sweep o1 --steps 1000 --demos /workspace/data/craftax/craft/demos-rh/test.rho100 --json /workspace/data/craftax/craft/results/value_axis.cxcraft15.s1t.o1.json
+
+base cxcraft15.s1t @ step 20,000; 12,719,122 parameters; values (1.1, 0.5); values hidden
+sweep o1: 8 arms at offsets -0.45..+0.45 + null arm
+|delta theta| per arm  3.646 +- 0.06392  (min 3.526, max 3.702)
+|drift| 2.489   |axis| per unit value 5.438   cos(drift, axis) -0.040
+null arm |delta| 3.69, cos(null, drift) +0.669, cos(null - drift, axis) +0.011
+
+=== collinear? mean pairwise cosine between arms ===
+                                 same side    opposite
+                     raw diffs      +0.545      +0.271
+      common component removed      +0.149      -0.361
+  Raw positive everywhere = 'was fine-tuned'. With drift removed, same side should agree and opposite sides oppose.
+
+=== graded and predictive? leave-one-out fit ===
+    offset   |delta|   |resid|  held-out R2  held-out cos   implied
+     -0.45     3.646     2.888       -0.241        -0.313     -0.16
+     -0.30     3.676     2.647        0.233        -0.488     -0.26
+     -0.20      3.68     2.527        0.165        -0.407     -0.21
+     -0.10     3.702      2.52        0.046        -0.216     -0.11
+     +0.10      3.69     2.563        0.042        +0.206     +0.11
+     +0.20      3.68     2.597        0.159        +0.400     +0.22
+     +0.30      3.57     2.661        0.215        +0.472     +0.25
+     +0.45     3.526     2.889       -0.249        +0.309     +0.16
+      null      3.69     2.742            -        +0.011     +0.01
+  implied offset vs trained offset: correlation +0.891, slope 0.59 (1 = the axis reads the offset back at scale)
+  split-half reliability of the axis +0.594
+
+=== writable? greedy decode on 2048 held-out levels at the base values ===
+                                      indiff.   expert   optimal  reached   legal      f0
+  base, untouched                       11.99     12.0     0.875    0.975   0.999   0.319
+  null arm (fine-tuned at base values)    11.98     12.0     0.877    0.969   0.996   0.320
+
+  each offset: the arm itself | written from an axis fitted WITHOUT it (base + o*axis) | the same plus drift
+    offset  expert     arm  written   +drift| reach arm   writ +drift| optimal arm   writ +drift
+     -0.45    21.0   22.26    23.81    23.33      0.960  0.957  0.958        0.622  0.581  0.595
+     -0.30    18.0   19.15    19.34    18.80      0.964  0.964  0.971        0.716  0.712  0.730
+     -0.20    16.0   16.99    16.76    16.30      0.965  0.966  0.973        0.783  0.791  0.802
+     -0.10    14.0   14.46    14.43    13.74      0.974  0.970  0.971        0.842  0.849  0.857
+     +0.10    10.0    9.39     9.80     9.40      0.970  0.976  0.974        0.876  0.875  0.874
+     +0.20     8.0    7.11     7.64     7.35      0.977  0.978  0.979        0.847  0.851  0.850
+     +0.30     6.0    5.17     5.41     4.63      0.975  0.979  0.978        0.815  0.819  0.806
+     +0.45     3.0    1.03     3.28     2.75      0.973  0.978  0.977        0.754  0.782  0.775
+
+  arms' exchange rates span 1.0..22.3 steps (expert 3.0..21.0)
+  leave-one-out write error, mean |written - arm|: 0.68 steps (signed mean +0.61); with drift 0.67 (+0.09)
+  slope of exchange rate vs offset: arms -23.7, written -22.9, expert -20.0 steps per unit value
+
+  controls and extrapolation (full axis)
+                                      indiff.   expert   optimal  reached   legal      f0
+  random, |.| = |0.45 axis| #0          12.15              0.873    0.975   0.999   0.325
+  random, |.| = |0.45 axis| #1          12.00              0.875    0.975   0.998   0.319
+  random, |.| = |0.45 axis| #2          11.98              0.874    0.974   0.999   0.319
+  random, |.| = |0.20 axis| #0          12.04              0.874    0.975   0.999   0.321
+  random, |.| = |0.20 axis| #1          11.97              0.875    0.975   0.999   0.318
+  random, |.| = |0.20 axis| #2          11.92              0.876    0.975   0.999   0.317
+  base + drift only                     11.63              0.881    0.974   0.999   0.308
+  written +0.60 (outside the grid)      -0.11      0.0     0.742    0.975   1.000   0.035
+  written -0.60 (outside the grid)      28.25     24.0     0.476    0.954   0.996   0.829
+  written +0.90 (outside the grid)      -7.99     -6.0     0.717    0.967   1.000   0.009
+  written -0.90 (outside the grid)      36.62     30.0     0.363    0.927   0.994   0.948
+
+A direction is an axis if the written column tracks the arm column arm by arm,
+random directions of the same length leave the base where it was, and the null
+arm only drifts. Absolute levels may sit off the expert's (the base's own
+exchange rate does too); the slope is the reading.
+
+wrote /workspace/data/craftax/craft/results/value_axis.cxcraft15.s1t.o1.json

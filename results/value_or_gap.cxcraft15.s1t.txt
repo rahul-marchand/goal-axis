@@ -1,0 +1,35 @@
+script 028_bc_value_or_gap.py
+commit 30fb705
+argv   /workspace/data/craftax/craft/runs/cxcraft15.s1t --steps 1000 --json /workspace/data/craftax/craft/results/value_or_gap.cxcraft15.s1t.json
+
+o0: 9 arms
+o1: 9 arms
+
+=== the two axes ===
+  |axis_0| 5.436  |axis_1| 5.438  |drift_0| 2.486  |drift_1| 2.489
+  cos(drift_0, drift_1) +0.942   (the two sweeps' common components; should be alike)
+
+  cos(axis_0, axis_1) = -0.862
+  about -1: one knob (a threshold on the gap); about 0: two value registers
+
+=== the same gap reached by moving either colour (drift removed) ===
+   gap change  o0 offset  o1 offset     cos
+        +0.10      +0.10      -0.10  +0.593
+        -0.10      -0.10      +0.10  +0.607
+        +0.20      +0.20      -0.20  +0.606
+        -0.20      -0.20      +0.20  +0.628
+        +0.30      +0.30      -0.30  +0.645
+        -0.30      -0.30      +0.30  +0.652
+        +0.45      +0.45      -0.45  +0.705
+        -0.45      -0.45      +0.45  +0.710
+  Under one knob these are the same model reached two ways; their diffs should agree.
+
+=== how much of each axis is signal? ===
+  split-half reliability  axis_0 +0.592   axis_1 +0.594
+  cos corrected for attenuation -1.454  (outside [-1, 1]: the correction has broken down)
+
+=== permutation null ===
+  observed -0.862; null over 2000 shuffles mean -0.004 sd 0.469, 5th pct -0.707; p(null <= observed) 0.0005
+  shuffling the other sweep: null mean -0.007 sd 0.459; p 0.0005
+
+wrote /workspace/data/craftax/craft/results/value_or_gap.cxcraft15.s1t.json

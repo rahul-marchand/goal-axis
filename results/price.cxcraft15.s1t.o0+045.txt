@@ -1,0 +1,10 @@
+o0+045@1k @ step 1000, 512 fields, values [1.1, 0.5] (threshold 12 actions)
+
+state                                   reached  iron: model  expert  agree  indiff  cost iron   coal
+start of the episode                       0.96         0.73    0.31   0.59    23.3       45.7   28.5
+after the wood pickaxe (as trained)        0.97         0.73    0.31   0.59    22.9       27.4   10.2
+... +1 wood                                0.96         1.00    0.68   0.70    54.6       19.2   10.2
+... +1 stone                               0.94         1.00    0.53   0.55     nan       22.3   10.2
+... +1 wood +1 stone                       0.97         1.00    0.97   0.98     nan       11.0   10.2
+... +2 wood +1 stone                       0.92         1.00    0.97   0.98     nan       11.0   10.2
+... stone pickaxe handed over              0.97         1.00    0.98   0.98     nan       10.0   10.2

@@ -1,0 +1,13 @@
+script overfit_gap.py
+commit e904aa5
+argv   /workspace/data/offline/runs/bcnv11.s1.n3k own=/workspace/data/offline/demos/overfit/1.00-0.50.n3k.train.rho100 holdout=/workspace/data/offline/demos/overfit/holdout.rho100 --json /workspace/data/offline/results/overfit.gap.bcnv11.s1.n3k.json
+
+base bcnv11.s1.n3k @ step 30,000; 806,533 parameters; values (1.0, 0.5); values hidden
+
+  set             levels     loss  token acc  optimal  matched  reached   legal  indiff.
+  own               2048   0.0234     0.9894    0.932    0.894    0.970   0.970    10.71
+  holdout           2048   0.0261     0.9884    0.928    0.883    0.968   0.968    10.93
+
+  gap own - holdout: token accuracy +0.0011, chose_optimal +0.0041
+
+wrote /workspace/data/offline/results/overfit.gap.bcnv11.s1.n3k.json

@@ -16,7 +16,7 @@ Arms keep the campaign's budget and rate (1000 steps, batch 256, constant 1e-4
 after 50 warmup). Behaviour is read on test.rho100 minus the arm pool's train
 split, the only set held out from both pools; see RUNS.toml.
 
-    scripts/overfit_axis_chain.sh, TAGS="1k 10k"; scripts/overfit_axis_report.py
+    scripts/overfit_axis_chain.sh, TAGS="1k 3k 10k"; scripts/overfit_axis_report.py
 
 Summary.
 
@@ -32,8 +32,8 @@ Summary.
    (which it never trained on), and the memorisers' writes fail there.
 
 3. It is a gradient, not a cliff. Held-out, written tracks arms at 0.3/0.3 (1k),
-   3.6/5.8 (10k) and 25.4/21.9 (900k) steps per unit value. The write can only
-   move what the base already computes on unseen mazes.
+   2.8/1.6 (3k), 3.6/5.8 (10k) and 25.4/21.9 (900k) steps per unit value. The
+   write can only move what the base already computes on unseen mazes.
 
 4. Why the memorised levels resist: they are held ~6.5 logits harder than
    anything else the same model does (max softmax 1.0000 against 0.973), while
@@ -48,8 +48,10 @@ Summary.
   run                    levels   own acc  held acc  own opt.  held opt.  own indiff  held indiff
   bcnv11.s1               2,048     0.990     0.988     0.934      0.928       11.42        10.93
   bcnv11.s1.n1k           1,000     0.990     0.988     0.935      0.928       10.91        10.93
-  bcnv11.s1.n10k              -
+  bcnv11.s1.n3k           2,048     0.989     0.988     0.932      0.928       10.71        10.93
+  bcnv11.s1.n10k          2,048     0.989     0.988     0.932      0.928       10.71        10.93
   bcov11.n10k.s1          2,048     1.000     0.769     1.000      0.890       10.60         5.82
+  bcov11.n3k.s1           2,048     1.000     0.591     1.000      0.788       10.60         1.71
   bcov11.n1k.s1           1,000     1.000     0.513     1.000      0.725       10.66        -0.42
   own = the levels the base trained on. A memoriser is near 1.0 there and poor beside it.
 
@@ -57,8 +59,10 @@ Summary.
   run                   arms  cos same  cos opp.  implied slope  reliability  mean R2
   bcnv11.s1               24    +0.433    -0.472          0.969        0.963    0.477
   bcnv11.s1.n1k           24    +0.500    -0.530          0.983        0.987    0.576
+  bcnv11.s1.n3k           24    +0.449    -0.487          0.976        0.979    0.516
   bcnv11.s1.n10k          24    +0.417    -0.460          0.970        0.973    0.482
   bcov11.n10k.s1          24    +0.488    -0.527          0.979        0.980    0.552
+  bcov11.n3k.s1           24    +0.482    -0.515          0.978        0.979    0.548
   bcov11.n1k.s1           24    +0.516    -0.553          0.983        0.987    0.593
   cos same > 0 and cos opposite < 0 with the drift removed = the arms moved along one line.
   implied slope 1 = an axis fitted without an arm reads that arm's offset back at scale.
@@ -68,17 +72,20 @@ Summary.
   bcnv11.s1           held-out       0.968        10.93    21.9     25.4     21.7    20.0     2.46     0.08
   bcnv11.s1.n1k       held-out       0.968        10.93    20.0     21.7     20.4    20.0     1.39     0.08
   bcnv11.s1.n1k       memorised      0.971        10.91    20.4     23.3     20.5    20.0     2.00     0.07
+  bcnv11.s1.n3k       held-out       0.968        10.93    23.6     24.0     24.3    20.0     1.22     0.09
+  bcnv11.s1.n3k       memorised      0.970        10.71    20.5     23.6     20.2    20.0     2.04     0.11
   bcnv11.s1.n10k      held-out       0.968        10.93    23.5     23.8     22.6    20.0     1.33     0.15
   bcnv11.s1.n10k      memorised      0.970        10.71    20.5     24.6     19.9    20.0     2.53     0.17
   bcov11.n10k.s1      held-out       0.331         5.82     5.8      3.6      4.7    20.0     0.80     0.33
   bcov11.n10k.s1      memorised      1.000        10.60    20.1      1.7     16.6    20.0     6.14     0.05
+  bcov11.n3k.s1       held-out       0.204         1.71     1.6      2.8      2.1    20.0     0.57     0.29
+  bcov11.n3k.s1       memorised      1.000        10.60    20.5      0.6     16.1    20.0     6.57     0.00
   bcov11.n1k.s1       held-out       0.167        -0.42     0.3      0.3      0.8    20.0     0.36     0.36
   bcov11.n1k.s1       memorised      1.000        10.66    20.4      0.6     15.6    20.0     6.57     0.00
   arms/written/+drift/expert are steps of detour per unit of value. `reached` is the base's:
   an exchange rate fitted from few completed episodes is worth little whatever it says.
   random = mean |indifference - base| under directions of the same length as 0.45*axis and 0.2*axis;
   it is the scale at which 'the write did something' stops meaning anything.
-
 
 Supporting diagnostics
 ----------------------

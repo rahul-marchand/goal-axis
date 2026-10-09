@@ -62,16 +62,26 @@ def infer_script(argv: str, scripts: dict[str, set[str]]) -> str | None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--results", type=Path, default=Path("results"))
-    parser.add_argument("--experiments", type=Path, default=Path("experiments"))
+    parser.add_argument(
+        "--producers",
+        type=Path,
+        nargs="+",
+        default=[Path("experiments"), Path("scripts")],
+        help="Directories whose scripts are candidates when a header does not name its producer.",
+    )
     parser.add_argument("--out", type=Path, default=Path("results/INDEX.md"))
     parser.add_argument("--generated-at", type=str, default=None)
     args = parser.parse_args()
 
     stamp = args.generated_at or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    scripts = {p.name: parser_flags(p) for p in sorted(args.experiments.glob("*.py"))}
+    scripts = {p.name: parser_flags(p) for directory in args.producers for p in sorted(directory.glob("*.py"))}
 
     rows, recorded, inferred, unknown = [], 0, 0, 0
-    for path in sorted(args.results.glob("*.txt")):
+    # Tables and JSON at any depth: a study filed in a subdirectory of its own
+    # is as much a measurement as one at the top level. Write-ups (.md) are
+    # prose about the tables, not measurements, so they are not indexed.
+    tables = sorted(p for p in args.results.rglob("*") if p.is_file() and p.suffix in (".txt", ".json"))
+    for path in tables:
         found = parse_header(path.read_text())
         if found.script:
             producer, recorded = f"`{found.script}`", recorded + 1
@@ -82,7 +92,9 @@ def main() -> None:
         arguments = found.argv or ""
         if len(arguments) > 90:
             arguments = arguments[:87] + "..."
-        rows.append((path.name, producer, found.commit or "—", f"`{arguments}`" if arguments else "—"))
+        rows.append(
+            (path.relative_to(args.results).as_posix(), producer, found.commit or "—", f"`{arguments}`" if arguments else "—")
+        )
 
     lines = [
         "# What produced each results file",

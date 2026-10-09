@@ -1,0 +1,75 @@
+script 029_axis_shape.py
+commit unknown
+argv   /workspace/data/offline/runs/scaling/sc11.L04.s1 --sweep o0 --steps 1000 --demos /workspace/data/offline/demos/scaling/test.rho100 --json /workspace/data/offline/results/scaling/029.L04.o0.json
+
+base sc11.L04.s1 @ step 30,000; 3,185,925 parameters; values (1.0, 0.5); values hidden
+sweep o0: 12 arms at offsets -0.45..+0.45
+
+=== how many axes? spectrum of the arms with the common component removed ===
+  variance share by direction: 0.776  0.099  0.033  0.020  0.015  0.014
+  participation ratio 1.63   (1.00 = one direction carries the family)
+  after the fitted axis is also removed: 4.24   permuted-offset null 1.64 [1.52, 1.85]
+  leading residual direction, split-half replication 0.766
+  The task has one goal degree of freedom, so rank one is the correct answer and a
+  replicating residual direction is the network's doing. Read the replication figure,
+  not the participation ratio: fine-tuning noise inflates the ratio by an amount that
+  is not comparable across network shapes, which is what the permuted null calibrates.
+
+=== where does it live? the axis refitted inside each module alone ===
+  module                    params    share  of params  enrichment  reliability
+  block_2                  789,760    0.313      0.248        1.26        0.981
+  block_1                  789,760    0.276      0.248        1.11        0.980
+  block_3                  789,760    0.212      0.248        0.86        0.975
+  block_0                  789,760    0.197      0.248        0.79        0.980
+  head                       1,285    0.000      0.000        0.98        0.982
+  action_position           16,384    0.000      0.005        0.08        0.690
+  row_embedding              2,816    0.000      0.001        0.43        0.973
+  col_embedding              2,816    0.000      0.001        0.41        0.974
+  cell_in                    1,280    0.000      0.000        0.47        0.987
+  sep                          256    0.000      0.000        0.91        0.990
+  action_embedding           1,536    0.000      0.000        0.11        0.906
+  ln_final                     512    0.000      0.000        0.26        0.973
+  modules holding 90% of ||axis||^2: 4 of 12
+  Enrichment, not share: a module holding 40% of the weights takes about 40% of a
+  random direction. Localisation is not storage -- where a diff lands is where the
+  gradient found it cheapest to write.
+
+=== is one place enough? greedy decode on 2048 held-out levels ===
+                              offset  indiff.  expert  reached  optimal
+  base, untouched                  -    10.70       -    0.998    0.990
+
+  the arm itself               -0.45     1.80     1.0    0.998    0.756
+  full axis, written           -0.45     3.84     1.0    0.997    0.829
+  only block_2                 -0.45     8.66     1.0    0.998    0.975
+  only block_1                 -0.45     8.70     1.0    0.998    0.976
+  only block_3                 -0.45     9.60     1.0    0.998    0.989
+  only block_0                 -0.45     8.77     1.0    0.998    0.977
+  only head                    -0.45    10.68     1.0    0.998    0.990
+  only action_position         -0.45    10.70     1.0    0.998    0.990
+  only row_embedding           -0.45    10.56     1.0    0.998    0.992
+  only col_embedding           -0.45    10.61     1.0    0.998    0.991
+  only cell_in                 -0.45    10.68     1.0    0.998    0.991
+  only sep                     -0.45    10.68     1.0    0.998    0.990
+  only action_embedding        -0.45    10.70     1.0    0.998    0.990
+  only ln_final                -0.45    10.70     1.0    0.998    0.990
+  largest 3 modules            -0.45     5.60     1.0    0.998    0.888 <- within tolerance
+
+  the arm itself               +0.45    20.45    19.0    0.998    0.873
+  full axis, written           +0.45    26.32    19.0    0.989    0.850
+  only block_2                 +0.45    13.23    19.0    0.998    0.953
+  only block_1                 +0.45    13.15    19.0    0.998    0.953
+  only block_3                 +0.45    11.83    19.0    0.998    0.975
+  only block_0                 +0.45    12.81    19.0    0.998    0.959
+  only head                    +0.45    10.70    19.0    0.998    0.990
+  only action_position         +0.45    10.70    19.0    0.998    0.990
+  only row_embedding           +0.45    10.75    19.0    0.998    0.990
+  only col_embedding           +0.45    10.73    19.0    0.998    0.990
+  only cell_in                 +0.45    10.70    19.0    0.998    0.990
+  only sep                     +0.45    10.68    19.0    0.998    0.990
+  only action_embedding        +0.45    10.70    19.0    0.998    0.990
+  only ln_final                +0.45    10.70    19.0    0.998    0.990
+  largest 4 modules            +0.45    25.59    19.0    0.991    0.852 <- within tolerance
+
+  modules needed to reach the full write within 2.0 steps: 4 of 12
+
+wrote /workspace/data/offline/results/scaling/029.L04.o0.json
