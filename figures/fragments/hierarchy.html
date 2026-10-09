@@ -1,0 +1,79 @@
+<figure class="fig-hierarchy wide" id="hierarchy-fig">
+<style>
+  .fig-hierarchy {
+    --rich: #a63d2f; --poor: #2f5a78; --probe: #6f5f9c;
+  }
+  .fig-hierarchy .stage { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 22px; }
+  .fig-hierarchy svg { display: block; width: 100%; height: auto; max-width: 790px; margin: 0 auto; }
+  .fig-hierarchy figcaption {
+    font-family: 'Source Serif 4', Georgia, serif; font-size: 15.5px;
+    color: var(--ink); max-width: 70ch; margin: 18px auto 0; line-height: 1.65;
+    border-top: 1px solid var(--line); padding-top: 16px;
+  }
+</style>
+<div class="stage">
+<svg viewBox="0 0 790 356" role="img" aria-label="Hypothesised organisation of the DRC agent: observation, planning, valuation, comparison, action. Planning and the effect of the weight write are established; valuation and comparison are hypothesised.">
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ink)"/></marker>
+<marker id="ah-rev" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 10 0 L 0 5 L 10 10 z" fill="var(--ink)"/></marker>
+<marker id="ah-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ink-soft)"/></marker>
+</defs>
+<path d="M 18 30 L 48 30" stroke="var(--ink)" stroke-width="1.4"/>
+<text x="56" y="34" font-size="11.5" fill="var(--ink)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">established in this post</text>
+<path d="M 18 50 L 48 50" stroke="var(--ink-soft)" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="56" y="54" font-size="11.5" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">hypothesised, tested in post 2</text>
+<rect x="18" y="140" width="92" height="70" rx="6" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.4"/>
+<rect x="150" y="140" width="150" height="70" rx="6" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.4"/>
+<rect x="340" y="140" width="150" height="70" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-dasharray="5 4" stroke-width="1.4"/>
+<rect x="530" y="140" width="150" height="70" rx="6" fill="var(--paper)" stroke="var(--ink-soft)" stroke-dasharray="5 4" stroke-width="1.4"/>
+<rect x="720" y="140" width="52" height="70" rx="6" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.4"/>
+<rect x="34" y="154" width="22" height="22" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.2"/>
+<rect x="40" y="158" width="22" height="22" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.2"/>
+<rect x="46" y="162" width="22" height="22" fill="var(--panel)" stroke="var(--rich)" stroke-width="1.2"/>
+<rect x="52" y="166" width="22" height="22" fill="var(--panel)" stroke="var(--poor)" stroke-width="1.2"/>
+<text x="64.0" y="202" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">observation</text>
+<rect x="164" y="152" width="35" height="35" fill="var(--panel)" stroke="var(--line)"/>
+<polyline points="167.5,183.5 167.5,169.5 181.5,169.5 181.5,155.5 195.5,155.5" fill="none" stroke="var(--rich)" stroke-width="1.6"/>
+<polyline points="167.5,183.5 181.5,183.5 181.5,176.5 195.5,176.5" fill="none" stroke="var(--poor)" stroke-width="1.6"/>
+<circle cx="167.5" cy="183.5" r="2.2" fill="var(--ink)"/>
+<text x="212" y="166" font-size="13" fill="var(--ink)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif" font-weight="600">planning</text>
+<text x="212" y="184" font-size="11.5" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">a route to</text>
+<text x="212" y="198" font-size="11.5" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">each goal</text>
+<text x="415.0" y="166" font-size="13" fill="var(--ink)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif" font-weight="600">valuation</text>
+<text x="415.0" y="185" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">score each route</text>
+<text x="415.0" y="201" font-size="12" fill="var(--ink)" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, monospace">R − c · d</text>
+<text x="605.0" y="166" font-size="13" fill="var(--ink)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif" font-weight="600">comparison</text>
+<text x="605.0" y="185" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">pick the higher score</text>
+<text x="605.0" y="201" font-size="12" fill="var(--ink)" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, monospace">threshold τ̂</text>
+<path d="M 734 175 L 756 175" stroke="var(--ink)" stroke-width="1.8" marker-end="url(#ah)"/>
+<text x="746.0" y="202" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">action</text>
+<path d="M 110 175.0 L 147 175.0" fill="none" stroke="var(--ink)" marker-end="url(#ah)" stroke-width="1.4"/>
+<path d="M 300 175.0 L 337 175.0" fill="none" stroke="var(--ink-soft)" stroke-dasharray="5 4" marker-end="url(#ah-soft)" stroke-width="1.4"/>
+<path d="M 490 175.0 L 527 175.0" fill="none" stroke="var(--ink-soft)" stroke-dasharray="5 4" marker-end="url(#ah-soft)" stroke-width="1.4"/>
+<path d="M 680 175.0 L 717 175.0" fill="none" stroke="var(--ink-soft)" stroke-dasharray="5 4" marker-end="url(#ah-soft)" stroke-width="1.4"/>
+<text x="415.0" y="26" font-size="12.5" fill="var(--ink)" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, monospace" font-weight="500">write  θ + α v</text>
+<path d="M 415.0 34 L 415.0 63" fill="none" stroke="var(--ink)" marker-end="url(#ah)" stroke-width="1.4"/>
+<circle cx="415.0" cy="82" r="16" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.4"/>
+<text x="415.0" y="86.5" font-size="13" fill="var(--ink)" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, monospace" font-weight="600">τ</text>
+<text x="439.0" y="86" font-size="11.5" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">value–step trade-off, set by v</text>
+<path d="M 415.0 98 L 415.0 137" fill="none" stroke="var(--ink-soft)" stroke-dasharray="5 4" marker-end="url(#ah-soft)" stroke-width="1.4"/>
+<path d="M 399.0 86 Q 190 92 162 137" fill="none" stroke="var(--ink-soft)" stroke-dasharray="5 4" marker-end="url(#ah-soft)" stroke-width="1.4"/>
+<text x="202" y="120" font-size="11" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">in the DRC, v concentrates</text>
+<text x="202" y="134" font-size="11" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">in the input convolution</text>
+<circle cx="160" cy="232" r="4.5" fill="var(--probe)"/>
+<path d="M 160 228 L 160 212" stroke="var(--probe)" stroke-width="1.4"/>
+<text x="172" y="236" font-size="12" fill="var(--ink)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">linear probe reads the route</text>
+<text x="172" y="252" font-size="11" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">path channels, extended across ticks,</text>
+<text x="172" y="266" font-size="11" fill="var(--ink-soft)" text-anchor="start" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">pruned by backtracking</text>
+<path d="M 548 272 L 662 272" stroke="var(--line)" stroke-width="1"/>
+<polyline points="548.0,228.3 550.9,228.4 553.7,228.5 556.5,228.6 559.4,228.8 562.2,229.0 565.1,229.3 568.0,229.6 570.8,230.1 573.6,230.6 576.5,231.3 579.4,232.2 582.2,233.2 585.0,234.5 587.9,236.0 590.8,237.8 593.6,239.8 596.5,242.1 599.3,244.6 602.1,247.3 605.0,250.0 607.9,252.7 610.7,255.4 613.5,257.9 616.4,260.2 619.2,262.2 622.1,264.0 625.0,265.5 627.8,266.8 630.6,267.8 633.5,268.7 636.4,269.4 639.2,269.9 642.0,270.4 644.9,270.7 647.8,271.0 650.6,271.2 653.5,271.4 656.3,271.5 659.1,271.6 662.0,271.7" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+<path d="M 605.0 228 L 605.0 272" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="3 3"/>
+<path d="M 591.0 280 L 619.0 280" stroke="var(--ink)" stroke-width="1.2" marker-end="url(#ah)" marker-start="url(#ah-rev)"/>
+<text x="605.0" y="294" font-size="11" fill="var(--ink-soft)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">τ̂ moves with α, s stretches with it</text>
+<text x="544" y="275" font-size="10" fill="var(--ink-soft)" text-anchor="end" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">gap</text>
+<path d="M 150 312 L 150 318 L 772 318 L 772 312" fill="none" stroke="var(--ink)" stroke-width="1.2"/>
+<text x="461.0" y="334" font-size="12" fill="var(--ink)" text-anchor="middle" font-family="'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif">the route stays shortest-path under the write</text>
+</svg>
+<figcaption></figcaption>
+</div>
+</figure>

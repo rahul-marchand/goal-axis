@@ -1,0 +1,352 @@
+<figure class="fig-basin" id="basin-fig">
+<style>
+  .fig-basin {
+    --wall: #2e313b; --floor: #eeebe3;
+    --rich: #a63d2f; --poor: #2f5a78;
+    --rich-tint: #e2c5bd; --poor-tint: #c3d1da;
+    --timeout: #ccc8bf; --handle: #23252b; --focus: #6f5f9c;
+    font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  }
+  .fig-basin .stage { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 22px 22px 16px; }
+  .fig-basin .mazes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 560px) { .fig-basin .mazes { grid-template-columns: 1fr; } }
+  .fig-basin .mz { position: relative; }
+  .fig-basin .mz canvas { display: block; width: 100%; cursor: crosshair; }
+  .fig-basin .chip { padding: 0 5px; border-radius: 3px; }
+  .fig-basin .tooltip {
+    position: absolute; pointer-events: none; z-index: 3;
+    background: var(--ink); color: var(--paper);
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px;
+    padding: 6px 9px; border-radius: 4px; white-space: nowrap;
+    transform: translate(-50%, -130%); opacity: 0; transition: opacity 0.12s;
+  }
+  .fig-basin .dial { margin: 0 auto; position: relative; }
+  .fig-basin .dial-label {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    font-size: 13px; color: var(--ink-soft); margin-bottom: 4px;
+  }
+  .fig-basin .lbl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 2px; }
+  .fig-basin .alpha-readout {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 15px;
+    color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .fig-basin button.mini {
+    font: 500 12px "IBM Plex Sans", sans-serif; color: var(--ink-soft);
+    background: transparent; border: 1px solid var(--line); border-radius: 4px;
+    padding: 2px 8px; cursor: pointer; margin-left: 8px;
+  }
+  .fig-basin button.mini:hover { border-color: var(--ink-soft); }
+  .fig-basin button.mini:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .fig-basin svg#axis { display: block; width: 100%; overflow: visible; }
+  .fig-basin input#slider {
+    -webkit-appearance: none; appearance: none;
+    position: absolute; left: 0; top: 0; width: 100%; height: 40px; margin: 0;
+    background: transparent; cursor: ew-resize; z-index: 2;
+  }
+  .fig-basin input#slider::-webkit-slider-thumb { -webkit-appearance: none; width: 40px; height: 40px; background: transparent; }
+  .fig-basin input#slider::-moz-range-thumb { width: 40px; height: 40px; background: transparent; border: none; }
+  .fig-basin input#slider:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+  .fig-basin figcaption {
+    font-family: "Source Serif 4", Georgia, serif; font-size: 15.5px;
+    color: var(--ink); max-width: 70ch; margin: 18px auto 0; line-height: 1.65;
+    border-top: 1px solid var(--line); padding-top: 16px;
+  }
+  @media (prefers-reduced-motion: reduce) { .fig-basin .tooltip { transition: none; } }
+</style>
+
+<div class="stage">
+  <div class="mazes" id="mazes"></div>
+
+  <div class="dial">
+    <div class="dial-label">
+      <span class="lbl">weight edit</span>
+      <span><span class="alpha-readout" id="alphaOut">α = 0.00</span><button id="playBtn" class="mini" type="button" aria-label="pause or resume the sweep">⏸</button></span>
+    </div>
+    <div style="position:relative;height:46px">
+      <svg id="axis" height="46"></svg>
+      <input id="slider" type="range" step="any" aria-label="alpha, the size of the weight edit">
+    </div>
+  </div>
+
+  <figcaption id="caption"></figcaption>
+</div>
+
+<script>
+const DATA = __DATA__;
+(() => {
+  const css = name => getComputedStyle(document.getElementById("basin-fig")).getPropertyValue(name).trim();
+  // the post shows the dial over ±0.4; the data extends to ±0.6, so trim the
+  // per-alpha arrays together and everything downstream follows
+  {
+    const keep = DATA.alphas.map((_, i) => i).filter(i => Math.abs(DATA.alphas[i]) <= 0.4 + 1e-9);
+    DATA.alphas = keep.map(i => DATA.alphas[i]);
+    DATA.pop = keep.map(i => DATA.pop[i]);
+    DATA.levels.forEach(L => { L.runs = keep.map(i => L.runs[i]); });
+  }
+  const alphas = DATA.alphas, A0 = alphas[0], A1 = alphas[alphas.length - 1];
+  const DIR = { U: [-1, 0], D: [1, 0], L: [0, -1], R: [0, 1], S: [0, 0] };
+  const pad = 6;
+
+  // ---- shared state ----
+  let alpha = 0, sweepA = 0, playing = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let sweepDir = 1;
+
+  // ---- palette ----
+  let PAL;
+  const hex = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+  function palette() {
+    PAL = {
+      floor: hex(css("--floor")), wall: hex(css("--wall")),
+      rich: hex(css("--rich")), poor: hex(css("--poor")),
+      richTint: hex(css("--rich-tint")), poorTint: hex(css("--poor-tint")),
+      timeout: hex(css("--timeout")), ink: hex(css("--ink")), paper: hex(css("--paper")),
+    };
+  }
+  const rgb = c => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+  const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+
+  // ---- frames ----
+  function frameAt(a) {
+    let i = 0;
+    while (i < alphas.length - 2 && alphas[i + 1] <= a) i++;
+    const t = Math.min(1, Math.max(0, (a - alphas[i]) / (alphas[i + 1] - alphas[i])));
+    return [i, t];
+  }
+  const nearest = a => { const [i, t] = frameAt(a); return t > 0.5 ? i + 1 : i; };
+
+  // ---- one view per maze, all driven by the same alpha ----
+  const holder = document.getElementById("mazes");
+  const views = DATA.levels.slice(0, 4).map(L => {
+    const wrap = document.createElement("div");
+    wrap.className = "mz";
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("role", "img");
+    canvas.setAttribute("aria-label", "maze basin map");
+    const tip = document.createElement("div");
+    tip.className = "tooltip";
+    wrap.append(canvas, tip);
+    holder.append(wrap);
+    const richObj = L.objectives.reduce((a, b) => (a.value >= b.value ? a : b));
+    return {
+      L, canvas, tip, ctx: canvas.getContext("2d"),
+      H: L.walls.length, W: L.walls[0].length,
+      startIndex: new Map(L.starts.map((s, j) => [s[0] + "," + s[1], j])),
+      richObj, poorObj: L.objectives.find(o => o !== richObj), richFid: richObj.feature_id,
+      shown: new Map(), cell: 24, hovered: null, pinned: false,
+    };
+  });
+
+  function layout(v) {
+    const avail = v.canvas.parentElement.clientWidth || 300;
+    v.cell = (avail - 2 * pad) / v.W;
+    const dpr = devicePixelRatio || 1;
+    const wpx = avail, hpx = v.cell * v.H + 2 * pad;
+    v.canvas.width = wpx * dpr; v.canvas.height = hpx * dpr;
+    v.canvas.style.height = hpx + "px";
+    v.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function targetColour(v, idx, a) {
+    const [i, t] = frameAt(a);
+    const col = ch => ch === "-" ? PAL.timeout : (+ch === v.richFid ? PAL.richTint : PAL.poorTint);
+    return mix(col(v.L.runs[i].o[idx]), col(v.L.runs[i + 1].o[idx]), t);
+  }
+
+  function predictedRich(v, r, c, a) {
+    const iR = v.L.objectives.indexOf(v.richObj), iP = v.L.objectives.indexOf(v.poorObj);
+    const dR = v.L.dist[iR][r][c], dP = v.L.dist[iP][r][c];
+    if (dR < 0) return false; if (dP < 0) return true;
+    // one threshold in step units against the integer gap: per-cell 0.05·d
+    // float noise must not speckle the boundary when α sits exactly on a tie
+    // (e.g. α = +0.4 ⇒ every gap-2 cell is tied)
+    const thr = Math.round((v.richObj.value - v.poorObj.value - a) / DATA.stepPenalty * 1e6) / 1e6;
+    return thr > dR - dP;
+  }
+  // Shortest route by greedy descent on a goal's distance field (fields were
+  // computed with the other goal treated as a wall, so routes route around it).
+  function optimalPath(v, goal, r, c) {
+    const field = v.L.dist[v.L.objectives.indexOf(goal)];
+    const pts = [[r, c]];
+    let d = field[r][c];
+    while (d > 0) {
+      let moved = false;
+      for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const rr = r + dr, cc = c + dc;
+        if (rr < 0 || cc < 0 || rr >= v.H || cc >= v.W) continue;
+        if (field[rr][cc] === d - 1) { r = rr; c = cc; d -= 1; pts.push([r, c]); moved = true; break; }
+      }
+      if (!moved) break;
+    }
+    return pts;
+  }
+
+  function drawMaze(v) {
+    const { ctx, cell, L } = v;
+    const px = c0 => pad + c0 * cell, py = r0 => pad + r0 * cell;
+    ctx.clearRect(0, 0, cell * v.W + 2 * pad, cell * v.H + 2 * pad);
+    for (let r = 0; r < v.H; r++) for (let c = 0; c < v.W; c++) {
+      const key = r + "," + c;
+      let target;
+      if (L.walls[r][c] === "1") target = PAL.wall;
+      else if (v.startIndex.has(key)) target = targetColour(v, v.startIndex.get(key), alpha);
+      else target = PAL.floor;
+      const cur = v.shown.get(key) || target;
+      const eased = mix(cur, target, 0.35);
+      v.shown.set(key, eased);
+      ctx.fillStyle = rgb(eased);
+      ctx.fillRect(px(c), py(r), cell - 1, cell - 1);
+    }
+    // optimal-choice boundary (always shown)
+    ctx.strokeStyle = rgb(PAL.ink); ctx.setLineDash([4, 3]); ctx.lineWidth = 1.4; ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    for (let r = 0; r < v.H; r++) for (let c = 0; c < v.W; c++) {
+      if (L.walls[r][c] === "1") continue;
+      const p = predictedRich(v, r, c, alpha);
+      if (c + 1 < v.W && L.walls[r][c + 1] === "0" && predictedRich(v, r, c + 1, alpha) !== p) {
+        ctx.moveTo(px(c + 1) - 0.5, py(r)); ctx.lineTo(px(c + 1) - 0.5, py(r + 1));
+      }
+      if (r + 1 < v.H && L.walls[r + 1][c] === "0" && predictedRich(v, r + 1, c, alpha) !== p) {
+        ctx.moveTo(px(c), py(r + 1) - 0.5); ctx.lineTo(px(c + 1), py(r + 1) - 0.5);
+      }
+    }
+    ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    if (v.hovered && v.startIndex.has(v.hovered)) {
+      const idx = v.startIndex.get(v.hovered), f = nearest(alpha);
+      let [r, c] = L.starts[idx];
+      ctx.beginPath(); ctx.moveTo(px(c) + cell / 2, py(r) + cell / 2);
+      for (const ch of L.runs[f].p[idx]) {
+        if (ch === "S") continue;
+        r += DIR[ch][0]; c += DIR[ch][1];
+        ctx.lineTo(px(c) + cell / 2, py(r) + cell / 2);
+      }
+      const reached = L.runs[f].o[idx];
+      ctx.strokeStyle = rgb(reached === "-" ? PAL.ink : (+reached === v.richFid ? PAL.rich : PAL.poor));
+      ctx.lineWidth = Math.max(2.5, cell * 0.16); ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.globalAlpha = 0.9; ctx.stroke(); ctx.globalAlpha = 1;
+      const [r0, c0] = L.starts[idx];
+      // the optimal route from the same start, dashed, where the agent disagrees
+      const bestGoal = predictedRich(v, r0, c0, alpha) ? v.richObj : v.poorObj;
+      const bestReached = reached !== "-" && +reached === bestGoal.feature_id && L.runs[f].s[idx] === L.dist[L.objectives.indexOf(bestGoal)][r0][c0];
+      if (!bestReached) {
+        const pts = optimalPath(v, bestGoal, r0, c0);
+        ctx.beginPath();
+        ctx.moveTo(px(pts[0][1]) + cell / 2, py(pts[0][0]) + cell / 2);
+        for (const [rr, cc] of pts.slice(1)) ctx.lineTo(px(cc) + cell / 2, py(rr) + cell / 2);
+        ctx.strokeStyle = rgb(PAL.ink); ctx.lineWidth = Math.max(1.2, cell * 0.07);
+        ctx.setLineDash([Math.max(3, cell * 0.22), Math.max(3, cell * 0.22)]);
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.fillStyle = rgb(PAL.ink);
+      ctx.beginPath(); ctx.arc(px(c0) + cell / 2, py(r0) + cell / 2, cell * 0.14, 0, 7); ctx.fill();
+    }
+    // goal squares last, so route lines end underneath the numbers
+    for (const o of L.objectives) {
+      const [r, c] = o.position;
+      ctx.fillStyle = rgb(o.feature_id === v.richFid ? PAL.rich : PAL.poor);
+      ctx.fillRect(px(c), py(r), cell - 1, cell - 1);
+      ctx.fillStyle = rgb(PAL.paper);
+      ctx.font = `600 ${Math.max(10, cell * 0.38)}px "IBM Plex Sans", sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(String(o.value), px(c) + cell / 2, py(r) + cell / 2 + 1);
+    }
+  }
+
+  // ---- axis / slider ----
+  const axis = document.getElementById("axis");
+  const slider = document.getElementById("slider");
+  slider.min = A0; slider.max = A1; slider.value = 0;
+  const xOf = (a, width) => (a - A0) / (A1 - A0) * width;
+  function drawAxis() {
+    const w = axis.clientWidth || 700;
+    const soft = css("--ink-soft"), line = css("--line");
+    let s = `<line x1="0" y1="22" x2="${w}" y2="22" stroke="${line}" stroke-width="2"/>`;
+    for (const a of alphas) s += `<circle cx="${xOf(a, w)}" cy="22" r="1.3" fill="${soft}" opacity="0.55"/>`;
+    for (let a = Math.ceil(A0 * 5) / 5; a <= A1 + 1e-9; a += 0.2) {
+      const x = xOf(a, w);
+      s += `<line x1="${x}" y1="17" x2="${x}" y2="27" stroke="${soft}" stroke-width="1"/>`;
+      if (Math.abs(a) < 1e-9 || Math.abs(a - A0) < 1e-9 || Math.abs(a - A1) < 1e-9)
+        s += `<text x="${x}" y="42" text-anchor="middle" font-size="11" fill="${soft}" font-family="IBM Plex Mono,monospace">${(Math.abs(a) < 1e-9 ? 0 : a).toFixed(1)}</text>`;
+    }
+    const x0 = xOf(0, w);
+    s += `<line x1="${x0}" y1="10" x2="${x0}" y2="34" stroke="${soft}" stroke-width="1" stroke-dasharray="2 2"/>`;
+    const xh = xOf(alpha, w);
+    s += `<circle cx="${xh}" cy="22" r="9" fill="${css('--handle')}" stroke="${css('--paper')}" stroke-width="2.5"/>`;
+    axis.innerHTML = s;
+  }
+
+  function updateReadout() {
+    document.getElementById("alphaOut").textContent = "α = " + alpha.toFixed(2);
+  }
+  // Caption comes from the post markdown (::: {.figcap for=basin}), spliced
+  // into the figcaption at build time.
+
+  // ---- interaction ----
+  function setAlpha(a, fromUser) {
+    sweepA = Math.min(A1, Math.max(A0, a));
+    // snap to the nearest decoded alpha: every position the dial lands on is a
+    // real write + decode, never an interpolated frame
+    alpha = alphas[nearest(sweepA)];
+    slider.value = alpha;
+    if (fromUser) stop();
+    updateReadout(); drawAxis();
+  }
+  function stop() { playing = false; document.getElementById("playBtn").textContent = "▶"; }
+  slider.addEventListener("input", () => setAlpha(parseFloat(slider.value), true));
+  document.getElementById("playBtn").addEventListener("click", () => {
+    playing = !playing;
+    document.getElementById("playBtn").textContent = playing ? "⏸" : "▶";
+  });
+
+  // a tap pins the trajectory so touch users get the hover layer
+  function inspect(v, e, byTap) {
+    const rect = v.canvas.getBoundingClientRect();
+    const c = Math.floor((e.clientX - rect.left - pad) / v.cell);
+    const r = Math.floor((e.clientY - rect.top - pad) / v.cell);
+    const key = r + "," + c;
+    if (v.startIndex.has(key)) {
+      v.hovered = key;
+      if (byTap) v.pinned = true;
+      const idx = v.startIndex.get(key), f = nearest(alpha), fr = v.L.runs[f];
+      const o = fr.o[idx];
+      const goal = o === "-" ? null : v.L.objectives.find(g => g.feature_id === +o);
+      const shortest = goal ? v.L.dist[v.L.objectives.indexOf(goal)][r][c] : null;
+      const best = predictedRich(v, r, c, alpha) ? v.richObj : v.poorObj;
+      const bestD = v.L.dist[v.L.objectives.indexOf(best)][r][c];
+      if (o === "-") v.tip.textContent = "times out from here";
+      else if (goal === best && shortest === fr.s[idx]) v.tip.textContent = `→ ${goal.value} goal in ${fr.s[idx]} steps (optimal)`;
+      else if (goal === best) v.tip.textContent = `→ ${goal.value} goal in ${fr.s[idx]} steps (shortest ${shortest})`;
+      else v.tip.textContent = `agent → ${goal.value} goal in ${fr.s[idx]} · optimal → ${best.value} goal in ${bestD}`;
+      v.tip.style.left = (pad + c * v.cell + v.cell / 2) + "px";
+      v.tip.style.top = (pad + r * v.cell) + "px";
+      v.tip.style.opacity = 1;
+    } else { v.hovered = null; v.pinned = false; v.tip.style.opacity = 0; }
+  }
+  for (const v of views) {
+    v.canvas.addEventListener("mousemove", e => { if (!v.pinned) inspect(v, e, false); });
+    v.canvas.addEventListener("click", e => inspect(v, e, true));
+    v.canvas.addEventListener("mouseleave", () => { if (!v.pinned) { v.hovered = null; v.tip.style.opacity = 0; } });
+  }
+
+  // ---- main loop ----
+  let last = performance.now();
+  function tick(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (playing) {
+      const speed = (A1 - A0) / 9;
+      let a = sweepA + sweepDir * speed * dt;
+      if (a >= A1) { a = A1; sweepDir = -1; }
+      if (a <= A0) { a = A0; sweepDir = 1; }
+      setAlpha(a, false);
+    }
+    for (const v of views) drawMaze(v);
+    requestAnimationFrame(tick);
+  }
+
+  addEventListener("resize", () => { views.forEach(layout); drawAxis(); });
+
+  palette(); views.forEach(layout); setAlpha(playing ? A0 : 0, false);
+  document.getElementById("playBtn").textContent = playing ? "⏸" : "▶";
+  requestAnimationFrame(tick);
+})();
+</script>
+</figure>
