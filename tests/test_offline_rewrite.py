@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 from goalmisgen.analysis import geometry, plans
-from goalmisgen.analysis.probes import apply_multinomial, class_directions
+from goalmisgen.analysis.probes import class_directions
 from goalmisgen.envs.dataset import LevelDataset
 from goalmisgen.envs.sampling import MazeLevelSampler
 from goalmisgen.offline import rewrite

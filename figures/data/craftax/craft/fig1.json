@@ -1,0 +1,41 @@
+{
+ "run": "/workspace/data/craftax/craft/runs/cxcraft15.s1t",
+ "checkpoint": 20000,
+ "demos": "/workspace/data/craftax/craft/demos-rh/valid.rho100",
+ "field": 14,
+ "kinds": [
+  9,
+  8
+ ],
+ "values": [
+  1.1,
+  0.5
+ ],
+ "step_penalty": 0.05,
+ "step_limit": 200,
+ "threshold": 12.000000000000002,
+ "cost_iron": 40,
+ "cost_coal": 32,
+ "rollout_length": 40,
+ "n_fields": 4096,
+ "expert_takes_iron": 0.3037109375,
+ "channels": [
+  "walls",
+  "agent",
+  "trees",
+  "stone",
+  "table",
+  "iron",
+  "coal",
+  "facing up",
+  "facing down",
+  "facing left",
+  "facing right",
+  "wood",
+  "stone held",
+  "wood pickaxe",
+  "stone pickaxe"
+ ],
+ "n_candidates": 128,
+ "n_clean": 79
+}
