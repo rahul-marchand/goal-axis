@@ -40,10 +40,10 @@ from goalmisgen.analysis.field_decomp import (  # noqa: E402
     decompose,
     energies,
 )
+from goalmisgen.analysis.geometry import free_cells  # noqa: E402
 from goalmisgen.analysis.route_fields import (  # noqa: E402
     cell_grids,
     erasure_observations,
-    free_cells,
     grid_distance_from,
     objective_channels,
     profile,
@@ -76,8 +76,8 @@ def main() -> None:
 
     import jax.numpy as jnp
 
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
-    from goalmisgen.edits.targets import route_targets, usable
     from goalmisgen.offline.axis import arm_dirs, load_base, load_diffs
     from goalmisgen.offline.decode import evaluate
     from goalmisgen.offline.demos import DemoSet
@@ -105,7 +105,7 @@ def main() -> None:
     targets = route_targets([demos.level(int(i)) for i in indices], size=cfg.size, n_channels=demos.n_channels)
     bfs = np.asarray(targets.fields)                    # (B, 2, S, S), 0 = rich
     gap = np.asarray(targets.gap)
-    mask = free_cells(demos, indices)
+    mask = free_cells(demos.observations(np.asarray(indices)))
     rich, poor = objective_channels(demos, indices)
     grid = np.stack([grid_distance_from(rich[:, 1:], cfg.size), grid_distance_from(poor[:, 1:], cfg.size)], axis=1)
     agent = np.asarray(demos.agent)[indices].astype(np.int64)

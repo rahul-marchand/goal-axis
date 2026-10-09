@@ -31,6 +31,12 @@ include making it less noisy.
 steps the base already gets right; a plain mean would give the choice almost no
 gradient. ``role`` marks the fork so the loss can average the two separately.
 
+The same batch -- both routes, their distance fields and the static
+observation of every level -- is also the common currency of the closed-loop
+readouts in :mod:`goalmisgen.analysis.closed_loop` and the field
+decompositions, which is why it lives in ``analysis`` and the edit search
+imports it from here rather than the other way round.
+
 This module is JAX-free, like the dataset and demo modules, so it can be built
 in a spawned worker without importing a runtime.
 """
@@ -43,7 +49,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from goalmisgen.envs.level import Level
-from goalmisgen.envs.observation import AGENT_CHANNEL, FIRST_FEATURE_CHANNEL, WALL_CHANNEL
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL, WALL_CHANNEL
 from goalmisgen.envs.solver import MOVES, UNREACHABLE, distance_field, path_to_objective, walls_blocking_other_objectives
 
 PAD, PREFIX, FORK, BRANCH = 0, 1, 2, 3

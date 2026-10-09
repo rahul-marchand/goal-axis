@@ -53,8 +53,8 @@ from goalmisgen.analysis.field_decomp import (  # noqa: E402
     energies,
     erasure_statics,
     field_profile,
-    free_cells,
 )
+from goalmisgen.analysis.geometry import free_cells  # noqa: E402
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
 from goalmisgen.provenance import header  # noqa: E402
 
@@ -103,9 +103,9 @@ def main() -> None:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
     from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits.targets import route_targets, usable
     from goalmisgen.nets.readers import state_reader_for
 
     config = MazeConfig(
@@ -141,7 +141,7 @@ def main() -> None:
 
     statics = erasure_statics(targets)
     positions = np.asarray(targets.positions[:, 0, 0], dtype=np.int32)
-    mask = free_cells(targets)
+    mask = free_cells(targets.static)
     bfs = np.asarray(targets.fields)              # (N, 2, S, S): 0 = rich, 1 = poor
     grid_distance = chebyshev_distance(targets)
     layers = list(reader.layer_names)

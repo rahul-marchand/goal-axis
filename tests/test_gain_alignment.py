@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 from jax.flatten_util import ravel_pytree
 
+from goalmisgen.analysis import closed_loop
 from goalmisgen.analysis.gain_alignment import (
     add_moments,
     fit_site,
@@ -26,10 +27,9 @@ from goalmisgen.analysis.gain_alignment import (
     make_step,
     sites_of,
 )
+from goalmisgen.analysis.route_targets import PAD, route_targets, usable
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.configs.presets import maze_drc33
-from goalmisgen.edits import rl as rl_edit
-from goalmisgen.edits.targets import PAD, route_targets, usable
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
 
 SIZE = 7
@@ -66,7 +66,7 @@ def test_step_reproduces_the_policys_logits_over_several_steps(drc):
     carry = policy.apply(params, jax.random.PRNGKey(0), (n, 4, SIZE, SIZE), method=policy.initialize_carry)
     ours = carry
     for t in range(4):
-        obs = rl_edit.draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, t]))
+        obs = closed_loop.draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, t]))
         starts = jnp.full((n,), t == 0)
         carry, _, logits, _ = policy.apply(
             params, carry, obs.transpose(0, 3, 1, 2), starts, jax.random.PRNGKey(0), temperature=0.0, method=policy.get_action
@@ -84,7 +84,7 @@ def test_patching_a_site_moves_what_is_downstream_of_it_only(drc):
     step = make_step(policy)
     n = len(targets)
     carry = policy.apply(params, jax.random.PRNGKey(0), (n, 4, SIZE, SIZE), method=policy.initialize_carry)
-    obs = rl_edit.draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0]))
+    obs = closed_loop.draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0]))
     starts = jnp.ones((n,), bool)
     _, logits, sites = step(params, carry, obs, starts)
     k = 3  # a cell at the first tick
@@ -130,7 +130,7 @@ def test_patched_rollout_is_the_base_unpatched_and_the_write_when_patched_at_the
     write = flat + jnp.asarray(rng.normal(size=flat.size).astype(np.float32) * 0.2)
     sites = sites_of(policy.cfg)
     mediate = make_mediation_rollout(policy, unravel, step_limit=30)
-    plain = rl_edit.make_rollout_fn(policy, unravel, step_limit=30)
+    plain = closed_loop.make_rollout_fn(policy, unravel, step_limit=30)
     static, start, ones = jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0]), jnp.ones(4)
     zeros = jnp.zeros(len(sites))
     _, _, probe = make_step(policy)(params, policy.apply(params, jax.random.PRNGKey(0), (1, 4, SIZE, SIZE), method=policy.initialize_carry),

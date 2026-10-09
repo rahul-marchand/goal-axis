@@ -33,9 +33,9 @@ def main() -> None:
     print(header())
 
     from goalmisgen.analysis.layers import module_groups
+    from goalmisgen.analysis.route_targets import FORK
     from goalmisgen.analysis.weights import cosine
     from goalmisgen.edits import compare
-    from goalmisgen.edits.targets import FORK
 
     sys.argv = [sys.argv[0], str(args.run), "--levels", args.levels, "--n-edit", "16", "--n-eval", str(args.n)]
     from scripts.cheapest_edit import parse_args as edit_args

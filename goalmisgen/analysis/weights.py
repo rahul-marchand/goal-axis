@@ -85,6 +85,12 @@ def fit_axis(offsets: np.ndarray, diffs: np.ndarray) -> np.ndarray:
     so the fit is forced through zero: a zero change must mean a zero diff, and
     an intercept would otherwise absorb the drift that the null arm exists to
     measure separately.
+
+    **That reasoning was wrong, and nothing outside the tests calls this.** The
+    null arm moved at zero offset, and forcing the fit through the origin leaked
+    that shared drift into the axis (experiments/README.md, 013 and 014). It is kept so
+    ``tests/test_weights.py`` can rebuild the mistake against
+    :func:`fit_axis_and_drift`, which is the fit to use.
     """
     offsets = np.asarray(offsets, dtype=np.float64)
     diffs = _as_float(diffs)
@@ -139,12 +145,21 @@ def explained(diff: np.ndarray, offset: float, axis: np.ndarray) -> float:
     return 1 - float(np.sum((diff - offset * np.asarray(axis, dtype=np.float64)) ** 2)) / total
 
 
-def cosine(a: np.ndarray, b: np.ndarray) -> float:
-    """Cosine of the angle between two diffs."""
-    a = np.asarray(a, dtype=np.float64)
-    b = np.asarray(b, dtype=np.float64)
+def cosine(a: np.ndarray, b: np.ndarray, *, nan_if_zero: bool = False) -> float:
+    """Cosine of the angle between two arrays, flattened, in float64.
+
+    A diff of zero length has no direction, and for a weight diff that means a
+    fit went wrong, so by default it raises. ``nan_if_zero`` returns NaN instead
+    when either array is exactly zero, for activation maps that can legitimately
+    be empty -- a change at a layer a write never reaches.
+    """
+    a = np.asarray(a, dtype=np.float64).ravel()
+    b = np.asarray(b, dtype=np.float64).ravel()
     denominator = float(np.linalg.norm(a) * np.linalg.norm(b))
-    if denominator < 1e-30:
+    if nan_if_zero:
+        if denominator == 0:
+            return float("nan")
+    elif denominator < 1e-30:
         raise ValueError("a diff of zero length has no direction")
     return float(a @ b) / denominator
 
@@ -379,3 +394,14 @@ def projected_offset(diff: np.ndarray, axis: np.ndarray) -> float:
     if denominator < 1e-30:
         raise ValueError("a zero axis has no scale")
     return float(np.asarray(diff, dtype=np.float64) @ axis) / denominator
+
+
+def readback_slope(true, implied) -> float:
+    """Least-squares slope of the offsets an axis reads back on the offsets the arms were trained at.
+
+    1 is a perfect scale and 0 no signal; NaN when every true offset is the same.
+    The scale test of :func:`projected_offset`, taken over a set of arms.
+    """
+    x, y = np.asarray(true, dtype=float), np.asarray(implied, dtype=float)
+    x = x - x.mean()
+    return float((x @ (y - y.mean())) / (x @ x)) if float(x @ x) > 0 else float("nan")

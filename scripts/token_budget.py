@@ -47,8 +47,8 @@ def main() -> None:
 
     import jax.numpy as jnp
 
-    from goalmisgen.edits.rl import draw_agent
-    from goalmisgen.edits.targets import route_targets, usable
+    from goalmisgen.analysis.closed_loop import draw_agent
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.offline.axis import load_base
     from goalmisgen.offline.demos import DemoSet
 

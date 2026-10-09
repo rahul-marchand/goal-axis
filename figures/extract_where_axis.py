@@ -19,23 +19,19 @@ import glob
 import json
 import pathlib
 import re
+import sys
 
 import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT.parent))
+
+from goalmisgen.analysis.layers import module_of  # noqa: E402
+
 OUT = ROOT / "src" / "where-axis" / "data.json"
 CONC = json.loads((ROOT / "data" / "axis_concentration.json").read_text())
 
 FAMILIES = [("DRC", "novalue11g1"), ("ResNet", "resnet11nvg1"), ("ViT", "vit11nvg1"), ("BC transformer", "bcnv11")]
-
-
-def module_of(path: str) -> str:
-    import sys
-
-    sys.path.insert(0, str(ROOT.parent))
-    from goalmisgen.analysis.layers import module_of as _module_of
-
-    return _module_of(path)
 
 
 def share(run: dict, order: list[str]) -> tuple[list[float], list[float]]:

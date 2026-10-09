@@ -52,7 +52,7 @@ import numpy as np
 from cleanba.convlstm import ConvLSTMCell, ConvLSTMConfig
 from cleanba.network import IdentityNorm
 
-from goalmisgen.edits.rl import MOVE_ARRAY, draw_agent
+from goalmisgen.analysis.closed_loop import MOVE_ARRAY, draw_agent
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL, WALL_CHANNEL
 
 
@@ -223,8 +223,13 @@ def make_moments_fn(policy, unravel, eps: float = 0.05):
 
 
 def add_moments(a, b):
+    """Sum two accumulator lists elementwise; ``None`` starts one.
+
+    Shared with :mod:`goalmisgen.analysis.leftover`, whose moment and signal
+    functions return the same list-of-dicts shape.
+    """
     if a is None:
-        return b
+        return [{key: np.asarray(value) for key, value in site.items()} for site in b]
     return [{key: np.asarray(x[key]) + np.asarray(y[key]) for key in x} for x, y in zip(a, b)]
 
 
@@ -245,7 +250,6 @@ def fit_site(moments: dict, variant: int, ridge: float = 1e-9) -> Fit:
     dd = np.asarray(moments["dd"][variant], dtype=np.float64)  # (K,)
     hh = np.asarray(moments["hh"], dtype=np.float64)
     total = float(dd.sum())
-    k = cc.shape[1]
     gram = np.stack([np.stack([cc[0], cc[1]], -1), np.stack([cc[1], cc[2]], -1)], -2)  # (K, 2, 2)
     scale = np.maximum(np.trace(gram, axis1=1, axis2=2), 1e-30)
     gram_r = gram + ridge * scale[:, None, None] * np.eye(2)
@@ -274,7 +278,7 @@ def make_mediation_rollout(policy, unravel, step_limit: int = 120, eps: float = 
     ``mix[s] = 1`` are *set* to ``h_base + full_w[s] * dh + gain_w[s] * (a * C0 + b * C1)``,
     ``dh`` being the write minus the unpatched base on the same carry history.
     Full patch = (1, 0), gain = (0, 1), residual = (1, -1).
-    Returns ``(reached_feature, steps)`` like :func:`goalmisgen.edits.rl.make_rollout_fn`.
+    Returns ``(reached_feature, steps)`` like :func:`goalmisgen.analysis.closed_loop.make_rollout_fn`.
     """
     step = make_step(policy)
 

@@ -32,7 +32,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from goalmisgen.edits.rl import draw_agent
+from goalmisgen.analysis.closed_loop import draw_agent
 
 
 def observations_for(statics: np.ndarray, positions: np.ndarray, gain: np.ndarray) -> np.ndarray:

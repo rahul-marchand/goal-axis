@@ -18,7 +18,7 @@ Two things it does that the shell version in ``campaign.sh`` could not:
   is guessable. Asking for the number and reporting what was found removes a
   whole class of rung that silently does not run — which is what happened to the
   100M rung, requested as ``cp_100146560`` against a real ``cp_100147200``.
-* **Rungs are ordinary agents.** See ``goalmisgen/ladder.py``.
+* **Rungs are ordinary agents.** See ``goalmisgen/base_ladder.py``.
 
 Both stages skip whatever is already on disk, so a ladder can be split across
 several GPUs by giving each one a different ``--near``, and re-run after an
@@ -34,8 +34,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from goalmisgen.base_ladder import Rung, make_rung, rung_values  # noqa: E402
 from goalmisgen.design import estimated_hours, sweep_arms  # noqa: E402
-from goalmisgen.ladder import Rung, make_rung, rung_values  # noqa: E402
 from goalmisgen.volume import arm_is_complete, parse_checkpoint_dirname  # noqa: E402
 
 

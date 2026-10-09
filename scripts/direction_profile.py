@@ -84,9 +84,9 @@ def profile(states_of, base_flat, deltas: dict[str, np.ndarray], names) -> dict:
             for label in ("gain", "turn", "random"):
                 if label in vectors:
                     row[f"r2_{label}"] = _r2(target, [vectors[label]])
-            present = [l for l in ("gain", "turn") if l in vectors]
+            present = [kind for kind in ("gain", "turn") if kind in vectors]
             if len(present) == 2:
-                row["r2_both"] = _r2(target, [vectors[l] for l in present])
+                row["r2_both"] = _r2(target, [vectors[kind] for kind in present])
         rows.append(row)
     return {"states": rows}
 
@@ -119,7 +119,6 @@ def main() -> None:
     print(header())
     print()
 
-    import jax
     import jax.numpy as jnp
 
     if args.offline:
@@ -156,22 +155,22 @@ def main() -> None:
     result = profile(states_of, base_flat, deltas, names)
     out.update(result)
 
-    print(f"\n=== relative activation change per state (|dh| / |h|) ===")
-    labels = [l for l in ("gain", "turn", "axis", "random") if l in deltas]
-    print(f"  {'state':<18}" + "".join(f"{l:>12}" for l in labels))
+    print("\n=== relative activation change per state (|dh| / |h|) ===")
+    labels = [kind for kind in ("gain", "turn", "axis", "random") if kind in deltas]
+    print(f"  {'state':<18}" + "".join(f"{kind:>12}" for kind in labels))
     for row in result["states"]:
-        print(f"  {row['state']:<18}" + "".join(f"{row.get(f'rel_{l}', float('nan')):>12.3e}" for l in labels))
+        print(f"  {row['state']:<18}" + "".join(f"{row.get(f'rel_{kind}', float('nan')):>12.3e}" for kind in labels))
 
-    print(f"\n=== survival: how much of the relative change each stage passed on ===")
-    print(f"  {'stage':<40}" + "".join(f"{l:>12}" for l in labels))
-    tables = {l: survival_table(result["states"], f"rel_{l}") for l in labels}
+    print("\n=== survival: how much of the relative change each stage passed on ===")
+    print(f"  {'stage':<40}" + "".join(f"{kind:>12}" for kind in labels))
+    tables = {kind: survival_table(result["states"], f"rel_{kind}") for kind in labels}
     out["survival"] = tables
     for index in range(len(result["states"]) - 1):
         stage = f"{tables[labels[0]][index]['from']} -> {tables[labels[0]][index]['to']}"
-        print(f"  {stage:<40}" + "".join(f"{tables[l][index]['survival']:>12.3f}" for l in labels))
+        print(f"  {stage:<40}" + "".join(f"{tables[kind][index]['survival']:>12.3f}" for kind in labels))
 
-    if any(f"r2_gain" in row for row in result["states"]):
-        print(f"\n=== share of the axis's change explained (R^2) ===")
+    if any("r2_gain" in row for row in result["states"]):
+        print("\n=== share of the axis's change explained (R^2) ===")
         print(f"  {'state':<18}{'gain':>10}{'turn':>10}{'both':>10}{'random':>10}")
         for row in result["states"]:
             print(f"  {row['state']:<18}" + "".join(
@@ -179,7 +178,7 @@ def main() -> None:
 
     if norm_params is not None:
         tokens, scale_p, bias_p = norm_params(base_flat)
-        print(f"\n=== the first LayerNorm, on the embedding ===")
+        print("\n=== the first LayerNorm, on the embedding ===")
         for label in ("gain", "turn"):
             perturbed, _, _ = norm_params(base_flat + deltas[label])
             parts = decompose(tokens, perturbed - tokens)
@@ -205,10 +204,10 @@ def rl_setup(args):
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis.closed_loop import draw_agent
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
     from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits.rl import draw_agent
-    from goalmisgen.edits.targets import route_targets, usable
     from goalmisgen.envs.features import CorrelatedFeatures
     from goalmisgen.nets.readers import state_reader_for
 
@@ -241,7 +240,7 @@ def rl_setup(args):
             break
     targets = route_targets(levels, size=11)
     # The agent has to be somewhere: read the state at each level's start cell.
-    # cleanba's Policy takes NCHW, as every rollout in goalmisgen.edits.rl does.
+    # cleanba's Policy takes NCHW, as every rollout in goalmisgen.analysis.closed_loop does.
     observations = draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0])).transpose(0, 3, 1, 2)
 
     reader = state_reader_for(policy)
@@ -300,12 +299,11 @@ def offline_setup(args):
     """States, parameters and axis for the route model, read off its residual stream."""
     import jax.numpy as jnp
 
+    from goalmisgen.analysis.closed_loop import draw_agent
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
     from goalmisgen.offline.axis import arm_dirs, load_base, load_diffs
     from goalmisgen.offline.demos import DemoSet
-
-    from goalmisgen.edits.rl import draw_agent
-    from goalmisgen.edits.targets import route_targets, usable
 
     base = load_base(args.run)
     config = base.model.config

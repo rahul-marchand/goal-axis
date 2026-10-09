@@ -26,13 +26,13 @@ from goalmisgen.analysis.field_decomp import (
     decompose,
     erasure_statics,
     field_profile,
-    free_cells,
     make_grid_fn,
 )
 from goalmisgen.analysis.gain_alignment import sites_of
+from goalmisgen.analysis.geometry import free_cells
+from goalmisgen.analysis.route_targets import route_targets, usable
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.configs.presets import maze_drc33
-from goalmisgen.edits.targets import route_targets, usable
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
 
 SIZE = 7
@@ -156,7 +156,7 @@ def test_field_profile_recovers_an_exponential_decay():
 
 def test_free_cells_excludes_walls(drc):
     _, _, targets = drc
-    mask = free_cells(targets)
+    mask = free_cells(targets.static)
     assert mask.shape == (len(targets), SIZE, SIZE)
     for row in range(len(targets)):
         for branch in range(2):

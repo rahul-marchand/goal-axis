@@ -57,7 +57,12 @@ def wilson(p: float, n: int) -> tuple[float, float]:
 
 
 def logistic_fit(paths: list[pathlib.Path]) -> tuple[float, float]:
-    """Unbinned MLE of P(took rich) = sigmoid((theta - gap)/s), pooled over paths."""
+    """Unbinned MLE of P(took rich) = sigmoid((theta - gap)/s), pooled over paths.
+
+    By grid search (theta and s on a 0.02 grid, s within [0.2, 8)), rounded to
+    two places. The same likelihood as goalmisgen.analysis.closed_loop.logistic_fit,
+    which solves it by Newton's method with a 1e-6 ridge instead of a grid.
+    """
     counts: dict[int, list[int]] = {}
     for path in paths:
         z = np.load(path)

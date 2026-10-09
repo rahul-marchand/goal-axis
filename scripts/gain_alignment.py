@@ -83,11 +83,11 @@ def main() -> None:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis import closed_loop
     from goalmisgen.analysis import gain_alignment as ga
+    from goalmisgen.analysis.closed_loop import read_outcomes
+    from goalmisgen.analysis.route_targets import PAD, route_targets, usable
     from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits import rl as rl_edit
-    from goalmisgen.edits.rl import read_outcomes
-    from goalmisgen.edits.targets import PAD, route_targets, usable
     from goalmisgen.envs.features import CorrelatedFeatures
     from scripts.restricted_writes import load_sweep
 
@@ -170,7 +170,7 @@ def main() -> None:
     # A brightness change the size of the axis's own effect: the ceiling on every
     # gain-alignment number, since a finite gain is not exactly its derivative.
     eval_targets = route_targets(levels_of("test", args.n_eval), size=11, n_channels=n_inputs)
-    plain = rl_edit.make_rollout_fn(policy, unravel, step_limit=args.step_limit)
+    plain = closed_loop.make_rollout_fn(policy, unravel, step_limit=args.step_limit)
 
     def plain_tau(flat, gains):
         reached, steps = [], []

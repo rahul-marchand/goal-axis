@@ -15,7 +15,7 @@ Two readouts guard against that, and neither involves a choice at the threshold:
   steps from the threshold have a clear right answer for a threshold agent;
   accuracy there is what a sharp chooser keeps and a noisy one loses.
 
-JAX-free, like :mod:`goalmisgen.edits.targets`.
+JAX-free, like :mod:`goalmisgen.analysis.route_targets`.
 """
 
 from __future__ import annotations
@@ -25,9 +25,9 @@ from collections.abc import Sequence
 
 import numpy as np
 
+from goalmisgen.analysis.route_targets import static_observation
 from goalmisgen.envs.level import Level
 from goalmisgen.envs.solver import UNREACHABLE, distance_field
-from goalmisgen.edits.targets import static_observation
 
 
 @dataclasses.dataclass(frozen=True)

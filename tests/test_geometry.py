@@ -140,3 +140,11 @@ def test_agent_and_objective_cells_are_distinct_and_free():
         cells = [geometry.agent_cell(observation)] + [geometry.objective_cell(observation, f) for f in (0, 1)]
         assert all(free[cell] for cell in cells), "the agent or an objective was placed inside a wall"
         assert len(set(cells)) == 3, "the agent started on an objective"
+
+
+def test_free_cells_takes_a_batch_as_well_as_one_observation():
+    observations = np.stack([o for _, o in sampled(3)])
+    batched = geometry.free_cells(observations)
+    assert batched.shape == observations.shape[:3]
+    for row, observation in enumerate(observations):
+        assert np.array_equal(batched[row], geometry.free_cells(observation))

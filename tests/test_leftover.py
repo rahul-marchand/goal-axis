@@ -19,19 +19,18 @@ import numpy as np
 import pytest
 from jax.flatten_util import ravel_pytree
 
-from goalmisgen.analysis.gain_alignment import sites_of
+from goalmisgen.analysis import closed_loop
+from goalmisgen.analysis.gain_alignment import add_moments, sites_of
 from goalmisgen.analysis.input_gain import input_kernel
 from goalmisgen.analysis.leftover import (
-    add_moments,
     erase,
     make_change_moments_fn,
     make_leftover_rollout,
     make_signal_fn,
 )
+from goalmisgen.analysis.route_targets import PAD, route_targets, usable
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.configs.presets import maze_drc33
-from goalmisgen.edits import rl as rl_edit
-from goalmisgen.edits.targets import PAD, route_targets, usable
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
 
 SIZE = 7
@@ -72,7 +71,7 @@ def test_no_patch_is_the_base_and_a_full_patch_at_the_logits_is_the_write(drc):
     rng = np.random.default_rng(1)
     write = flat + jnp.asarray(rng.normal(size=flat.size).astype(np.float32) * 0.2)
     rollout = make_leftover_rollout(policy, unravel, step_limit=30)
-    plain = rl_edit.make_rollout_fn(policy, unravel, step_limit=30)
+    plain = closed_loop.make_rollout_fn(policy, unravel, step_limit=30)
     static = jnp.asarray(targets.static)
     null = jnp.asarray(erase(targets.static, [COLOUR[1]]))
     start = jnp.asarray(targets.positions[:, 0, 0])
@@ -97,7 +96,7 @@ def test_with_nothing_erased_the_object_dependent_patch_is_the_base_and_the_free
     rng = np.random.default_rng(2)
     write = flat + jnp.asarray(rng.normal(size=flat.size).astype(np.float32) * 0.2)
     rollout = make_leftover_rollout(policy, unravel, step_limit=30)
-    plain = rl_edit.make_rollout_fn(policy, unravel, step_limit=30)
+    plain = closed_loop.make_rollout_fn(policy, unravel, step_limit=30)
     static = jnp.asarray(targets.static)
     start = jnp.asarray(targets.positions[:, 0, 0])
     ones = jnp.ones(len(sites_of(policy.cfg)))

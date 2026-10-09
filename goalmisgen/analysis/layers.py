@@ -30,7 +30,6 @@ from __future__ import annotations
 import re
 
 import numpy as np
-from jax import tree_util
 
 from goalmisgen.analysis.weights import _as_float, fit_axis_and_drift, split_half_reliability
 
@@ -70,6 +69,10 @@ def parameter_groups(params, group_of=group_of_path) -> dict[str, np.ndarray]:
     order :func:`goalmisgen.offline.axis.load_base` flattens a checkpoint in, so
     an index array here addresses the same parameter a diff does.
     """
+    # Imported here so that module_of and the share arithmetic stay JAX-free:
+    # the figure scripts classify parameter paths read back from JSON.
+    from jax import tree_util
+
     groups: dict[str, list[np.ndarray]] = {}
     start = 0
     for path, leaf in tree_util.tree_flatten_with_path(params)[0]:
@@ -77,27 +80,6 @@ def parameter_groups(params, group_of=group_of_path) -> dict[str, np.ndarray]:
         groups.setdefault(group_of(path), []).append(np.arange(start, start + size))
         start += size
     return {name: np.concatenate(indices) for name, indices in groups.items()}
-
-
-def group_spans(groups: dict[str, np.ndarray]) -> dict[str, slice]:
-    """The same groups as slices, for callers that cannot afford a fancy-index copy.
-
-    A 50M-parameter model with 24 arms is 9.6 GB of diffs in float64, and
-    ``diffs[:, indices]`` allocates a second copy of whatever it selects, where
-    ``diffs[:, a:b]`` is a view. Flax parameter dictionaries are sorted, so a
-    module's leaves are adjacent and every group is in fact one span.
-
-    **Raises rather than falling back** when a group is not contiguous. Silently
-    returning to fancy indexing would turn a structural surprise into an
-    out-of-memory hours into a run, which is the failure mode this project keeps
-    paying for; a named error at the start is cheaper.
-    """
-    spans = {}
-    for name, indices in groups.items():
-        if len(indices) and indices[-1] - indices[0] + 1 != len(indices):
-            raise ValueError(f"group {name!r} is not one contiguous span, so it has no slice")
-        spans[name] = slice(int(indices[0]), int(indices[-1]) + 1) if len(indices) else slice(0, 0)
-    return spans
 
 
 def restrict(vector: np.ndarray, groups: dict[str, np.ndarray], keep) -> np.ndarray:

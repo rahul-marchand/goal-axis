@@ -313,14 +313,6 @@ def dataset_dirname(values: Iterable[float], n_levels: int) -> str:
     return f"{values_tag(values)}@{_round_tag(n_levels, 'a number of levels')}"
 
 
-def parse_dataset_dirname(name: str) -> tuple[tuple[float, ...], int]:
-    """``1.00-0.50@1M`` -> ``((1.0, 0.5), 1000000)``."""
-    tag, _, count = name.partition("@")
-    if not count:
-        raise ValueError(f"{name!r} is missing its level count, which is part of what makes a dataset shareable")
-    return parse_values_tag(tag), _parse_round_tag(count, "a level count")
-
-
 def iter_arms(
     arms: Path, sweep: str, steps: int | None = None, replicate: int = 1
 ) -> Iterator[tuple[ArmName, Path]]:

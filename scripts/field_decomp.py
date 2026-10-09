@@ -41,10 +41,10 @@ from goalmisgen.analysis.field_decomp import (  # noqa: E402
     energies,
     erasure_statics,
     field_profile,
-    free_cells,
     make_grid_fn,
 )
 from goalmisgen.analysis.gain_alignment import sites_of  # noqa: E402
+from goalmisgen.analysis.geometry import free_cells  # noqa: E402
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
 from goalmisgen.provenance import header  # noqa: E402
 
@@ -79,9 +79,9 @@ def main() -> None:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
     from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits.targets import route_targets, usable
 
     config = MazeConfig(
         max_episode_steps=120, num_envs=2, min_size=11, max_size=11, n_objectives=len(values),
@@ -117,7 +117,7 @@ def main() -> None:
     grids = make_grid_fn(policy, unravel, n_steps=args.n_steps, site_index=spatial)
     statics = erasure_statics(targets)
     positions = np.asarray(targets.positions[:, 0], dtype=np.int32)
-    mask = free_cells(targets)
+    mask = free_cells(targets.static)
     bfs = np.asarray(targets.fields)          # (N, 2, S, S): 0 = rich, 1 = poor
     grid_distance = chebyshev_distance(targets)
     ones = np.ones(statics.shape[-1], dtype=np.float32)

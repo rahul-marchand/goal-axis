@@ -22,6 +22,7 @@ from goalmisgen.analysis.weights import (
     permutation_p_value,
     project,
     projected_offset,
+    readback_slope,
     split_half_reliability,
 )
 
@@ -413,3 +414,20 @@ def test_the_narrower_storage_changes_no_reported_number() -> None:
     assert permutation_cosines(offsets, narrow, axis_narrow, resamples=50, seed=3).mean() == pytest.approx(
         permutation_cosines(offsets, wide, axis_wide, resamples=50, seed=3).mean(), abs=1e-4
     )
+
+
+def test_cosine_flattens_and_handles_a_zero_vector_as_asked() -> None:
+    a = np.arange(6.0).reshape(2, 3)
+    b = a.astype(np.float32) * 2
+    assert cosine(a, b) == pytest.approx(1.0)
+    assert cosine(a, -a, nan_if_zero=True) == pytest.approx(-1.0)
+    with pytest.raises(ValueError, match="zero length"):
+        cosine(np.zeros(3), np.ones(3))
+    assert np.isnan(cosine(np.zeros(3), np.ones(3), nan_if_zero=True))
+
+
+def test_readback_slope_is_one_for_a_perfect_scale_and_nan_without_spread() -> None:
+    true = [-0.3, -0.1, 0.2, 0.4]
+    assert readback_slope(true, [2 * t + 5 for t in true]) == pytest.approx(2.0)
+    assert readback_slope(true, true) == pytest.approx(1.0)
+    assert np.isnan(readback_slope([0.1, 0.1], [0.0, 1.0]))

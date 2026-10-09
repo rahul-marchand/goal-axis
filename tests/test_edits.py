@@ -18,7 +18,9 @@ import numpy as np
 import pytest
 from jax.flatten_util import ravel_pytree
 
+from goalmisgen.analysis import closed_loop
 from goalmisgen.analysis.input_gain import gain_part, input_kernel
+from goalmisgen.analysis.route_targets import BRANCH, FORK, PAD, PREFIX, route_targets, usable
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.configs.presets import maze_drc33
 from goalmisgen.edits import bc as bc_edit
@@ -26,23 +28,22 @@ from goalmisgen.edits import rl as rl_edit
 from goalmisgen.edits.core import (
     DenseEdit,
     GainEdit,
+    LowRankEdit,
+    SearchConfig,
+    choice_curve,
+    curve_loss,
+    curve_targets,
     fork_margins,
     margin_curve,
     margin_loss,
     margin_offsets,
-    rule_labels,
-    curve_loss,
-    choice_curve,
-    curve_targets,
-    LowRankEdit,
-    SearchConfig,
     route_loss,
+    rule_labels,
     search,
     threshold_targets,
     top_k_indices,
     weight_kernels,
 )
-from goalmisgen.edits.targets import BRANCH, FORK, PAD, PREFIX, route_targets, usable
 from goalmisgen.envs.level import Level, Objective
 from goalmisgen.envs.solver import MOVES
 from goalmisgen.offline.decode import replay
@@ -221,7 +222,7 @@ def test_teacher_forced_logits_equal_stepping_the_route(drc):
 def test_rollout_walks_the_maze_by_the_environments_rules(drc):
     config, policy, params, levels, targets = drc
     flat, unravel = ravel_pytree(params)
-    rollout = rl_edit.make_rollout_fn(policy, unravel, step_limit=30)
+    rollout = closed_loop.make_rollout_fn(policy, unravel, step_limit=30)
     reached, steps = rollout(flat, jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0]), jnp.ones(4))
 
     # Replay the same greedy policy in Python, one level at a time, and score it with the environment's replay.
@@ -247,7 +248,7 @@ def test_rollout_walks_the_maze_by_the_environments_rules(drc):
 
 
 def test_onpolicy_logits_are_the_teacher_forced_logits_of_the_agents_own_path(drc):
-    from goalmisgen.edits.targets import FORK as FORK_ROLE
+    from goalmisgen.analysis.route_targets import FORK as FORK_ROLE
 
     config, policy, params, levels, targets = drc
     flat, unravel = ravel_pytree(params)
@@ -332,7 +333,7 @@ def test_route_model_logits_follow_each_branch_and_end_in_eos():
     assert arrays["toward_rich"][0, 0, 4].tolist() == [False, False, False, False, True]
     assert arrays["toward_poor"][0, 1, 4].tolist() == [False, False, False, False, True]
 
-    obs = rl_edit.draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0]))
+    obs = closed_loop.draw_agent(jnp.asarray(targets.static), jnp.asarray(targets.positions[:, 0, 0]))
     params = model.init(jax.random.PRNGKey(0), obs, jnp.zeros((1, 8), jnp.int32))
     flat, unravel = ravel_pytree(params)
     batch = {k: jnp.asarray(v) for k, v in arrays.items()}

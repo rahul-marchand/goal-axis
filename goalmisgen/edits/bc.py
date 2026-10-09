@@ -16,7 +16,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from goalmisgen.edits.targets import BRANCH, POOR, RICH, RouteTargets
+from goalmisgen.analysis.route_targets import BRANCH, POOR, RICH, RouteTargets
 
 
 def with_eos(targets: RouteTargets, max_actions: int) -> dict[str, np.ndarray]:
@@ -54,7 +54,7 @@ def with_eos(targets: RouteTargets, max_actions: int) -> dict[str, np.ndarray]:
 
 def make_logits_fn(model, unravel):
     """``(flat, batch) -> (N, 2, T + 1, 5)`` logits for both branches."""
-    from goalmisgen.edits.rl import draw_agent
+    from goalmisgen.analysis.closed_loop import draw_agent
 
     def logits_fn(flat, batch):
         params = unravel(flat)

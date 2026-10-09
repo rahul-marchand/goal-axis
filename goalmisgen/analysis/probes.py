@@ -125,7 +125,12 @@ def _design(x: np.ndarray, mean: np.ndarray, std: np.ndarray) -> np.ndarray:
 
 
 def fit_logistic(x: np.ndarray, y: np.ndarray, steps: int = 400, lr: float = 0.5, l2: float = 1e-3):
-    """Logistic regression by gradient descent on standardised inputs."""
+    """Logistic regression by gradient descent on standardised inputs.
+
+    A fixed number of steps from zero, so a very sharp boundary is fitted
+    softer than it is; :func:`goalmisgen.analysis.closed_loop.logistic_fit` is
+    the Newton fit for a one-dimensional threshold where that matters.
+    """
     mean, std = x.mean(0), x.std(0) + 1e-8
     z = _design(x, mean, std)
 

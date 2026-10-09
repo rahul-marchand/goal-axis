@@ -83,8 +83,13 @@ def check_layout(observation: np.ndarray, n_features: int) -> None:
 
 
 def free_cells(observation: np.ndarray) -> np.ndarray:
-    """Boolean mask of cells the agent could stand on. Padding counts as wall."""
-    return observation[:, :, WALL_CHANNEL] < 0.5
+    """Boolean mask of cells the agent could stand on. Padding counts as wall.
+
+    ``observation`` is ``(..., H, W, C)``: one observation or any batch of them,
+    such as a :class:`~goalmisgen.analysis.route_targets.RouteTargets`'s
+    ``static`` or a demonstration set's observations.
+    """
+    return np.asarray(observation)[..., WALL_CHANNEL] < 0.5
 
 
 def agent_cell(observation: np.ndarray) -> Position:

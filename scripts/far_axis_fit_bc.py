@@ -23,7 +23,13 @@ import numpy as np
 REPO = Path(os.environ.get("GOALMISGEN_REPO") or Path(__file__).resolve().parent.parent)
 sys.path.insert(0, str(REPO))
 
-from goalmisgen.analysis.weights import cosine, explained, fit_axis_and_drift, projected_offset  # noqa: E402
+from goalmisgen.analysis.weights import (  # noqa: E402
+    cosine,
+    explained,
+    fit_axis_and_drift,
+    projected_offset,
+    readback_slope,
+)
 from goalmisgen.provenance import header  # noqa: E402
 
 
@@ -41,12 +47,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--window-loo", action="store_true", help="Measure the window's leave-one-out writes instead.")
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
-
-
-def readback_slope(true, implied) -> float:
-    x, y = np.asarray(true, dtype=float), np.asarray(implied, dtype=float)
-    x = x - x.mean()
-    return float((x @ (y - y.mean())) / (x @ x)) if float(x @ x) > 0 else float("nan")
 
 
 def main() -> None:

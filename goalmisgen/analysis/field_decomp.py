@@ -44,10 +44,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from goalmisgen.analysis.closed_loop import draw_agent
 from goalmisgen.analysis.gain_alignment import make_step
-from goalmisgen.edits.rl import draw_agent
-from goalmisgen.edits.targets import FAR
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL, WALL_CHANNEL
+from goalmisgen.analysis.route_targets import FAR
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
 
 BOTH, RICH_ONLY, POOR_ONLY, NEITHER = 0, 1, 2, 3
 """Rows of the variant axis, in the order :func:`erasure_statics` builds them."""
@@ -70,11 +70,6 @@ def erasure_statics(targets) -> np.ndarray:
         out[NEITHER, row, :, :, rich] = 0.0
         out[NEITHER, row, :, :, poor] = 0.0
     return out
-
-
-def free_cells(targets) -> np.ndarray:
-    """``(N, S, S)`` bool: cells an agent can stand in (padding counts as wall)."""
-    return np.asarray(targets.static)[..., WALL_CHANNEL] < 0.5
 
 
 def make_grid_fn(policy, unravel, n_steps: int, site_index: tuple[int, ...]):

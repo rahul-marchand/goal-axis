@@ -18,7 +18,6 @@ from goalmisgen.analysis.route_fields import (
     RICH_ONLY,
     cell_grids,
     erasure_observations,
-    free_cells,
     grid_distance_from,
     objective_channels,
     profile,
@@ -109,12 +108,6 @@ def test_cell_grids_unflattens_prefix_tokens_in_row_major_order() -> None:
 def test_cell_grids_rejects_a_short_prefix() -> None:
     with pytest.raises(ValueError, match="shorter than"):
         cell_grids(np.zeros((1, 1, 5, 2)), SIZE)
-
-
-def test_free_cells_agrees_with_the_wall_plane(demos: DemoSet) -> None:
-    indices = np.arange(6)
-    observations = np.asarray(demos.observations(indices))
-    assert np.array_equal(free_cells(demos, indices), observations[..., WALL_CHANNEL] < 0.5)
 
 
 def test_grid_distance_is_chebyshev_from_the_given_cell() -> None:

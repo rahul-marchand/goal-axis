@@ -37,7 +37,7 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 
-from goalmisgen.edits.targets import BRANCH, FORK, POOR, PREFIX, RICH
+from goalmisgen.analysis.route_targets import BRANCH, FORK, PREFIX, RICH
 
 # --- the loss ------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ def _set_log_prob(log_probs, mask):
 
 
 def route_loss(logits, toward_rich, toward_poor, role, p_rich, fork_weight: float = 1.0):
-    """Teacher-forced loss of a threshold agent's routes; see :mod:`goalmisgen.edits.targets`.
+    """Teacher-forced loss of a threshold agent's routes; see :mod:`goalmisgen.analysis.route_targets`.
 
     ``logits`` ``(N, 2, T, A)``; masks ``(N, 2, T, A)``; ``role`` ``(N, 2, T)``;
     ``p_rich`` ``(N,)``, the target agent's probability of taking the richer
@@ -87,17 +87,6 @@ def route_loss(logits, toward_rich, toward_poor, role, p_rich, fork_weight: floa
 def threshold_targets(gap, tau, scale):
     """``p(rich) = sigmoid((tau - gap) / scale)``."""
     return jax.nn.sigmoid((tau - gap) / scale)
-
-
-def contingent_targets(gap, rich_above, tau, shift, scale):
-    """The control rule: the threshold moves up by ``shift`` where the richer objective is above, down where it is not.
-
-    It flips about as many decisions as a uniform shift of the same size, but it
-    needs the network to condition on where the goals are -- an interaction a
-    one-parameter value slot does not provide.
-    """
-    signed = jnp.where(rich_above, shift, -shift)
-    return jax.nn.sigmoid((tau + signed - gap) / scale)
 
 
 def fork_margins(logits, toward_rich, toward_poor, role):

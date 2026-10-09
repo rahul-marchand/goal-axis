@@ -80,7 +80,9 @@ def module_matched_direction(reference: np.ndarray, groups: dict[str, np.ndarray
     """Random inside every module, each module's slice as long as ``reference``'s there.
 
     Parameters in no group keep ``reference``'s slice length too, as one extra block,
-    so the result's total norm equals ``reference``'s exactly.
+    so the result's total norm equals ``reference``'s exactly. See
+    :func:`goalmisgen.analysis.plan_invariance.module_matched_random` for how
+    the plan-invariance control differs.
     """
     reference = np.asarray(reference, float)
     out = np.zeros_like(reference)

@@ -166,7 +166,7 @@ def rung_entry(run: Path, entry: dict) -> dict:
     the only reason the rung exists.
 
     ``BASE.json`` has the answer, and is the same file the sweep driver and the
-    analysis resolve the rung by. See ``goalmisgen/ladder.py``, whose docstring
+    analysis resolve the rung by. See ``goalmisgen/base_ladder.py``, whose docstring
     warns about exactly this: anything reading a rung's checkpoints instead of
     its marker describes the parent.
     """

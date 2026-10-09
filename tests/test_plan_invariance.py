@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from goalmisgen.analysis import plan_invariance as pi
+from goalmisgen.analysis.weights import cosine
 from goalmisgen.configs.env import MazeConfig
 from goalmisgen.configs.presets import maze_drc33
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
@@ -146,7 +147,7 @@ def test_subspace_share_and_stable_levels_and_random_matching():
     random = pi.module_matched_random(axis, groups, seed=3)
     for index in groups.values():
         assert np.linalg.norm(random[index]) == pytest.approx(np.linalg.norm(axis[index]))
-    assert abs(pi.cosine(random, axis)) < 0.5
+    assert abs(cosine(random, axis)) < 0.5
 
 
 def test_interpolate_gain_matches_in_log_gain():

@@ -45,7 +45,13 @@ REPO = Path(os.environ.get("GOALMISGEN_REPO") or Path(__file__).resolve().parent
 sys.path.insert(0, str(REPO))
 
 from goalmisgen import provenance  # noqa: E402
-from goalmisgen.analysis.weights import cosine, explained, fit_axis_and_drift, projected_offset  # noqa: E402
+from goalmisgen.analysis.weights import (  # noqa: E402
+    cosine,
+    explained,
+    fit_axis_and_drift,
+    projected_offset,
+    readback_slope,
+)
 from goalmisgen.volume import discover_arms  # noqa: E402
 
 
@@ -71,13 +77,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--json", type=Path, default=None)
     return parser.parse_args()
-
-
-def readback_slope(true: list[float], implied: list[float]) -> float:
-    """Slope of implied offset on true offset; 1 is a perfect scale, 0 is no signal."""
-    x, y = np.asarray(true), np.asarray(implied)
-    x = x - x.mean()
-    return float((x @ (y - y.mean())) / (x @ x)) if float(x @ x) > 0 else float("nan")
 
 
 def main() -> None:

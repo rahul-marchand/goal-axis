@@ -231,7 +231,12 @@ def indifference_point(gaps: np.ndarray, took_richer: np.ndarray) -> float:
     """Distance gap at which the agent is equally likely to take either.
 
     A logistic fit rather than reading off a binned curve: the bins are uneven
-    and the crossing usually falls between two of them.
+    and the crossing usually falls between two of them. The fit is
+    :func:`~goalmisgen.analysis.probes.fit_logistic`'s gradient descent on the
+    standardised gap, and only the crossing is returned; the Newton fit in
+    :func:`goalmisgen.analysis.closed_loop.logistic_fit` maximises the same
+    likelihood unridged to convergence and also returns the scale, so the two
+    agree only as far as the descent has converged.
     """
     if len(np.unique(took_richer)) < 2:
         return float("nan")

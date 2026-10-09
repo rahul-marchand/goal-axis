@@ -51,8 +51,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from goalmisgen.analysis.input_gain import input_kernel  # noqa: E402
 from goalmisgen.analysis.layers import module_groups  # noqa: E402
+from goalmisgen.analysis.route_targets import route_targets, usable  # noqa: E402
 from goalmisgen.analysis.weights import cosine, fit_axis_and_drift, split_half_reliability  # noqa: E402
-from goalmisgen.edits.targets import route_targets, usable  # noqa: E402
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
 from goalmisgen.provenance import header  # noqa: E402
 
@@ -127,6 +127,7 @@ def rl_backend(args) -> Backend:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis import closed_loop
     from goalmisgen.configs.env import MazeConfig
     from goalmisgen.edits import rl as rl_edit
     from goalmisgen.envs.features import CorrelatedFeatures
@@ -162,7 +163,7 @@ def rl_backend(args) -> Backend:
 
     edit_targets = route_targets(levels_of("valid", args.n_edit), size=11)
     eval_targets = route_targets(levels_of("test", args.n_eval), size=11)
-    rollout = rl_edit.make_rollout_fn(policy, unravel)
+    rollout = closed_loop.make_rollout_fn(policy, unravel)
 
     def evaluate(flat_params, targets, gains=None):
         g = np.ones(4, dtype=np.float32)
@@ -233,8 +234,8 @@ def offline_backend(args) -> Backend:
     def evaluate(flat_params, targets, gains=None):
         import jax.numpy as jnp
 
+        from goalmisgen.analysis.closed_loop import draw_agent
         from goalmisgen.analysis.input_gain import scale_planes
-        from goalmisgen.edits.rl import draw_agent
 
         # draw_agent writes with jnp's .at[], so both arguments have to be JAX
         # arrays: route targets arrive from numpy and would fail here otherwise.
@@ -273,6 +274,7 @@ def main() -> None:
     print()
     started = time.time()
 
+    from goalmisgen.analysis.closed_loop import logistic_fit, read_outcomes
     from goalmisgen.edits import compare
     from goalmisgen.edits.core import (
         DenseEdit,
@@ -285,7 +287,6 @@ def main() -> None:
         top_k_indices,
         weight_kernels,
     )
-    from goalmisgen.edits.rl import logistic_fit, read_outcomes
 
     backend = offline_backend(args) if args.offline else rl_backend(args)
     flat = backend.base_flat
@@ -486,7 +487,7 @@ def main() -> None:
         batch = {k: np.asarray(v[rows]) for k, v in backend.eval_arrays.items()}
         tangents = compare.function_tangents(backend.logits_fn, flat, batch, {**deltas, "mean": mean_delta, "v": v_step})
         function = compare.cosine_matrix(tangents)
-        from goalmisgen.edits.targets import FORK
+        from goalmisgen.analysis.route_targets import FORK
 
         fork_tangents = compare.function_tangents(backend.logits_fn, flat, batch, {**deltas, "mean": mean_delta, "v": v_step}, roles=(FORK,))
         function_fork = compare.cosine_matrix(fork_tangents)

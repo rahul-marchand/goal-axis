@@ -31,7 +31,6 @@ from goalmisgen.volume import (
     iter_arms,
     offset_tag,
     parse_arm_dirname,
-    parse_dataset_dirname,
     parse_steps_tag,
     parse_values_tag,
     steps_tag,
@@ -132,16 +131,6 @@ def test_datasets_at_the_same_values_but_different_sizes_stay_apart() -> None:
     assert dataset_dirname([1.0, 0.5], 1_000_000) == "1.00-0.50@1M"
     assert dataset_dirname([1.0, 0.5], 500_000) == "1.00-0.50@500k"
     assert dataset_dirname([1.0, 0.5], 1_000_000) != dataset_dirname([1.0, 0.5], 500_000)
-
-
-def test_dataset_names_round_trip() -> None:
-    for values, count in [((1.0, 0.5), 1_000_000), ((1.0, 0.65, 0.3), 150_000)]:
-        assert parse_dataset_dirname(dataset_dirname(values, count)) == (values, count)
-
-
-def test_a_dataset_without_its_level_count_is_refused() -> None:
-    with pytest.raises(ValueError, match="missing its level count"):
-        parse_dataset_dirname("1.00-0.50")
 
 
 def make_arm(root, name: str, checkpoints: int = 1):

@@ -58,6 +58,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from goalmisgen.analysis import plan_invariance as pi  # noqa: E402
+from goalmisgen.analysis.weights import cosine  # noqa: E402
 from goalmisgen.provenance import header  # noqa: E402
 
 N_FEATURES = 2
@@ -148,13 +149,13 @@ def main() -> None:  # noqa: C901 - one linear pipeline, read top to bottom
     layers = list(range(n_layers + 1))  # the last is every layer together
     layer_name = [str(i) for i in range(n_layers)] + ["all"]
     print(f"base   {checkpoint}  ({base_flat.size:,} parameters), values {values}")
-    print(f"       cos(axis {args.sweep}, -axis {twin_sweep}) {pi.cosine(axis, twin):+.3f}; brightness on input plane {plane}")
+    print(f"       cos(axis {args.sweep}, -axis {twin_sweep}) {cosine(axis, twin, nan_if_zero=True):+.3f}; brightness on input plane {plane}")
 
     def tree(flat):
         return unravel(np.asarray(flat, dtype=np.float32))
 
     out: dict = {"run": str(args.run), "checkpoint": str(checkpoint), "values": list(values), "sweep": args.sweep,
-                 "twin": twin_sweep, "axis_norm": float(np.linalg.norm(axis)), "cos_axis_twin": pi.cosine(axis, twin),
+                 "twin": twin_sweep, "axis_norm": float(np.linalg.norm(axis)), "cos_axis_twin": cosine(axis, twin, nan_if_zero=True),
                  "ticks": args.ticks, "state": args.state, "layers": layer_name}
     get_action = jax.jit(partial(policy.apply, method=policy.get_action), static_argnames="temperature")
     run = pi.make_tick_runner(policy, args.ticks, state=args.state)
@@ -343,7 +344,7 @@ def main() -> None:  # noqa: C901 - one linear pipeline, read top to bottom
                 for f, (index, y, conf) in enumerate(test_labels):
                     p = predict(probe_set[(f, t, layer)], at(grid, index))
                     hard = (y - conf) >= 4
-                    rows[(f, t, layer)] = (pi.r2(y, p), pi.r2(y[hard], p[hard]), p)
+                    rows[(f, t, layer)] = (metrics.r2(y, p), metrics.r2(y[hard], p[hard]), p)
         return rows
 
     print("\n=== 2. probes: distance to each objective, fitted on the base network's state ===\n", flush=True)
@@ -384,7 +385,7 @@ def main() -> None:  # noqa: C901 - one linear pipeline, read top to bottom
                     for f, (index, y, conf) in enumerate(test_labels):
                         keep = subset[index[:, 0]]
                         p = predict(probes[(f, t, layer)], at(grid, index[keep]))
-                        row[f"r2_{f}"] = pi.r2(y[keep], p)
+                        row[f"r2_{f}"] = metrics.r2(y[keep], p)
                         row[f"shift_{f}"] = pi.field_shift(base_scores[(f, t, layer)][2][keep], p, y[keep])
                     chosen = [g for g, s in zip(geos, subset) if s]
                     base_cells = view(h_base, t, layer)[subset][free[subset]]
@@ -420,7 +421,7 @@ def main() -> None:  # noqa: C901 - one linear pipeline, read top to bottom
                 ceiling = np.sqrt(max(reliability, 1e-12))
                 for label, other in (("brightness", bright), ("input slice", sl), ("random", rnd)):
                     fo = view(other, t, layer)[m][free[m]]
-                    raw = 0.5 * (pi.cosine(fa, fo) + pi.cosine(fb, fo))
+                    raw = 0.5 * (cosine(fa, fo, nan_if_zero=True) + cosine(fb, fo, nan_if_zero=True))
                     row[f"cos {label}"] = raw
                     row[f"cos {label} corrected"] = raw / ceiling
                 reliable.append(row)
@@ -487,7 +488,7 @@ def main() -> None:  # noqa: C901 - one linear pipeline, read top to bottom
                 pa, pb = view(deltas[f"axis {sign * big:+.2f}"], t, layer)[free], view(deltas[f"twin {sign * big:+.2f}"], t, layer)[free]
                 row[f"reliable {sign * big:+.2f}"] = float(np.sum(ea.astype(np.float64) * eb) / np.sum(pa.astype(np.float64) * pb))
                 # does the reliable change that survives look like the one with the objectives present?
-                row[f"reliable pattern cos {sign * big:+.2f}"] = pi.cosine(ea + eb, pa + pb)
+                row[f"reliable pattern cos {sign * big:+.2f}"] = cosine(ea + eb, pa + pb, nan_if_zero=True)
             # the remaining objective's decoded field under the axis, at the layer-concatenated probe
             for f in range(N_FEATURES):
                 if f in ids:

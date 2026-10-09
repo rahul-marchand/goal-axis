@@ -34,6 +34,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from goalmisgen.analysis.far_dose import interpolate_x  # noqa: E402
 from goalmisgen.analysis.input_gain import scale_planes  # noqa: E402
 from goalmisgen.analysis.weights import fit_axis_and_drift  # noqa: E402
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL  # noqa: E402
@@ -64,12 +65,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def interpolate_gain(coarse: list[dict], target: float) -> float | None:
-    """Log gain at which threshold equals ``target``, from a monotone-ish coarse curve; None if out of range."""
-    points = sorted((np.log(r["gain"]), r["tau"]) for r in coarse if np.isfinite(r["tau"]))
-    for (x0, y0), (x1, y1) in zip(points, points[1:]):
-        if (y0 - target) * (y1 - target) <= 0 and y0 != y1:
-            return float(np.exp(x0 + (target - y0) / (y1 - y0) * (x1 - x0)))
-    return None
+    """Gain at which threshold equals ``target``, linear in log gain along the coarse curve; None if out of range."""
+    log_gain = interpolate_x([(np.log(r["gain"]), r["tau"]) for r in coarse], target)
+    return None if log_gain is None else float(np.exp(log_gain))
 
 
 def main() -> None:

@@ -86,8 +86,8 @@ from goalmisgen.analysis.weights import (  # noqa: E402
     permutation_p_value,
     split_half_reliability,
 )
+from goalmisgen.base_ladder import Rung, discover_rungs  # noqa: E402
 from goalmisgen.configs.env import MazeConfig  # noqa: E402
-from goalmisgen.ladder import Rung, discover_rungs  # noqa: E402
 from goalmisgen.volume import arm_is_complete, discover_arms  # noqa: E402
 
 

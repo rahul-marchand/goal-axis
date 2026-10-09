@@ -86,11 +86,11 @@ def main() -> None:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis import closed_loop
+    from goalmisgen.analysis.closed_loop import read_outcomes
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits import rl as rl_edit
-    from goalmisgen.edits.rl import read_outcomes
     from goalmisgen.edits.rotation import RotationEdit, colour_planes, partner_map
-    from goalmisgen.edits.targets import route_targets, usable
     from goalmisgen.envs.features import CorrelatedFeatures
     from scripts.restricted_writes import load_sweep
 
@@ -134,7 +134,7 @@ def main() -> None:
     eval_targets = route_targets(levels_of("test", args.n_eval), size=11, n_channels=n_inputs)
     eval_static = jnp.asarray(eval_targets.static)
     eval_start = jnp.asarray(eval_targets.positions[:, 0, 0])
-    plain = rl_edit.make_rollout_fn(policy, unravel, step_limit=args.step_limit)
+    plain = closed_loop.make_rollout_fn(policy, unravel, step_limit=args.step_limit)
     ones = np.ones(n_inputs, np.float32)
 
     def readout(flat, gains=None):

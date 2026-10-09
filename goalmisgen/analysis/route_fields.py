@@ -30,8 +30,8 @@ from __future__ import annotations
 import numpy as np
 
 from goalmisgen.analysis.field_decomp import BOTH, NEITHER, POOR_ONLY, RICH_ONLY, cell_norms
-from goalmisgen.edits.targets import FAR
-from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL, WALL_CHANNEL
+from goalmisgen.analysis.route_targets import FAR
+from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL
 
 
 def objective_channels(demos, indices: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -99,12 +99,6 @@ def cell_grids(streams: np.ndarray, size: int) -> np.ndarray:
     return streams[:, :, :cells].reshape(depths, batch, size, size, width)
 
 
-def free_cells(demos, indices: np.ndarray) -> np.ndarray:
-    """``(B, S, S)`` bool: cells an agent could stand in."""
-    observations = np.asarray(demos.observations(np.asarray(indices)))
-    return observations[..., WALL_CHANNEL] < 0.5
-
-
 def grid_distance_from(positions: np.ndarray, size: int) -> np.ndarray:
     """``(B, S, S)`` Chebyshev distance from each level's given cell, walls ignored."""
     rows = np.arange(size)[None, :, None]
@@ -154,6 +148,6 @@ def profile(field: np.ndarray, distance: np.ndarray, mask: np.ndarray, max_dista
 
 __all__ = [
     "BOTH", "NEITHER", "POOR_ONLY", "RICH_ONLY",
-    "cell_grids", "erasure_observations", "free_cells", "grid_distance_from",
+    "cell_grids", "erasure_observations", "grid_distance_from",
     "objective_channels", "profile", "scale_objective",
 ]

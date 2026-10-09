@@ -80,10 +80,10 @@ def main() -> None:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis.closed_loop import make_rollout_fn, read_outcomes
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import fit_axis_and_drift
     from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits.rl import make_rollout_fn, read_outcomes
-    from goalmisgen.edits.targets import route_targets, usable
 
     config = MazeConfig(
         max_episode_steps=120, num_envs=2, min_size=11, max_size=11, n_objectives=len(values),

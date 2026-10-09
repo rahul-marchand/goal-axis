@@ -41,8 +41,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from goalmisgen.analysis.closed_loop import MOVE_ARRAY, draw_agent
 from goalmisgen.analysis.gain_alignment import make_step
-from goalmisgen.edits.rl import MOVE_ARRAY, draw_agent
 from goalmisgen.envs.observation import FIRST_FEATURE_CHANNEL, WALL_CHANNEL
 
 MODES = {"full": (1.0, 0.0), "object-independent": (0.0, 1.0), "object-dependent": (1.0, -1.0)}
@@ -68,7 +68,7 @@ def make_leftover_rollout(policy, unravel, step_limit: int = 120):
     setting rather than adding keeps a patch on a recurrent cell from compounding
     with its own feedback on the next tick.
 
-    Returns ``(reached_feature, steps)`` like :func:`goalmisgen.edits.rl.make_rollout_fn`.
+    Returns ``(reached_feature, steps)`` like :func:`goalmisgen.analysis.closed_loop.make_rollout_fn`.
     """
     step = make_step(policy)
 
@@ -224,10 +224,3 @@ def make_signal_fn(policy, unravel):
         return acc
 
     return signals
-
-
-def add_moments(a, b):
-    """Sum two accumulator lists elementwise; ``None`` starts one."""
-    if a is None:
-        return [{key: np.asarray(value) for key, value in site.items()} for site in b]
-    return [{key: np.asarray(x[key]) + np.asarray(y[key]) for key in x} for x, y in zip(a, b)]

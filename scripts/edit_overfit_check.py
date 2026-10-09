@@ -34,7 +34,7 @@ def main() -> None:
     args = parser.parse_args()
     print(header())
 
-    from goalmisgen.edits.rl import read_outcomes
+    from goalmisgen.analysis.closed_loop import read_outcomes
 
     sys.argv = [sys.argv[0], str(args.run), "--levels", args.levels, "--n-edit", str(args.n_edit), "--n-eval", str(args.n_eval)]
     from scripts.cheapest_edit import parse_args as edit_args

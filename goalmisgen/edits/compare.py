@@ -21,8 +21,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from goalmisgen.analysis.route_targets import PAD
 from goalmisgen.analysis.weights import cosine
-from goalmisgen.edits.targets import PAD
 
 
 def per_module(u: np.ndarray, v: np.ndarray, groups: dict[str, np.ndarray], order) -> list[dict]:

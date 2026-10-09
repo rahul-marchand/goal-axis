@@ -18,7 +18,6 @@ from goalmisgen.analysis.layers import (
     blocks_to_cover,
     group_of_path,
     group_shares,
-    group_spans,
     parameter_groups,
     parameter_shares,
     restrict,
@@ -67,19 +66,6 @@ def test_blocks_get_their_own_groups_and_the_rest_keep_their_names() -> None:
 def test_a_leading_params_key_is_not_mistaken_for_a_module() -> None:
     tree = {"params": {"block_0": {"kernel": np.zeros((2, 2))}}}
     assert set(parameter_groups(tree)) == {"block_0"}
-
-
-def test_groups_of_a_sorted_parameter_dict_are_contiguous_spans() -> None:
-    params = route_params()
-    groups = parameter_groups(params)
-    spans = group_spans(groups)
-    for name, span in spans.items():
-        assert np.array_equal(np.arange(span.start, span.stop), groups[name])
-
-
-def test_a_scattered_group_is_refused_rather_than_silently_fancy_indexed() -> None:
-    with pytest.raises(ValueError, match="contiguous"):
-        group_spans({"scattered": np.array([0, 2, 5])})
 
 
 def test_restrict_keeps_the_chosen_modules_and_zeroes_the_rest() -> None:

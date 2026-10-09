@@ -83,12 +83,12 @@ def main() -> None:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis import closed_loop
     from goalmisgen.analysis import gain_alignment as ga
     from goalmisgen.analysis import leftover as lo
+    from goalmisgen.analysis.closed_loop import read_outcomes
+    from goalmisgen.analysis.route_targets import PAD, route_targets, usable
     from goalmisgen.configs.env import MazeConfig
-    from goalmisgen.edits import rl as rl_edit
-    from goalmisgen.edits.rl import read_outcomes
-    from goalmisgen.edits.targets import PAD, route_targets, usable
     from goalmisgen.envs.features import CorrelatedFeatures
     from scripts.restricted_writes import load_sweep
 
@@ -188,7 +188,7 @@ def main() -> None:
     eval_static = jnp.asarray(eval_targets.static)
     eval_null = jnp.asarray(lo.erase(eval_targets.static, [COLOUR[1]]))
     eval_start = jnp.asarray(eval_targets.positions[:, 0, 0])
-    plain = rl_edit.make_rollout_fn(policy, unravel, step_limit=args.step_limit)
+    plain = closed_loop.make_rollout_fn(policy, unravel, step_limit=args.step_limit)
 
     def plain_readout(flat, gains):
         reached, steps = [], []
@@ -213,7 +213,7 @@ def main() -> None:
             sub = fit_targets.subset(np.arange(start, min(start + args.chunk, len(fit_targets))))
             steps = sub.steps
             static = np.repeat(sub.static, 2, axis=0)
-            acc = lo.add_moments(acc, moments_fn(
+            acc = ga.add_moments(acc, moments_fn(
                 jnp.asarray(flat32), writes, jnp.asarray(static), jnp.asarray(lo.erase(static, [COLOUR[1]])),
                 jnp.asarray(sub.positions.reshape(-1, steps, 2)), jnp.asarray(sub.role.reshape(-1, steps) != PAD),
             ))
@@ -297,7 +297,7 @@ def main() -> None:
             sub = signal_targets.subset(np.arange(start, min(start + args.signal_chunk, len(signal_targets))))
             steps = sub.steps
             static = np.repeat(sub.static, 2, axis=0)
-            acc = lo.add_moments(acc, signals_fn(
+            acc = ga.add_moments(acc, signals_fn(
                 jnp.asarray(flat32), jnp.asarray(gains), jnp.asarray(static),
                 jnp.asarray(lo.erase(static, [COLOUR[0]])), jnp.asarray(lo.erase(static, [COLOUR[1]])),
                 jnp.asarray(sub.positions.reshape(-1, steps, 2)), jnp.asarray(sub.role.reshape(-1, steps) != PAD),

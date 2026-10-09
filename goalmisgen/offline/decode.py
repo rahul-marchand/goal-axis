@@ -256,7 +256,3 @@ def evaluate(
             decoded = decoder(model, params, observations)
     outcomes = replay_all(demos, indices, decoded)
     return summarise_routes(demos, indices, decoded, outcomes, indifference), decoded, outcomes
-
-
-def build_model(config: ModelConfig) -> RoutePrefixLM:
-    return RoutePrefixLM(config)

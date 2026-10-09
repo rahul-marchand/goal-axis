@@ -173,12 +173,6 @@ def field_shift(base: np.ndarray, other: np.ndarray, label: np.ndarray, bins=(0,
     }
 
 
-def r2(label: np.ndarray, prediction: np.ndarray) -> float:
-    label, prediction = np.asarray(label, np.float64).ravel(), np.asarray(prediction, np.float64).ravel()
-    total = np.sum((label - label.mean()) ** 2)
-    return float(1 - np.sum((label - prediction) ** 2) / total) if total > 0 else float("nan")
-
-
 def locus_enrichment(change: np.ndarray, geometries) -> dict[str, float]:
     """Mean squared activation change on each locus, over its mean on free cells.
 
@@ -241,12 +235,6 @@ def readout_directions(weights: np.ndarray, std: np.ndarray, floor: float = 0.1)
     return weights / effective
 
 
-def cosine(a: np.ndarray, b: np.ndarray) -> float:
-    a, b = np.asarray(a, np.float64).ravel(), np.asarray(b, np.float64).ravel()
-    denominator = np.linalg.norm(a) * np.linalg.norm(b)
-    return float(a @ b / denominator) if denominator > 0 else float("nan")
-
-
 def stable_levels(choices: dict[str, np.ndarray]) -> np.ndarray:
     """Levels whose reached objective is the same under every condition, and not a timeout (-1)."""
     stacked = np.stack(list(choices.values()))
@@ -258,6 +246,12 @@ def module_matched_random(axis: np.ndarray, groups: dict[str, np.ndarray], seed:
 
     Stricter than one matched overall norm: the input convolution is small and
     sensitive, and a globally matched random vector would put almost nothing there.
+
+    Close to, but not the same draw as,
+    :func:`goalmisgen.analysis.far_dose.module_matched_direction`: parameters in
+    no group stay zero here (there they form one more matched block), a module
+    of zero norm still consumes its draw, and the seed is an integer rather
+    than a shared generator. Both are kept because each produced recorded results.
     """
     rng = np.random.default_rng(seed)
     out = np.zeros_like(axis, dtype=np.float64)
@@ -272,7 +266,10 @@ def interpolate_gain(curve_gains, curve_taus, target_tau: float) -> float:
     """The gain whose threshold is ``target_tau``, linear in log gain between measured points.
 
     Clipped to the measured range rather than extrapolated; the caller reports the
-    threshold actually measured at the returned gain.
+    threshold actually measured at the returned gain. Not the same estimator as
+    :func:`goalmisgen.analysis.far_dose.interpolate_x`, which takes the first
+    crossing along the gain axis and returns None where there is none; this
+    interpolates the curve as a function of threshold and never declines.
     """
     order = np.argsort(curve_taus)
     taus = np.asarray(curve_taus, np.float64)[order]

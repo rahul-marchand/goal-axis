@@ -77,13 +77,14 @@ def main() -> None:
     from cleanba.cleanba_impala import load_train_state
     from jax.flatten_util import ravel_pytree
 
+    from goalmisgen.analysis import closed_loop
     from goalmisgen.analysis.layers import module_groups
+    from goalmisgen.analysis.route_targets import route_targets, usable
     from goalmisgen.analysis.weights import cosine, fit_axis_and_drift
     from goalmisgen.configs.env import MazeConfig
     from goalmisgen.edits import compare
     from goalmisgen.edits import rl as rl_edit
     from goalmisgen.edits.collateral import decisions_away_from, navigation, relative_change, single_objective
-    from goalmisgen.edits.targets import route_targets, usable
     from goalmisgen.envs.features import CorrelatedFeatures
 
     payload = json.loads((args.run / "BASE.json").read_text())
@@ -110,7 +111,7 @@ def main() -> None:
             break
     targets = route_targets(levels, size=11)
     singles = {keep: single_objective(levels, keep, size=11) for keep in ("rich", "poor")}
-    rollout = rl_edit.make_rollout_fn(policy, unravel)
+    rollout = closed_loop.make_rollout_fn(policy, unravel)
     logits_fn = rl_edit.make_logits_fn(policy, unravel)
     ones = jnp.ones(4)
 
@@ -124,7 +125,7 @@ def main() -> None:
 
     def measure(flat, target_tau=None) -> dict:
         reached, steps = run(flat, targets.static, targets.positions[:, 0, 0])
-        r = rl_edit.read_outcomes(targets, reached, steps)
+        r = closed_loop.read_outcomes(targets, reached, steps)
         row = {**r.as_row(), "away_own": decisions_away_from(targets.gap, targets.rich_feature, reached, r.tau, args.margin)}
         if target_tau is not None:
             row["target"] = target_tau

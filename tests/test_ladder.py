@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from goalmisgen.ladder import base_payload, make_rung, plan_rung
+from goalmisgen.base_ladder import base_payload, make_rung, plan_rung
 from goalmisgen.volume import parse_checkpoint_dirname, rung_agent_name
 
 CONFIG = {

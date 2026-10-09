@@ -42,8 +42,8 @@ def main() -> None:
     import jax
     import jax.numpy as jnp
 
+    from goalmisgen.analysis.closed_loop import logistic_fit
     from goalmisgen.edits.core import fork_margins
-    from goalmisgen.edits.rl import logistic_fit
 
     sys.argv = [sys.argv[0], str(args.run), "--levels", args.levels, "--n-edit", str(args.n), "--n-eval", "16"]
     from scripts.cheapest_edit import parse_args as edit_args
