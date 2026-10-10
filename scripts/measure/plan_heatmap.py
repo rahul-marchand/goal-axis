@@ -1,0 +1,133 @@
+"""Dump per-cell probe scores for a few episodes, so the plan can be drawn.
+
+    uv run python scripts/measure/plan_heatmap.py CHECKPOINT --levels DIR --out plan_examples.npz
+
+The AUC table says the route is decodable. It does not let anyone *see* it.
+This fits the same probe experiments/003_probe_plan.py fits, then saves, for a
+handful of held-out episodes, the score the probe gives every free cell
+alongside the route the agent actually walked.
+
+Runs where the GPU is: the arrays it writes are small and plot fine anywhere.
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import numpy as np
+from cleanba.cleanba_impala import load_train_state
+
+from goalmisgen.analysis import cell_dataset, collect_rollouts
+from goalmisgen.analysis.probes import apply_logistic, fit_logistic
+from goalmisgen.configs import saved
+from goalmisgen.configs.env import MazeConfig
+from goalmisgen.envs.observation import WALL_CHANNEL
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("checkpoint", type=Path)
+    parser.add_argument("--levels", type=str, default=None)
+    parser.add_argument("--size", type=int, default=11)
+    parser.add_argument("--split", type=str, default="test")
+    parser.add_argument("--train-episodes", type=int, default=256)
+    parser.add_argument("--examples", type=int, default=12, help="Episodes to save. Draw the clearest few.")
+    parser.add_argument("--num-envs", type=int, default=32)
+    parser.add_argument("--correlation", type=float, default=1.0)
+    parser.add_argument("--randomise-values", action="store_true")
+    parser.add_argument(
+        "--think",
+        type=int,
+        nargs="+",
+        default=[0],
+        help="Probe-only extra recurrence passes over the initial observation, as in "
+        "experiments/003_probe_plan.py. The agent's actions — and so the levels, routes and "
+        "labels — are identical at every value; only the probed state differs. One probe is "
+        "fitted per value; scores land in scores_t<k>, with plain `scores` the first value.",
+    )
+    parser.add_argument("--out", type=Path, required=True)
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    hidden = saved.hides_values(args.checkpoint)
+
+    def env_config(seed: int) -> MazeConfig:
+        settings: dict = dict(
+            max_episode_steps=120,
+            num_envs=args.num_envs,
+            min_size=args.size,
+            max_size=args.size,
+            feature_value_correlation=args.correlation,
+            randomise_values=args.randomise_values,
+            level_dataset=args.levels,
+            asynchronous=False,
+            seed=seed,
+        )
+        if hidden:
+            settings["value_encoding"] = "none"
+            settings["colour_is_the_only_value_cue"] = True
+        if args.levels:
+            settings["dataset_split"] = args.split
+        return MazeConfig(**settings)  # type: ignore[arg-type]
+
+    policy, _, _, train_state, update = load_train_state(args.checkpoint, env_cfg=env_config(0))
+    print(f"checkpoint {args.checkpoint.name}  (update {update})")
+
+    def rollouts(seed: int, episodes: int, think: int):
+        return collect_rollouts(
+            env_config(seed).make(), policy, train_state.params, episodes, seed=seed, probe_steps_to_think=think
+        )
+
+    # Fitted on one set of levels, drawn on another, exactly as the AUC is
+    # scored. One probe per think value, each reading its own amount of compute.
+    scores_by_think: dict[int, list] = {}
+    visited, visit_step, observations, distances = [], [], [], []
+    examples: list = []
+    for think in args.think:
+        train = rollouts(0, args.train_episodes, think)
+        weights, mean, std = fit_logistic(*cell_dataset(train))
+        examples = rollouts(9999, args.examples, think)
+
+        scores_by_think[think] = []
+        for rollout in examples:
+            free = rollout.observation[:, :, WALL_CHANNEL] < 0.5
+            grid = np.full(free.shape, np.nan)
+            grid[free] = apply_logistic(rollout.features[free].astype(np.float64), weights, mean, std)
+            scores_by_think[think].append(grid)
+        if not visited:  # identical across think values; keep the first pass's copy
+            for rollout in examples:
+                visited.append(rollout.visited)
+                visit_step.append(rollout.visit_step)
+                observations.append(rollout.observation)
+                # Distance from the start, so a drawing can state each objective's
+                # utility rather than leaving the reader to count corridor squares.
+                distances.append(rollout.distance)
+    scores = scores_by_think[args.think[0]]
+
+    def info_column(key, default):
+        return np.array([rollout.info.get(key, default) for rollout in examples])
+
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(
+        args.out,
+        think=np.array(args.think),
+        **{f"scores_t{k}": np.stack(s) for k, s in scores_by_think.items()},
+        scores=np.stack(scores),
+        visited=np.stack(visited),
+        visit_step=np.stack(visit_step),
+        observations=np.stack(observations),
+        distances=np.stack(distances),
+        step_penalty=env_config(0).step_penalty,
+        optimal_feature_id=info_column("optimal_feature_id", -1),
+        reached_feature_id=info_column("reached_feature_id", -1),
+        chose_optimal=info_column("chose_optimal", False),
+        checkpoint=str(args.checkpoint),
+    )
+    print(f"wrote {args.out}  ({len(scores)} episodes)")
+
+
+if __name__ == "__main__":
+    main()

@@ -4,7 +4,7 @@
         --proxy /workspace/data/offline/demos/valid.rho100 \\
         --reversed /workspace/data/offline/demos/valid.rho000 [--layer L] [--csv out.csv]
 
-The offline twin of ``scripts/early_warning.sh``. At every checkpoint of one
+The offline twin of ``scripts/pods/early_warning.sh``. At every checkpoint of one
 run, two measurements on the same held-out levels:
 
 behaviour

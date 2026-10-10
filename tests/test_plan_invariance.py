@@ -1,4 +1,4 @@
-"""The measurement pieces behind ``scripts/plan_invariance.py``."""
+"""The measurement pieces behind ``scripts/studies/gain-vs-factorised/plan_invariance.py``."""
 
 from __future__ import annotations
 

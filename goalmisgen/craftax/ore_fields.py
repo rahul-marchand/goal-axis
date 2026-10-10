@@ -1,7 +1,7 @@
 """The ore-field level distribution, spelled out once for the scripts that generate and read it.
 
-``scripts/generate_ore_fields.py`` draws a dataset from :func:`ore_field_sampler`
-and records its arguments in ``sampler.json``; ``scripts/generate_craftax_demos.py``
+``scripts/data/generate_ore_fields.py`` draws a dataset from :func:`ore_field_sampler`
+and records its arguments in ``sampler.json``; ``scripts/data/generate_craftax_demos.py``
 rebuilds the same sampler from that file (:func:`load_sampler`) to check the
 dataset's fingerprint. Kept out of :mod:`goalmisgen.craftax.levels`, whose own
 source is part of that fingerprint. Numpy only.

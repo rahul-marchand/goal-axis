@@ -142,7 +142,7 @@ def bc_panel(bc: Path, results: Path) -> dict:
     """The imitation-trained transformer, whose measures are json, not tables.
 
     Its crossing region comes from two places the agents' does not. The trained
-    arms are ``k``-family fine-tunes measured by ``scripts/bc_arm_thresholds.py``,
+    arms are ``k``-family fine-tunes measured by ``scripts/measure/bc_arm_thresholds.py``,
     which prints the same table the agents' measures do; the written points are
     ``027``'s extrapolation controls, run at the offsets the agents carry. Both
     are read only on the crossing side of each sweep -- lowering colour 0, or

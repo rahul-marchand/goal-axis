@@ -5,7 +5,7 @@
 # run was launched to answer. Notes live here rather than only on the volume
 # because the volume is rented and the repository is not.
 #
-# `scripts/manifest.py` reads this to generate MANIFEST.md, matching each entry
+# `scripts/data/manifest.py` reads this to generate MANIFEST.md, matching each entry
 # against run and dataset paths relative to the data root. Patterns are glob
 # style, most specific first: the first match wins, so a single run can override
 # the group it belongs to.
@@ -14,7 +14,7 @@
 # per-agent glob placed above a per-campaign one silently claims runs the
 # campaign note describes. That already happened: `runs/novalue11.s5678/arms/*`
 # took every 400k wide arm and labelled it "fourteen arms, 750k steps each".
-# `scripts/manifest.py` now warns when a path matches more than one entry.
+# `scripts/data/manifest.py` now warns when a path matches more than one entry.
 #
 # Add an entry when you launch something. `013 --note` and `001 --note` write the
 # same text onto the volume at launch, and that copy is the fallback when
@@ -132,7 +132,7 @@ against zero, which would have manufactured the trend being looked for.
 match = "runs/novalue11.s1234.at*"
 note = """
 A rung of the base-checkpoint ladder -- an agent view of one earlier checkpoint of
-novalue11.s1234, created by scripts/base_ladder.py. It owns nothing but a
+novalue11.s1234, created by scripts/train/base_ladder.py. It owns nothing but a
 BASE.json and a symlink to the checkpoints it shares with the run it came from,
 so it costs no meaningful space; the arms beneath it are the experiment.
 
@@ -333,7 +333,7 @@ note = "1M levels at the uneven three-objective values, for training threeobj.un
 [[entry]]
 match = "retired/*"
 note = """
-The pre-migration layout, set aside by `scripts/migrate_volume.py --retire` on
+The pre-migration layout, set aside by `scripts/data/migrate_volume.py --retire` on
 2026-08-13 after every copy verified byte-identical (146/146). Nothing here is
 referenced by anything; it exists so the rename is reversible by a human who has
 looked at what is in it. Delete it once the analysis has run against the new
@@ -472,7 +472,7 @@ steps) copied out with its own BASE.json, so the value-axis sweep driver can
 treat it as a base. resnet11novalue.s1234 collapsed between its 130M and 140M
 checkpoints (training return +0.35 -> -3.9, eval success 1.00 -> 0.04, and it
 never recovered; resnet11.s1234 with the value channel shows a milder dip at
-120M that it does recover from), and scripts/arch_swap_value_axis.sh took the
+120M that it does recover from), and scripts/pods/arch_swap_value_axis.sh took the
 final checkpoint cp_149995520 as the base, so the first ResNet sweep
 (runs/resnet11novalue.s1234/arms) fine-tuned a collapsed agent (reach 6%).
 cp_130191360 is the last healthy checkpoint: 002 at rho=1.0 gives 94.8%
@@ -536,9 +536,9 @@ Demonstrations for the offline value-axis arms: the solver's optimal route at
 *shifted* values, from the DRC campaign's own level grids
 (`levels/values/<v0>-<v1>@150k`, first 50k train levels and 2048 test levels),
 colours at rho=1.0. `1.45-0.50.train.rho100` teaches colour 0 is worth 1.45;
-the richer objective is walked further for. `scripts/value_axis_arms.py` lists
+the richer objective is walked further for. `scripts/train/value_axis_arms.py` lists
 the grid (goalmisgen.design.sweep_arms, 25 arms per objective incl. the null
-arm at 1.00-0.50); `scripts/offline_value_axis_pod.sh armdemos` built them.
+arm at 1.00-0.50); `scripts/pods/offline_value_axis_pod.sh armdemos` built them.
 """
 
 [[entry]]
@@ -554,7 +554,7 @@ levels sit in the 1M pool's test split, and 1,824 of the 2,048 levels the arms
 are scored on sit in bcnv11's training set. test.rho100 alone is therefore
 clean for bcnv11 and contaminated for the rungs; the arms' own test set is the
 reverse. This set is clean for both, and being a subset of test.rho100 it is
-still comparable with the published numbers. `scripts/make_demo_subset.py --exclude`.
+still comparable with the published numbers. `scripts/data/make_demo_subset.py --exclude`.
 """
 
 [[entry]]
@@ -578,7 +578,7 @@ Value-axis arms of an overfitting rung, at the campaign's own budget and rate
 fixed; only what an objective is worth changed. Read with
 `experiments/027_bc_value_axis.py` twice: on `offline/demos/overfit/holdout.rho100`,
 and on the base's own training levels, where a memoriser has an exchange rate
-at all. `scripts/overfit_axis_pod.sh`.
+at all. `scripts/pods/overfit_axis_pod.sh`.
 """
 
 [[entry]]
@@ -591,7 +591,7 @@ question they exist to answer is whether the value axis -- arms on opposite
 sides opposing, an axis fitted without an arm reading that arm's offset back, a
 write moving the exchange rate -- needs the base to have learned the task, or
 whether a short fine-tune manufactures it from any base. N is in the name.
-`scripts/overfit_axis_chain.sh`; the gap between what a rung scores on its own
+`scripts/pods/overfit_axis_chain.sh`; the gap between what a rung scores on its own
 levels and on held-out ones is `offline/results/overfit.gap.*`.
 """
 
@@ -617,7 +617,7 @@ value, `o1` colour 1's; the null arm (`+000`) is the same budget at the base
 values and measures drift. Evaluated at the base values (test.rho100) and its
 own. The imitation twin of `runs/novalue11.s*/arms/*` (Experiment 2):
 `experiments/027_bc_value_axis.py` fits `dtheta = drift + offset*axis` across
-them, `028` compares the two sweeps' axes. `scripts/offline_value_axis_chain.sh`.
+them, `028` compares the two sweeps' axes. `scripts/pods/offline_value_axis_chain.sh`.
 """
 
 [[entry]]
@@ -639,7 +639,7 @@ at the correlation in the name (`train.rho100` = train split at rho=1.0). The
 same split at several correlations is paired level for level -- only the
 colours differ. `train.*` feed the route models; `valid.*` are decoded at every
 checkpoint; `test.*` are held for the final tables. Built by
-`scripts/generate_demos.py`; `meta.json` records the source fingerprint.
+`scripts/data/generate_demos.py`; `meta.json` records the source fingerprint.
 """
 
 [[entry]]

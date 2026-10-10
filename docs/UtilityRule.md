@@ -455,8 +455,8 @@ whole curve, which is why the top writes crowd toward $\bar\theta \approx 29$.
 |---|---|
 | numbers | [`results/utility-rule-bcnv11.txt`](../results/utility-rule-bcnv11.txt) (parts 1-2), [`results/utility-rule-gain-bcnv11.txt`](../results/utility-rule-gain-bcnv11.txt) (part 3) |
 | data | `figures/data/h1/`: per-level decodes (3 seeds), level features. `figures/data/h1/grid/`: 159 models of the value-axis grid. `figures/data/h1/deep/`: writes beyond the trained range. `figures/data/h1/masked/`: single-block writes |
-| rebuild | `scripts/utility_rule_report.py`, `scripts/gain_knob_report.py`, `scripts/gain_knob_checks.py`, `figures/make_distance_rule.py`, `figures/make_axis_dial.py`, `figures/make_gain_knob.py` |
-| decode | `scripts/decode_h1.py` (part 1, 50k), `scripts/decode_grid.py` (part 2, 20k), `scripts/decode_written.py` (deep writes), `scripts/decode_masked.py` (single-block writes), on `offline/demos/test.rho100` |
+| rebuild | `scripts/studies/utility-rule/utility_rule_report.py`, `scripts/studies/utility-rule/gain_knob_report.py`, `scripts/studies/utility-rule/gain_knob_checks.py`, `figures/make_distance_rule.py`, `figures/make_axis_dial.py`, `figures/make_gain_knob.py` |
+| decode | `scripts/studies/utility-rule/decode_h1.py` (part 1, 50k), `scripts/studies/utility-rule/decode_grid.py` (part 2, 20k), `scripts/studies/utility-rule/decode_written.py` (deep writes), `scripts/studies/utility-rule/decode_masked.py` (single-block writes), on `offline/demos/test.rho100` |
 
 **Method note: read the curve, do not fit it.** A logistic fitted over the full
 gap range has misled three times here, always the same way: about 80% of levels

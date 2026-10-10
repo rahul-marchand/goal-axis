@@ -17,7 +17,7 @@ data.
 | `make_wide_figures.py` | `fig13_wide_threshold` | `data/wide_value_axis.json` |
 | `make_bc_figures.py`, `make_bc_fig13.py` | `fig_bc_*` | `data/bc/` |
 | `make_distance_rule.py`, `make_axis_dial.py`, `make_gain_knob.py` | `UtilityRule.md` parts 1-3 | `data/h1/` |
-| `scripts/arch_swap_report.py`, `scripts/early_warning_report.py` | `fig_arch_swap_dynamics`, `fig_early_warning` | run metrics and `results/` |
+| `scripts/studies/arch-swap/arch_swap_report.py`, `scripts/studies/experiment1/early_warning_report.py` | `fig_arch_swap_dynamics`, `fig_early_warning` | run metrics and `results/` |
 
 `extract_value_axis.py` and `extract_wide_axis.py` turn results tables into the
 JSON these read.
@@ -37,9 +37,9 @@ Builders run with plain `python3` and every fragment rebuilds byte-identically.
 | `scurves` | `extract_scurves.py` (decode npz on the volume) |
 | `where-axis` | `extract_where_axis.py` (restricted-write JSON) |
 | `axis-dose` | `extract_axis_dose.py` (`--doses` JSON) |
-| `arm-length` | `scripts/arm_length_report.py --out` |
-| `basin` | `scripts/basin_map.py`, injected into `src/basin/template.html` |
-| `task-planning` | `scripts/plan_heatmap.py`, `scripts/bc_plan_heatmap.py` |
+| `arm-length` | `scripts/studies/arm-length/arm_length_report.py --out` |
+| `basin` | `scripts/measure/basin_map.py`, injected into `src/basin/template.html` |
+| `task-planning` | `scripts/measure/plan_heatmap.py`, `scripts/measure/bc_plan_heatmap.py` |
 | `hierarchy` | none: `src/hierarchy/gen.py` draws a fixed diagram |
 | `model-table` | typeset by hand from `results/probe-plan-*` |
 

@@ -42,7 +42,7 @@ The project asks what structure in the weights implements behavioural goal-direc
 - **Lesson.** Judge a base by its decoded threshold, not by training success. `episode_successes` rewards reaching *a* goal, so the ViT duds looked converged while running to the nearest goal.
 - **Undershoot survives undiscounting**: τ is 6.9–8.0 against 10.
 
-**Still one knob?** The appendix quoted raw `cos(axis_0, axis_1)` against a 1/√d null. That is the comparison `weights.permutation_cosines` rejects: fine-tuning diffs are not isotropic, and a collapsed ResNet once gave +0.73 with no value signal. `scripts/one_axis_null.py` reports, per base, the split-half reliability (Spearman-Brown), the ceiling √(r₀r₁), a two-way permutation null and cross-readback (`results/one-axis-null.txt`, 0dea7e0):
+**Still one knob?** The appendix quoted raw `cos(axis_0, axis_1)` against a 1/√d null. That is the comparison `weights.permutation_cosines` rejects: fine-tuning diffs are not isotropic, and a collapsed ResNet once gave +0.73 with no value signal. `scripts/studies/one-axis/one_axis_null.py` reports, per base, the split-half reliability (Spearman-Brown), the ceiling √(r₀r₁), a two-way permutation null and cross-readback (`results/one-axis-null.txt`, 0dea7e0):
 
 | base | cos | ceiling | cos/ceiling | p |
 |---|---|---|---|---|
@@ -66,7 +66,7 @@ The project asks what structure in the weights implements behavioural goal-direc
 **Question.** A share of the axis's *length* is not a share of its *effect*: in the DRC the flatten→256 dense layer holds about a sixth of the length and moves nothing. Which modules carry the effect?
 
 **Method.**
-- `scripts/restricted_writes.py` (`_bc.py` for the route model); module names from `analysis.layers.module_of`.
+- `scripts/measure/restricted_writes.py` (`_bc.py` for the route model); module names from `analysis.layers.module_of`.
 - Each module's slice of v is written alone, alone rescaled to the axis's length, and left out of an otherwise full write, at ±0.30. `--doses` repeats the alone-write at ×0.5…×8.
 - `results/restrict-<base>.o1.txt`, `dose-<base>.o1.txt` (f7f6c26). Figures `fragments/where-axis.html`, `axis-dose.html` (4305854).
 
@@ -94,7 +94,7 @@ The project asks what structure in the weights implements behavioural goal-direc
 **Method.**
 - DRC only, by choice: the feedforward nets already reverse at 400k, and route model arms are measured in epochs.
 - Arms train at a constant learning rate, so a checkpoint read mid-arm is an arm of that length. Check: the 3M grid read at 374k reproduces the 400k grid.
-- Code: `analysis/arm_length.py`, `scripts/arm_length_{ladder,report}.py`. Tables: `results/len-*` (04da1af); figure: f37db55.
+- Code: `analysis/arm_length.py`, `scripts/studies/arm-length/arm_length_{ladder,report}.py`. Tables: `results/len-*` (04da1af); figure: f37db55.
 
 **Answer (three g1 DRCs, 400k → 3M).**
 - Drift's share climbs from 22–28% to 41–51%, at the expense of both write and residual.
@@ -125,9 +125,9 @@ The project asks what structure in the weights implements behavioural goal-direc
 **Question.** v is the direction fine-tuning happened to take, not necessarily the one the network *admits*. Train only an edit on a frozen base, one delta shared across all requested shifts: how cheap can a threshold edit be, and does it look like v?
 
 **Method.**
-- **Brightness.** Every architecture's first layer is linear, so a gain on colour c's input kernel ≡ scaling observation plane c. That makes a two-scalar gain testable without training (`analysis/input_gain.py`, `scripts/input_gain.py`, e861ff7).
+- **Brightness.** Every architecture's first layer is linear, so a gain on colour c's input kernel ≡ scaling observation plane c. That makes a two-scalar gain testable without training (`analysis/input_gain.py`, `scripts/measure/input_gain.py`, e861ff7).
 - **Edit families** (`goalmisgen/edits/`): full-network norm ball, module-restricted, rank-1, gain, and later rotation.
-- `scripts/cheapest_edit.py` fits each edit on the valid split and scores it on test (`results/cheapest-edit-report.txt`; 5dc319f, 5e5619c).
+- `scripts/measure/cheapest_edit.py` fits each edit on the valid split and scores it on test (`results/cheapest-edit-report.txt`; 5dc319f, 5e5619c).
 
 **Mistakes on the way to an objective** (pilots filed in 918a3a0).
 - Teacher forcing along solver routes cannot track rollouts: edits learn to game the solver's fork.
@@ -237,7 +237,7 @@ E1–E10 are on the three g1 DRCs (o1) unless stated. Each `results/gain-vs-fact
   - The length ratio tracks it only where magnitude survives (DRC −16%, ViT ~flat).
   - The route model's signature does not move at all across 38 arms.
   - Caveats: correlational; one base per architecture; the scripts live in a session scratchpad, not the repo.
-- **Swap/blend** (`colour-swap-blend.md`, `scripts/colour_{swap,blend}.py`, a9c546e).
+- **Swap/blend** (`colour-swap-blend.md`, `scripts/studies/gain-vs-factorised/colour_{swap,blend}.py`, a9c546e).
   - Swapping the colours: |τ_swap| is within 6% of τ.
   - The swap splits into direction/strength parts: DRC ~30/65, ResNet 90/10, ViT 100/0.6.
   - Blending the objectives moves τ smoothly through zero at α=0.500 with competence intact: graded, not categorical.
@@ -304,7 +304,7 @@ E1–E10 are on the three g1 DRCs (o1) unless stated. Each `results/gain-vs-fact
 **Method.**
 - Bases `bcov11.n{1k,10k}.s1`, trained only on N levels, with 25 o0 arms fine-tuned on the same N levels.
 - Control: bcnv11's own parameters with N-level arms.
-- `scripts/overfit_axis_{chain,report}.*`; `results/overfit-axis.txt` (acd2f84, 008597b, ec95ae2).
+- `scripts/pods/overfit_axis_chain.sh`, `scripts/studies/overfit/overfit_axis_report.py`; `results/overfit-axis.txt` (acd2f84, 008597b, ec95ae2).
 
 **Answer.**
 - **The geometric columns cannot tell the five conditions apart.** Collinearity, readback and reliability track how *quiet* the fine-tune was; reliability *rises* to 0.987 with 1k-level arms whether or not the base learned anything.

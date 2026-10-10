@@ -15,7 +15,7 @@ to 3M steps on the three DRC bases (line = mean, band = range across bases):
       at 1.2, colour 0 at 0.3) and of the base with the same dose written along
       the axis. Trained arms cross zero after about 1M steps; the write does not.
 
-`data.json` comes from scripts/arm_length_report.py --out.
+`data.json` comes from scripts/studies/arm-length/arm_length_report.py --out.
 Output: ../../fragments/arm-length.html - splice with <!-- fig: arm-length -->.
 """
 

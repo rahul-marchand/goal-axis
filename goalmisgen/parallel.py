@@ -2,8 +2,8 @@
 
 Level and demonstration generation are both CPU-bound, embarrassingly parallel,
 and JAX-free: ``envs.dataset`` and ``offline.demos`` import numpy and nothing
-else heavy. Their *entry points* are not. ``scripts/generate_levels.py`` and
-``scripts/generate_demos.py`` both import ``configs.env``, which reaches cleanba
+else heavy. Their *entry points* are not. ``scripts/data/generate_levels.py`` and
+``scripts/data/generate_demos.py`` both import ``configs.env``, which reaches cleanba
 and therefore JAX, so by the time either reaches its pool the parent process has
 a multithreaded JAX runtime in it.
 

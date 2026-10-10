@@ -9,7 +9,7 @@ circuit**, the fields stay put and the write lands in a small subspace the probe
 do not read, most likely late and near the agent or the fork.
 
 Everything here is measurement on arrays; the script
-``scripts/plan_invariance.py`` supplies them. Three pieces:
+``scripts/studies/gain-vs-factorised/plan_invariance.py`` supplies them. Three pieces:
 
 * **ticks** -- the DRC applies its cells ``repeats_per_step`` times per step, and
   only the last tick's state reaches the carry. A copy of the policy with one

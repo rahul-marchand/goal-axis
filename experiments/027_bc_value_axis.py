@@ -7,7 +7,7 @@ The offline twin of ``014_value_axis_analysis.py``. The base is a route model
 trained *without the value channel* (``bcnv11.s*``), so the values (1.0, 0.5)
 are learned constants and a fine-tune onto other values has to move weights.
 The arms are that base fine-tuned for one fixed budget on demonstrations at
-shifted values of one objective (``scripts/value_axis_arms.py``); each arm's
+shifted values of one objective (``scripts/train/value_axis_arms.py``); each arm's
 diff from the base is one sample of "what changing the value by ``offset``
 does to the weights".
 

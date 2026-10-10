@@ -446,7 +446,7 @@ def read_base_marker(run_dir: Path) -> BaseMarker:
     marker = run_dir / "BASE.json"
     if not marker.is_file():
         raise FileNotFoundError(
-            f"{marker} does not exist. It is written by scripts/migrate_volume.py --retire (or a base chain), "
+            f"{marker} does not exist. It is written by scripts/data/migrate_volume.py --retire (or a base chain), "
             "and records which checkpoint of this agent everything downstream resolves."
         )
     payload = json.loads(marker.read_text())

@@ -3,7 +3,7 @@
     uv run python figures/make_distance_rule.py
 
 Reads the per-level decodes in ``figures/data/h1`` (written by
-``scripts/decode_h1.py`` against the checkpoints on the data volume, one row
+``scripts/studies/utility-rule/decode_h1.py`` against the checkpoints on the data volume, one row
 per held-out level) and draws the four panels of ``fig_distance_rule``. No
 number is typed into the plot: every annotation is computed from those arrays,
 as in ``make_figures.py``.

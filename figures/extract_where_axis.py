@@ -7,7 +7,7 @@ Per architecture and module, in forward order: the module's share of the
 sweep-agreeing axis (minus the per-module inner product of the two sweeps'
 fitted axes, normalised over the network, from figures/data/axis_concentration.json),
 its share of the parameters, and three restricted writes in steps from
-figures/data/restricted/<base>.o1.json (scripts/restricted_writes{,_bc}.py):
+figures/data/restricted/<base>.o1.json (scripts/measure/restricted_writes{,_bc}.py):
 written alone, written alone rescaled to the axis length, and lost when left
 out (the full write minus "everything except"). Each is the mean absolute
 shift over the two signs of the +-0.30 write, then mean and range over bases.

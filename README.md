@@ -29,8 +29,10 @@ trained on it, and a Craftax stage.
   value-axis fits, restricted and dosed writes, field decompositions, and a
   search for the cheapest weight edit that sets a threshold.
 - **Experiments and scripts**: `experiments/` holds the numbered experiments,
-  each standalone with its question in the docstring; `scripts/` holds drivers,
-  pod chains, reports and one-off measurements.
+  each standalone with its question in the docstring; `scripts/` holds the
+  rest, grouped by role: dataset and bookkeeping tools (`data/`), training
+  drivers (`train/`), shared measurement tools (`measure/`), each study's own
+  scripts (`studies/<study>/`) and the pod chains (`pods/`).
 - **Results and figures**: `results/` keeps the verbatim output of every
   measurement (`INDEX.md` says which script wrote each file, `README.md` why);
   `figures/` builds the write-up and blog figures from them.
@@ -47,7 +49,7 @@ trained on it, and a Craftax stage.
 | `CLAUDE.md` | Working rules and hard-won facts about the stack (read before changing code) |
 | `goalmisgen/` | The package: environment, configs, networks, offline route model, Craftax, analysis, edits |
 | `experiments/` | Numbered experiment scripts, and the record of the early value-axis questions |
-| `scripts/` | Dataset generation, sweep drivers, pod chains, reports |
+| `scripts/` | Dataset generation, training drivers, measurement tools, per-study scripts, pod chains; see `scripts/README.md` |
 | `results/` | Raw measurement output; `INDEX.md` (generated) and `README.md` |
 | `figures/` | Figure scripts, rendered figures and blog fragments; see `figures/README.md` |
 | `RUNS.toml`, `MANIFEST.md` | Why each run on the data volume exists; what is there (generated) |

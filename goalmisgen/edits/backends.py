@@ -5,7 +5,7 @@ on a batch of route steps, a greedy closed-loop readout, the fine-tuned axis to
 compare with -- but every one of them is computed differently. :class:`Backend`
 is the answer to each, and :func:`rl_backend` / :func:`offline_backend` build it.
 
-These lived in ``scripts/cheapest_edit.py`` and took its argparse namespace;
+These lived in ``scripts/measure/cheapest_edit.py`` and took its argparse namespace;
 ``edit_compare``, ``edit_overfit_check`` and ``fork_margin_diagnostic``
 rewrote ``sys.argv`` and called cheapest_edit's parser to get one. The
 arguments are now explicit, with cheapest_edit's defaults.

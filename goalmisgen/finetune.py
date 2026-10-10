@@ -1,7 +1,7 @@
 """Fine-tune a saved agent onto new objective values: one arm of a value sweep.
 
 ``experiments/013_value_axis.py`` is the entry point and says why arms exist;
-this is its machinery, so that ``scripts/frozen_arm.py`` and the tests reach it
+this is its machinery, so that ``scripts/train/frozen_arm.py`` and the tests reach it
 by import rather than by loading a numbered experiment from its path.
 
 Every arm must differ **only** in what the objectives pay: same seed, same

@@ -35,7 +35,7 @@ def dry_run(root: Path, tag: str, *extra: str) -> str:
     result = subprocess.run(
         [
             sys.executable,
-            str(REPO / "scripts" / "value_axis_sweep.py"),
+            str(REPO / "scripts" / "train" / "value_axis_sweep.py"),
             "--data",
             str(root),
             "--agent",
@@ -122,7 +122,7 @@ def test_a_grid_that_would_reorder_the_objectives_stops_the_sweep(tmp_path: Path
     result = subprocess.run(
         [
             sys.executable,
-            str(REPO / "scripts" / "value_axis_sweep.py"),
+            str(REPO / "scripts" / "train" / "value_axis_sweep.py"),
             "--data",
             str(tmp_path),
             "--agent",
@@ -145,7 +145,7 @@ def test_a_missing_base_json_says_what_writes_it(tmp_path: Path) -> None:
     result = subprocess.run(
         [
             sys.executable,
-            str(REPO / "scripts" / "value_axis_sweep.py"),
+            str(REPO / "scripts" / "train" / "value_axis_sweep.py"),
             "--data",
             str(tmp_path),
             "--agent",
@@ -169,7 +169,7 @@ def test_a_base_json_pointing_at_a_missing_checkpoint_is_caught(tmp_path: Path) 
     result = subprocess.run(
         [
             sys.executable,
-            str(REPO / "scripts" / "value_axis_sweep.py"),
+            str(REPO / "scripts" / "train" / "value_axis_sweep.py"),
             "--data",
             str(tmp_path),
             "--agent",
@@ -255,7 +255,7 @@ def run_sweep(root: Path, tag: str, *extra: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [
             sys.executable,
-            str(REPO / "scripts" / "value_axis_sweep.py"),
+            str(REPO / "scripts" / "train" / "value_axis_sweep.py"),
             "--data",
             str(root),
             "--agent",

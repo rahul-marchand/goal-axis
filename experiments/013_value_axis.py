@@ -35,7 +35,7 @@ sweep generated at one seed has one set of mazes).
 
 Two things about resuming are not obvious, and both are handled by
 ``goalmisgen.finetune.reset_checkpoint`` rather than by touching the training stack.
-The machinery lives in :mod:`goalmisgen.finetune`, so ``scripts/frozen_arm.py``
+The machinery lives in :mod:`goalmisgen.finetune`, so ``scripts/train/frozen_arm.py``
 and the tests import it instead of loading this file by its path.
 """
 

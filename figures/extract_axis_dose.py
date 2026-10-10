@@ -5,7 +5,7 @@
 
 Per architecture and tensor: the threshold shift, in steps, from writing that
 tensor's slice of the axis at each multiple of its own size (the ``--doses``
-mode of scripts/restricted_writes{,_bc}.py), sign-aligned with the full
+mode of scripts/measure/restricted_writes{,_bc}.py), sign-aligned with the full
 write and averaged over the two signs, then averaged over bases with the
 range kept. Reads figures/data/restricted/<base>.dose.json.
 """

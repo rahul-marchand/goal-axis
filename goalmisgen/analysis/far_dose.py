@@ -12,7 +12,7 @@ exactly where the agent stops reaching objectives, separates "a gain written
 too far" from "something that is not a gain".
 
 The helpers here are the arithmetic of that comparison; decoding lives in
-``scripts/axis_far_dose.py`` and the tables in ``scripts/axis_far_dose_report.py``.
+``scripts/studies/gain-vs-factorised/axis_far_dose.py`` and the tables in ``scripts/studies/gain-vs-factorised/axis_far_dose_report.py``.
 """
 
 from __future__ import annotations

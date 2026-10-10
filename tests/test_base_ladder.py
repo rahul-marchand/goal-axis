@@ -51,7 +51,15 @@ def volume(tmp_path: Path) -> Path:
 
 def ladder(root: Path, *extra: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(REPO / "scripts" / "base_ladder.py"), "--data", str(root), "--agent", "novalue11.s1234", *extra],
+        [
+            sys.executable,
+            str(REPO / "scripts" / "train" / "base_ladder.py"),
+            "--data",
+            str(root),
+            "--agent",
+            "novalue11.s1234",
+            *extra,
+        ],
         capture_output=True,
         text=True,
         cwd=REPO,

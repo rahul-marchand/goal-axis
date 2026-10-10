@@ -10,7 +10,7 @@ The knobs here are the negative. Each moves the threshold and none of them can b
 an input gain:
 
 * **late** and **readout** -- cheapest-edit solutions confined to the last cell
-  and the readout (``scripts/cheapest_edit.py --modules``). They act after the
+  and the readout (``scripts/measure/cheapest_edit.py --modules``). They act after the
   encoder, and the late edit does not carry the axis's route-optimality damage.
 * **rotation** -- :class:`~goalmisgen.edits.rotation.RotationEdit`, which turns a
   colour's input kernel instead of scaling it, keeping its length.

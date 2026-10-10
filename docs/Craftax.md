@@ -66,9 +66,9 @@ the planner from that state.
 **Arms and analysis** are the maze route model's: `goalmisgen.design` sweeps,
 1k steps at constant lr 3e-5 on demonstrations at the shifted values, values
 still hidden; `027` and `028` fit and compare the axes. Chains:
-`scripts/craftax_chain.sh` (stage 2), `scripts/craft_chain.sh` (stage 4).
-Diagnostics: `scripts/craft_diagnose.py` (where decoded routes leave the
-expert's) and `scripts/craft_price_probe.py` (episodes started with wood, stone
+`scripts/pods/craftax_chain.sh` (stage 2), `scripts/pods/craft_chain.sh` (stage 4).
+Diagnostics: `scripts/studies/craftax/craft_diagnose.py` (where decoded routes leave the
+expert's) and `scripts/studies/craftax/craft_price_probe.py` (episodes started with wood, stone
 or a pickaxe already in hand).
 
 ## Mistakes on the way
@@ -88,7 +88,7 @@ or a pickaxe already in hand).
   Markov once it was down. The coal chain never returns to the table and still
   worked; the iron chain failed exactly at the walk back. DAgger moved the
   failure, which is how it was found. `cxcraft15.s1t` is `cxcraft15.s1` widened
-  by one zero-initialised input row (`scripts/craft_widen_input.py`) and trained
+  by one zero-initialised input row (`scripts/studies/craftax/craft_widen_input.py`) and trained
   on (30fb705).
 - **Under-training** on stage 2: the overnight base reached an ore on 54% of
   fields at 20k steps. Training to 60k, not the expert's tie-break, closed the

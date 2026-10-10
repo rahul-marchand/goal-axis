@@ -11,7 +11,7 @@ the log-linear dial on all six.
 
 Crossings and rates are read off binned data, never fitted -- the method note in
 ``docs/UtilityRule.md`` says why. Numbers behind the figure:
-``scripts/gain_knob_report.py``.
+``scripts/studies/utility-rule/gain_knob_report.py``.
 """
 
 from __future__ import annotations

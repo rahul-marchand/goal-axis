@@ -90,7 +90,7 @@ def legacy_observation(checkpoint: Path) -> str | None:
 
     The legend runs were trained with an import hook switching every
     ``MazeConfig`` to the legend, so their ``cfg.json`` says nothing about it;
-    ``scripts/legend_chain.sh`` wrote ``OBSERVATION`` into the agent's
+    ``scripts/pods/legend_chain.sh`` wrote ``OBSERVATION`` into the agent's
     directory instead. A checkpoint sits at ``<agent>/local-files/cp_*``, or at
     ``<agent>/arms/<arm>/local-files/cp_*`` for one of its arms.
     """

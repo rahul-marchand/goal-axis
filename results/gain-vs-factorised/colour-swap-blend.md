@@ -1,6 +1,6 @@
 # Repainting the objectives: swap and blend (observation only, no weight edits)
 
-2026-09-17, main session. `scripts/colour_swap.py`, `scripts/colour_blend.py`
+2026-09-17, main session. `scripts/studies/gain-vs-factorised/colour_swap.py`, `scripts/studies/gain-vs-factorised/colour_blend.py`
 (both new). 4,096 held-out levels per condition, test split, greedy
 policy. JSON on the volume at `figures-data/gain-vs-factorised/{swap,blend}-*.json`.
 

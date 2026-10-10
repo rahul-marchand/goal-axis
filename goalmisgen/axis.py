@@ -22,7 +22,7 @@ configurations of the bases actually swept, the two are the same config.
 
 **Arithmetic is left to the caller, deliberately.** Writing ``base + o * axis``
 in float32 on the JAX array (``014``'s style, :attr:`Base.raveled`) and in
-float64 before rounding (``scripts/restricted_writes.py``'s style,
+float64 before rounding (``scripts/measure/restricted_writes.py``'s style,
 :attr:`Base.flat` then :meth:`Base.params_of`) differ in the last place for a
 fifth of the coordinates, which is enough to move a greedy rollout now and then.
 Both styles exist in recorded results, so this module offers both operands and
@@ -273,7 +273,7 @@ def cached_axis(base: Base, sweep: str, arm_steps: int, cache: Path) -> np.ndarr
 
     The basin figure's axis: no fit window, float32 diffs, and an ``.npz``
     holding ``axis``, ``drift``, ``arm_values``, ``base_value``, ``objective``
-    and ``arm_steps`` that ``scripts/written_scurves.py`` reads back. A cache
+    and ``arm_steps`` that ``scripts/measure/written_scurves.py`` reads back. A cache
     that exists is returned as is.
     """
     from goalmisgen.analysis.weights import fit_axis_and_drift

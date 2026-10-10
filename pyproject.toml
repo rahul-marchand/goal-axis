@@ -73,7 +73,8 @@ reportPrivateImportUsage = "warning"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# The repository root, so tests import the scripts they cover as ``scripts.<name>``.
+# The repository root, so tests import the scripts they cover as ``scripts.<role>.<name>``
+# (namespace packages: ``scripts/`` and its subfolders have no ``__init__.py``).
 pythonpath = ["."]
 markers = [
     "slow: end-to-end training runs; deselect with -m 'not slow'",

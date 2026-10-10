@@ -112,7 +112,7 @@ def margin_loss(logits, base_logits, toward_rich, toward_poor, role, offset, slo
     global slope moved the DRC's rollout threshold by a fifth of what it asked
     for, while the fine-tuned axis -- which hits the behavioural target -- moved
     margins by several steps' worth near the boundary and by little far from it
-    (``scripts/fork_margin_diagnostic.py``).
+    (``scripts/studies/cheapest-edit/fork_margin_diagnostic.py``).
 
     Navigation is held to the base's own logits (a KL on every non-fork step).
     The fork term is ``((m - m*) / slope)^2``; ``slope`` only sets its units.

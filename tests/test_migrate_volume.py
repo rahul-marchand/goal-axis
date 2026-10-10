@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from scripts import migrate_volume as migrate
+from scripts.data import migrate_volume as migrate
 
 
 def write_run(root: Path, relative: str, values: list[float], steps: int, *, arm: bool = False) -> Path:
@@ -314,7 +314,7 @@ def test_a_ladder_rung_is_described_by_its_marker_not_the_parents_checkpoints(tm
     """
     import json as _json
 
-    from scripts.manifest import runs as manifest_runs
+    from scripts.data.manifest import runs as manifest_runs
 
     parent = tmp_path / "runs" / "novalue11.s1234"
     for name in ("cp_020029440", "cp_140206080"):
