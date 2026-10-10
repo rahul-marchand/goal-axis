@@ -4,7 +4,7 @@ cd /workspace/GoalMisgeneralisation
 export PATH="$HOME/.local/bin:$PATH"
 D=/workspace/data/offline/demos/scaling
 mkdir -p figures/data/scaling
-uv run python - > results/drc-param-count.txt 2>&1 <<'PY'
+uv run python - > results/utility-rule/drc-param-count.txt 2>&1 <<'PY'
 import jax, json
 from cleanba.cleanba_impala import load_train_state
 from goalmisgen.configs.env import MazeConfig
@@ -23,10 +23,10 @@ PY
 for shape in d128l4 d256l4 d512l4 d512l16; do
     run=/workspace/data/offline/runs/scaling/sc11.$shape.s1
     uv run python scripts/studies/utility-rule/decode_h1.py $run 20000 figures/data/scaling/$shape.npz --demos $D/test.rho100 \
-        > results/decode-sc11.$shape.txt 2>&1 || { echo "$shape decode FAILED" >> results/scale-sweep.status; continue; }
+        > results/utility-rule/decode-sc11.$shape.txt 2>&1 || { echo "$shape decode FAILED" >> results/utility-rule/scale-sweep.status; continue; }
     uv run python scripts/studies/utility-rule/distance_field_bc.py $run --probe-demos $D/train.rho100 --eval-demos $D/test.rho100 \
-        > results/distance-field-sc11.$shape.txt 2> results/distance-field-sc11.$shape.log \
-        && echo "$shape ok" >> results/scale-sweep.status \
-        || echo "$shape fields FAILED" >> results/scale-sweep.status
+        > results/utility-rule/distance-field-sc11.$shape.txt 2> results/utility-rule/distance-field-sc11.$shape.log \
+        && echo "$shape ok" >> results/utility-rule/scale-sweep.status \
+        || echo "$shape fields FAILED" >> results/utility-rule/scale-sweep.status
 done
-echo done >> results/scale-sweep.status
+echo done >> results/utility-rule/scale-sweep.status

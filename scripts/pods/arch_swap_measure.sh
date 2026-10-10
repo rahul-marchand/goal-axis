@@ -11,8 +11,8 @@
 # whether the probe moved before the behaviour did.
 #
 # Safe to run beside a training job on the same GPU: the evaluator does not
-# preallocate. Writes results/arch-swap-<agent>.txt and
-# results/arch-swap-early-warning-<agent>.txt in the checkout it runs from.
+# preallocate. Writes results/arch-swap/arch-swap-<agent>.txt and
+# results/arch-swap/arch-swap-early-warning-<agent>.txt in the checkout it runs from.
 
 set -euo pipefail
 export PATH="${HOME}/.local/bin:${PATH}"
@@ -26,7 +26,7 @@ DATA="${2:-/workspace/data}"
 LEVELS="${LEVELS:-${DATA}/levels/values/1.00-0.50@1M}"
 run="${DATA}/runs/${AGENT}"
 final="$(ls -d "${run}"/local-files/cp_* | sort -t_ -k2 -n | tail -1)"
-OUT="results/arch-swap-${AGENT}.txt"
+OUT="results/arch-swap/arch-swap-${AGENT}.txt"
 mkdir -p results figures/data
 
 {
@@ -44,5 +44,5 @@ mkdir -p results figures/data
 } > "${OUT}" 2>&1
 echo "wrote ${OUT}"
 
-AGENTS="${AGENT}" OUT="results/arch-swap-early-warning-${AGENT}.txt" MAX_STEPS="${MAX_STEPS:-150000000}" \
+AGENTS="${AGENT}" OUT="results/arch-swap/arch-swap-early-warning-${AGENT}.txt" MAX_STEPS="${MAX_STEPS:-150000000}" \
     bash scripts/pods/early_warning.sh "${DATA}"

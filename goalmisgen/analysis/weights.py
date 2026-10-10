@@ -188,7 +188,7 @@ def permutation_cosines(
 
     This replaces dividing by split-half reliability as the load-bearing
     statistic. That correction reached ×7 on the first grid, and in
-    ``results/three-objective.txt`` it returned cosines outside the range a
+    ``results/value-axis-0995/three-objective.txt`` it returned cosines outside the range a
     cosine can take — a correction announcing that it has broken down. A
     permutation null assumes nothing about how noise scales.
     """

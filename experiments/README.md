@@ -174,7 +174,7 @@ correction. Matching the arm counts is what turned −1.7 into −1.00.
 
 **Later.** "One knob" held up: the wide sweeps gave raw cosines of −0.76 to −0.84
 at reliability ~0.8, and every γ=1 base in all four architectures sits at its
-noise ceiling under a permutation null (`results/one-axis-null.txt`).
+noise ceiling under a permutation null (`results/one-axis/one-axis-null.txt`).
 
 **Correction: these channel analyses never looked at the input convolution.**
 `017` grouped it into a single encoder block, and `018`-`019` select ConvLSTM
@@ -241,7 +241,7 @@ On this agent, split-half reliability fell with arm length: 0.228 at 750k
 steps, 0.177 at 1.5M, 0.160 at 2.2M, 0.144 at 3M. The conclusion drawn at the
 time, that behaviour converges by 750k and longer arms only add arm-specific
 movement, **was wrong**. The arm-length ladder on the three γ=1 DRCs
-(`results/len-*`, `docs/Experiment3.md` §3) found reliability flat from 400k to
+(`results/arm-length/len-*`, `docs/Experiment3.md` §3) found reliability flat from 400k to
 3M, the fine-tuned slope still rising to about 1M steps (14 to 16-17 steps per
 unit value, against the task's 20), and arms past parity reversing only at
 0.75-1.4M. What grows with length is the drift's share of each arm (22-28% to

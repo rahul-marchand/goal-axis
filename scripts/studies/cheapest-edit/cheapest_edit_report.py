@@ -1,6 +1,6 @@
 """One table over every cheapest-edit run: how far each edit moved the threshold, how cleanly, and whether it is v.
 
-    uv run python scripts/studies/cheapest-edit/cheapest_edit_report.py figures/data/cheapest_edit/*.json [--out results/cheapest-edit-report.txt]
+    uv run python scripts/studies/cheapest-edit/cheapest_edit_report.py figures/data/cheapest_edit/*.json [--out results/cheapest-edit/cheapest-edit-report.txt]
 
 Per run (one row per seed, plus the fine-tuned axis written through the same
 rollout as a reference row per base):

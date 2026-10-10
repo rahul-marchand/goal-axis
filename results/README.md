@@ -18,10 +18,52 @@ the flags in `argv` where they identify one script and marks the guess with
 
 What stays here is the part no script can recover: *why* a measurement was taken
 and what to make of it. Same split as `RUNS.toml` against `MANIFEST.md`.
-Sections run roughly in the order the studies happened. Longer write-ups live
-in `docs/` and, for the gain-vs-factorised study, in `gain-vs-factorised/`.
+Longer write-ups live in `docs/` and, for the gain-vs-factorised study, in
+`gain-vs-factorised/`.
 
-## Experiment 1 remeasure (2026-08-04)
+## Layout
+
+Tables are filed by study, one folder each, and the sections below follow the
+folders in roughly the order the studies happened. Until 2026-10-10 every table
+except `gain-vs-factorised/` sat in one flat directory; they were moved with
+`git mv`, contents untouched, so a header still records the path a table was
+written to, and the old -> new path of every file is in
+[`archive/2026-10-10-reorganisation/results.tsv`](../archive/2026-10-10-reorganisation/results.tsv).
+Within a section a bare file name is in that section's folder; a name in another
+folder is written `folder/name`.
+
+| folder | study | written up in |
+|---|---|---|
+| [`experiment1/`](experiment1/) | Experiment 1 on the γ=0.995 DRC: steering, the distance field, the remeasure, the early-warning sweep | `docs/Experiment1.md` |
+| [`value-axis-0995/`](value-axis-0995/) | Experiment 2 on the γ=0.995 DRC: the value grid, value or gap, three objectives, the base-checkpoint ladder, the wide sweeps | `docs/Experiment2.md`, `experiments/README.md` |
+| [`arch-swap/`](arch-swap/) | Experiments 1 and 2 on a ResNet and a ViT | `THREADS.md` E1.4-E1.6 |
+| [`offline-bc/`](offline-bc/) | The route model's twin of Experiments 1 and 2 | `THREADS.md` E1.7 |
+| [`scaling/`](scaling/) | The width/depth campaign | `THREADS.md` SC.1-SC.3 |
+| [`utility-rule/`](utility-rule/) | The route model's utility rule and the noise programme | `docs/UtilityRule.md` |
+| [`g1/`](g1/) | The γ=1 bases' value axes, all four architectures | `docs/Experiment3.md` §1 |
+| [`one-axis/`](one-axis/) | One knob or two, against a permutation null | `docs/Experiment3.md` §1 |
+| [`where-axis/`](where-axis/) | Restricted and dosed writes: where in the weights | `docs/Experiment3.md` §2 |
+| [`arm-length/`](arm-length/) | Fine-tune length | `docs/Experiment3.md` §3 |
+| [`far-axis/`](far-axis/) | A fresh axis past parity | `docs/Experiment3.md` §3 |
+| [`input-gain/`](input-gain/) | The threshold against input brightness | `docs/Experiment3.md` §4 |
+| [`cheapest-edit/`](cheapest-edit/) | The cheapest edit that sets a threshold | `docs/Experiment3.md` §4 |
+| [`gain-vs-factorised/`](gain-vs-factorised/) | E1-E16: gain against factorised value | its own `E<N>.md`; `docs/Experiment3.md` §5 |
+| [`plan-probe/`](plan-probe/) | The blog's plan-probe tables | the blog post |
+| [`depth/`](depth/) | The route-model depth sweep | `THREADS.md` SC.4 |
+| [`overfit/`](overfit/) | Does an axis need a base that learned the task? | `docs/Experiment3.md` §6 |
+| [`craftax/`](craftax/) | Craftax stages 2 and 4 | `docs/Craftax.md` |
+
+## `experiment1/`: Experiment 1 (γ=0.995 DRC)
+
+The tables behind `docs/Experiment1.md`, mostly on `clean11fv` and `maze11`:
+the psychometric curve (`psychometric.txt`), outcome-keyed distance probes and
+the distance-field pilot (`outcome-keyed*.txt`, `value-vs-*.txt`,
+`distance-pilot.txt`), steering the decision (`steering*.txt`, `steer-*.txt`),
+the choice direction and the target probe (`choice-direction.txt`,
+`target-probe.txt`), and whether value reaches the decision
+(`value-representation.txt`).
+
+### Remeasure (2026-08-04)
 
 `remeasure-*.txt` and `probe-*.txt` give current behavioural and probe numbers
 for the four Experiment-1 agents. The 5×5 probe is the least informative: with
@@ -32,7 +74,26 @@ values) and `ec1665e28a0f54c2` (randomised values), generated 2026-08-04.
 Anything measured before that date is in `archive/`, and does not load against
 current code.
 
-## The value grid
+### Early warning (E1.6)
+
+`early-warning.txt` is the robustness campaign's Phase 0: the plan probe and
+the behavioural gap at every saved checkpoint of `maze11` and `clean11fv`,
+written by `scripts/pods/early_warning.sh` and read by
+`scripts/studies/experiment1/early_warning_report.py`. What distinguishes the
+`.contended` run is not recorded. The same protocol on the other architectures
+is `arch-swap/arch-swap-early-warning-*`.
+
+## `value-axis-0995/`: Experiment 2 (γ=0.995 DRC)
+
+Everything Experiment 2 measured on `novalue11` and its relatives at γ=0.995.
+`novalue-behaviour.txt` is the starting point: `006` on `novalue11`, asking
+whether an agent with no value channel trades value against distance at all.
+The sections below follow `experiments/README.md`'s line of questions; `seed5678-*` and
+`seed-comparison.txt` repeat the sweep on a second seed, and `v2-*` are
+`016`/`018`/`021` on the second three-objective base
+(`scripts/pods/three_objective_v2.sh`).
+
+### The value grid
 
 `scripts/pods/value_axis_grid.sh` fine-tunes `novalue11` onto seven values for
 colour 1, one arm each, identical in seed, rate and updates. The datasets share
@@ -46,7 +107,7 @@ subtract. Its weight diff is nonetheless as large as any other arm's, which is
 the whole difficulty — see the note in `goalmisgen/analysis/weights.py` on why
 the fit needs an intercept.
 
-## Value or gap
+### Value or gap
 
 `COLOUR=0 scripts/pods/value_axis_grid.sh` sweeps colour 0 over the same gaps the
 colour 1 sweep covered, so the two are directly comparable.
@@ -70,9 +131,9 @@ task whose choice does not reduce to one difference.
 
 Settled later, by weights rather than behaviour: one knob. See the next section
 (`018`, restricted to the axis's channels), the wide sweeps
-(`wide-novalue11.*-value-or-gap.txt`) and the γ=1 null (`one-axis-null.txt`).
+(`wide-novalue11.*-value-or-gap.txt`) and the γ=1 null (`one-axis/one-axis-null.txt`).
 
-## Three objectives
+### Three objectives
 
 `scripts/pods/three_objective.sh` and its composition stage train a base agent at
 values (1.0, 0.65, 0.3) with no value channel, then move one objective's value
@@ -97,7 +158,7 @@ signal-to-noise was to be expected before the shorter arms are even counted.
 The base agent is `cp_70103040` rather than the 80M steps it trained for; see
 the note in `goalmisgen/configs/presets.py` on `with_final_checkpoint`.
 
-## Where the axis lives, and how many knobs there are
+### Where the axis lives, and how many knobs there are
 
 `experiments/017` and `018` describe the two-objective axis rather than testing
 it. Two results from `018` are worth carrying forward.
@@ -124,7 +185,7 @@ sum to zero, which for symmetric axes puts every pairwise cosine at -0.5; three
 absolute registers put them near 0; one shared knob puts them at -1, where the
 two-objective agent sits.
 
-## The base-checkpoint ladder — when the value axis appears
+### The base-checkpoint ladder — when the value axis appears
 
 `axis-ladder.txt`, from `experiments/022_axis_ladder.py` over eleven rungs of
 `novalue11.s1234`: 2M, 5M, 10M, 15M, 20M, 30M, 40M, 50M, 60M, 70M and the 140.2M
@@ -193,7 +254,7 @@ distinguishes them. Note also that `novalue11` becomes competent far later than
 the ~20M in Experiment 1, which was `maze11` — the twenty dense checkpoints
 before 20M are all pre-competence here and carry nothing.
 
-### The high-power rerun — `axis-ladder-power.txt`
+#### The high-power rerun — `axis-ladder-power.txt`
 
 Four rungs (50M, 60M, 70M, 140M) remeasured at 4096 episodes instead of 1024,
 with `chose_optimal` printed alongside reach. Two things it settles, one of which
@@ -238,7 +299,17 @@ though a step cost 0.061 rather than 0.05 and so gives up on the further
 objective too early; a small write along the axis appears to correct exactly that
 bias. The axis is not only readable and writable but usable to make the agent
 *better* than training left it.
-## Architecture swap (stream arch-swap, 2026-08-20)
+
+### The wide sweeps' third seed (`wide-novalue11.s9012-*`)
+
+The γ=0.995 third seed the robustness campaign preregistered (be02213):
+o0/o1 sweeps, held-out fits and value-or-gap (cos −0.82, reliability
+0.79-0.81), beside s1234's and s5678's. Its registered predictions were never
+scored (`THREADS.md` R.5, dropped). The `-at3`/`-at7` tables read all three
+seeds' o1 arms at their fourth and eighth checkpoints, for the γ=0.995
+arm-length curve.
+
+## `arch-swap/`: architecture swap (2026-08-20)
 
 Does Experiment 1 survive swapping the DRC(3,3) for a non-recurrent ResNet
 (cleanba's GuezResNet, input rescaled by 255) and a ViT-style transformer
@@ -336,7 +407,7 @@ results were made with. One seed per architecture.
 - `figures/data/{resnet11novalue,vit11novalue}.s1234.json` — the 002 JSON of
   each base (the ResNet's is the collapsed checkpoint).
 
-## The offline-BC twin (route transformer)
+## `offline-bc/`: the offline-BC twin (route transformer)
 
 `offline-bc-*.txt` come from the `goalmisgen/offline` stream: a small prefix-LM
 transformer trained by next-token prediction on BFS-expert demonstrations of
@@ -399,7 +470,7 @@ What they say: the route model walks a plan written into its top block and the
 plan edit survives its red team; the distance write moves nothing
 (`THREADS.md` E1.7; 0cf95cb, 068e759).
 
-## The width/depth campaign (2026-08-22/23)
+## `scaling/`: the width/depth campaign (2026-08-22/23)
 
 `scaling-campaign.txt` is the summary of nine route-model cells, d ∈ {128, 256,
 512} × L ∈ {4, 8, 16}, 0.8M to 50.5M parameters, one seed each
@@ -407,9 +478,11 @@ plan edit survives its red team; the distance write moves nothing
 their outcomes are in `git show b353c0e:Preregistration-scaling.md` and
 `THREADS.md` SC.1-SC.3: depth *improved* the write, against the prediction.
 `scaling-shape-probe-h100.txt` and `scaling-smoke-029.*` are the pre-launch
-checks.
+checks. `maze-diversity.txt` counts the distinct mazes in the 7.78M-level pool
+generated for the scaling pilot; `goalmisgen/envs/splits.py` cites it at its
+pre-2026-10-10 path, `results/maze-diversity.txt`.
 
-## The noise programme (2026-08-24..28)
+## `utility-rule/`: the noise programme (2026-08-24..28)
 
 Filed in ceac8e1: the tables behind `docs/UtilityRule.md` parts 1-3
 (`utility-rule-*`, written up in 00bb27f) and its unwritten part 4: per-level decodes (`decode-h1-drc.*`,
@@ -417,13 +490,13 @@ Filed in ceac8e1: the tables behind `docs/UtilityRule.md` parts 1-3
 own gap estimate (`gap-probe-*`), per-level flip points (`flip-points-bcnv11.txt`,
 `probe-flip-*`), steering the decoded gap direction (`steer-flip-*`,
 `steer-prefix-*`: nulls), and the margin decompositions (`margin-fork-*`,
-`margin-swap-*`). Also filed then: `arm-length-curve.txt`, the γ=0.995
-reliability-against-arm-length read whose conclusion the γ=1 ladder overturned
-(see below), and `early-warning{,.contended}.txt` (E1.6; what distinguishes
-the `.contended` run is not recorded). Status of each question: `THREADS.md`
-UR.1-UR.9.
+`margin-swap-*`); `drc-param-count.txt` is the DRC's parameter count, written by
+the scale-sweep launcher beside the `sc11` decodes. Also filed then, and now in
+their own studies' folders:
+`arm-length/arm-length-curve.txt` and `experiment1/early-warning{,.contended}.txt`.
+Status of each question: `THREADS.md` UR.1-UR.9.
 
-## The γ=1 bases' value axes (`g1-*`)
+## `g1/`: the γ=1 bases' value axes
 
 Every table behind the four-architecture value-axis figures, on the γ=1 bases
 (fbc682a; why each base exists is in `RUNS.toml`). Per base:
@@ -441,14 +514,9 @@ Every table behind the four-architecture value-axis figures, on the γ=1 bases
   (no axis, reliability 0.05-0.13);
 - `g1-probe-plan-novalue11g1.s1234.txt`: the plan probe on a g1 DRC.
 
-The route model's o sweeps are `offline-bc-value-axis-bcnv11.*` above. Tables
+The route model's o sweeps are `offline-bc/offline-bc-value-axis-bcnv11.*`. Tables
 from bases that never learned the trade-off were deleted. The figures read these
 through `figures/src/value-axis/parse_g1.py` and `parse_far.py`.
-
-`one-axis-null.txt` (0dea7e0) tests "one knob, not two" on every base against a
-permutation null and the noise ceiling √(r₀r₁). Every base with an axis sits at
-its ceiling (cos/ceiling −0.85 to −1.02, p at its floor). Quote this, not raw
-cosines against a 1/√d null, and not disattenuated cosines.
 
 `vit-lr-probe.txt` (ab41101): one line per (peak, floor) learning-rate pair of
 the ViT's 250M schedule, killed at 70-80M and decoded greedily. The peak is the
@@ -456,7 +524,14 @@ lever and the optimum is interior (2e-4 34.7%, 4e-4 ~50%, 1e-3 61.2%, 2.5e-3
 collapses). The schedule it chose produced the `vit11nvg1lr` bases, which have
 no axis.
 
-## Where in the weights (`restrict-*`, `dose-*`)
+## `one-axis/`: one knob, against a null
+
+`one-axis-null.txt` (0dea7e0) tests "one knob, not two" on every base against a
+permutation null and the noise ceiling √(r₀r₁). Every base with an axis sits at
+its ceiling (cos/ceiling −0.85 to −1.02, p at its floor). Quote this, not raw
+cosines against a 1/√d null, and not disattenuated cosines.
+
+## `where-axis/`: where in the weights (`restrict-*`, `dose-*`)
 
 `scripts/measure/restricted_writes.py` (`_bc.py` for the route model) writes each
 module's slice of the o1 axis alone, alone rescaled to the axis's length, and
@@ -467,7 +542,7 @@ and stages 0-3. ViT: no single module as written. Route model: its MLPs. Every
 tensor with an effect is linear in dose up to the full write.
 `docs/Experiment3.md` §2; figures `where-axis`, `axis-dose`.
 
-## Arm length (`len-*`)
+## `arm-length/`: arm length (`len-*`)
 
 The 3M-step o and k grids of the three γ=1 DRCs, read at every checkpoint the
 arms saved (`-at<i>`, with `-loo` leave-one-out tables), and `-weights.{txt,json}`,
@@ -476,14 +551,14 @@ the exact drift/write/residual decomposition per checkpoint
 3M the drift's share rises from 22-28% to 41-51%, reliability is flat, the
 fine-tuned slope rises 14 → 16-17 steps per unit value, and every DRC reverses
 past parity given 0.75-1.4M steps. This overturns two earlier readings: that
-arms "converge by 750k" (from `arm-length-curve.txt` and the `wide-*-at3/at7`
-reads), and that the DRC cannot be reversed. `docs/Experiment3.md` §3.
+arms "converge by 750k" (from `arm-length-curve.txt` and the
+`value-axis-0995/wide-*-at3/at7` reads), and that the DRC cannot be reversed. `docs/Experiment3.md` §3.
 
 `len-resnet11nvg1.*` and `len-vit11nvg1.*` are the 8 of 32 tables that survived
 the 2026-10-02 ResNet/ViT k-arm ladder, most of which died of a cuSolver error
 (6b8a9b2). Incomplete; `THREADS.md` L.2.
 
-## Past parity: far axes (`far-axis-*`)
+## `far-axis/`: past parity
 
 `scripts/studies/far-axis/far_axis_fit.py` (`_bc.py`) fits a fresh axis to the colour-keyed k
 arms and writes it from a neighbouring far arm, against a norm-matched random
@@ -492,13 +567,15 @@ axis is no better than the random step on the DRC and ResNet, and only modestly
 better on the ViT and route model: being near the reversed regime does not make
 a linear write work there.
 
-## Input gain and the cheapest edit (`input-gain-*`, `edit-*`)
+## `input-gain/`: input gain
 
 `input-gain-<base>.txt` (e861ff7): the threshold against each colour plane's
 brightness, and the share of the axis's input-layer slice that is a gain on the
 base kernel. On the DRC colour-1 brightness is a clean two-way knob, but the
 axis's own gain part moves the threshold by at most 0.6 of the full axis's 4-5
 steps. The `vit11nvg1.s1234` and `vit11nvg1lr` tables are bases without an axis.
+
+## `cheapest-edit/`: the cheapest edit
 
 `edit-*` (`scripts/measure/cheapest_edit.py`; 5dc319f, 5e5619c): the threshold an edit
 of one family reaches on a frozen base, its norm in units of the axis, and its
@@ -516,25 +593,16 @@ labels a batch of runs, not an arm family:
 cheapest dense family on the DRC (edit reach 0.82-0.93); edits agree with the
 axis in function space but not in weights. `docs/Experiment3.md` §4.
 
-## Gain against factorised value (`gain-vs-factorised/`)
+## `gain-vs-factorised/`: gain against factorised value
 
 Sixteen experiments, E1-E16, each with its own report `gain-vs-factorised/E<N>.md`
 holding the question, tables, code and cost, plus `colour-signature-arms.md`
-and `colour-swap-blend.md`. Commits 55958e0 to 0851c01 and a9c546e. Two of the
-studies' tables sit at the top level: `plan-invariance-*` (E2) and
-`separability-drc-g1.txt` (E3). E11's verdict is overturned by E15, as its
+and `colour-swap-blend.md`. Commits 55958e0 to 0851c01 and a9c546e. E2's
+`plan-invariance-*` and E3's `separability-drc-g1.txt` sat at the top of `results/`
+until 2026-10-10 and are filed here with the rest. E11's verdict is overturned by E15, as its
 report now says. Summary: `docs/Experiment3.md` §5; status: `THREADS.md` H.1-H.21.
 
-## The wide sweeps' third seed (`wide-novalue11.s9012-*`)
-
-The γ=0.995 third seed the robustness campaign preregistered (be02213):
-o0/o1 sweeps, held-out fits and value-or-gap (cos −0.82, reliability
-0.79-0.81), beside s1234's and s5678's. Its registered predictions were never
-scored (`THREADS.md` R.5, dropped). The `-at3`/`-at7` tables read all three
-seeds' o1 arms at their fourth and eighth checkpoints, for the γ=0.995
-arm-length curve.
-
-## Plan-probe tables (`probe-plan-*`, `heatmap-*`)
+## `plan-probe/`: plan-probe tables (`probe-plan-*`, `heatmap-*`)
 
 The will-visit route-probe AUCs behind the blog's model table (DRC 0.94, ResNet
 0.91, ViT 0.63, route model 0.85), measured on the γ=0.995 agents
@@ -542,7 +610,7 @@ The will-visit route-probe AUCs behind the blog's model table (DRC 0.94, ResNet
 `sc11.d512l4`; `heatmap-*` are the logs of the per-cell dumps behind blog
 figure 2 (c7202cb).
 
-## The route-model depth sweep (`depth-027.*`, `depth-029.*`)
+## `depth/`: the route-model depth sweep (`depth-027.*`, `depth-029.*`)
 
 Route models at L = 2, 4, 8, 16 (seeds 1 and 3 here), 32 and 64, and a d=128
 control at L=32, each to 30k steps with 13 o0 arms at 1k (0900ca7). `027` fits
@@ -552,7 +620,7 @@ steps per unit value; the modules needed grow from 2 of 10 at L2 to 27 of 72 at
 L64. L2's arms used lr 1e-4 against 1e-5 elsewhere. No aggregate report exists.
 `THREADS.md` SC.4.
 
-## Does an axis need a base that learned the task? (`overfit*`)
+## `overfit/`: does an axis need a base that learned the task?
 
 Route models trained only on N demonstrations (`bcov11.n{1k,3k,10k}.s1`), each
 with 25 o0 arms on the same N levels, and a control of bcnv11's own parameters
@@ -566,7 +634,7 @@ value at 1k, 3k, 10k and 900k levels). Behaviour here is read on
 `test.rho100` minus the arms' training split, because the two pools' level
 splits do not agree (`THREADS.md` IN.2). `docs/Experiment3.md` §6.
 
-## Craftax (`value_axis.cx*`, `value_or_gap.cx*`, `price.*`, `diagnose.*`)
+## `craftax/`: Craftax (`value_axis.cx*`, `value_or_gap.cx*`, `price.*`, `diagnose.*`)
 
 `027`/`028` on the Craftax route models, the price probe
 (`scripts/studies/craftax/craft_price_probe.py`) and the closed-loop diagnosis

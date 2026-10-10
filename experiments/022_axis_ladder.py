@@ -438,7 +438,7 @@ def main() -> None:
         first, second = args.objectives[0], args.objectives[1]
         r0, r1 = entry["reliability"][first], entry["reliability"][second]
         # Dividing by reliability is only meaningful when there is reliability to
-        # divide by. results/three-objective.txt has this correction returning
+        # divide by. results/value-axis-0995/three-objective.txt has this correction returning
         # cosines outside the range a cosine can take, which is a correction
         # announcing it has broken down; refusing is better than printing it.
         if min(r0, r1) > 0.2 and (adjusted := entry["cos"] / np.sqrt(r0 * r1)) and abs(adjusted) <= 1.0:

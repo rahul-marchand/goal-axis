@@ -51,7 +51,7 @@ failures=0
 cd "$(dirname "$0")/../.."
 
 DATA="${1:-/workspace/data}"
-OUT="${OUT:-results/early-warning.txt}"
+OUT="${OUT:-results/experiment1/early-warning.txt}"
 # Override to run the same sweep on another pair of agents -- the ResNet and
 # transformer stand-ins for maze11/clean11fv are `resnet11.s1234
 # resnet11clean.s1234` and `vit11.s1234 vit11clean.s1234`. 002 and 003 read the

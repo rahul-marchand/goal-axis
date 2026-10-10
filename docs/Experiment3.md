@@ -38,11 +38,11 @@ The project asks what structure in the weights implements behavioural goal-direc
 - **Convergence was the cost** (`RUNS.toml`, 78560c1).
   - DRC: 2 of 6 seeds within 150M steps; `s3456e` is a tail-LR extension.
   - ResNet: on some seeds the unnormalised value head diverged at γ=1; those were rerolled.
-  - ViT: 1 of 6 learned the trade-off, and a learning-rate probe did not fix it (`results/vit-lr-probe.txt`).
+  - ViT: 1 of 6 learned the trade-off, and a learning-rate probe did not fix it (`results/g1/vit-lr-probe.txt`).
 - **Lesson.** Judge a base by its decoded threshold, not by training success. `episode_successes` rewards reaching *a* goal, so the ViT duds looked converged while running to the nearest goal.
 - **Undershoot survives undiscounting**: τ is 6.9–8.0 against 10.
 
-**Still one knob?** The appendix quoted raw `cos(axis_0, axis_1)` against a 1/√d null. That is the comparison `weights.permutation_cosines` rejects: fine-tuning diffs are not isotropic, and a collapsed ResNet once gave +0.73 with no value signal. `scripts/studies/one-axis/one_axis_null.py` reports, per base, the split-half reliability (Spearman-Brown), the ceiling √(r₀r₁), a two-way permutation null and cross-readback (`results/one-axis-null.txt`, 0dea7e0):
+**Still one knob?** The appendix quoted raw `cos(axis_0, axis_1)` against a 1/√d null. That is the comparison `weights.permutation_cosines` rejects: fine-tuning diffs are not isotropic, and a collapsed ResNet once gave +0.73 with no value signal. `scripts/studies/one-axis/one_axis_null.py` reports, per base, the split-half reliability (Spearman-Brown), the ceiling √(r₀r₁), a two-way permutation null and cross-readback (`results/one-axis/one-axis-null.txt`, 0dea7e0):
 
 | base | cos | ceiling | cos/ceiling | p |
 |---|---|---|---|---|
@@ -68,7 +68,7 @@ The project asks what structure in the weights implements behavioural goal-direc
 **Method.**
 - `scripts/measure/restricted_writes.py` (`_bc.py` for the route model); module names from `analysis.layers.module_of`.
 - Each module's slice of v is written alone, alone rescaled to the axis's length, and left out of an otherwise full write, at ±0.30. `--doses` repeats the alone-write at ×0.5…×8.
-- `results/restrict-<base>.o1.txt`, `dose-<base>.o1.txt` (f7f6c26). Figures `fragments/where-axis.html`, `axis-dose.html` (4305854).
+- `results/where-axis/restrict-<base>.o1.txt`, `dose-<base>.o1.txt` (f7f6c26). Figures `fragments/where-axis.html`, `axis-dose.html` (4305854).
 
 **Answer.**
 - **DRC.**
@@ -94,7 +94,7 @@ The project asks what structure in the weights implements behavioural goal-direc
 **Method.**
 - DRC only, by choice: the feedforward nets already reverse at 400k, and route model arms are measured in epochs.
 - Arms train at a constant learning rate, so a checkpoint read mid-arm is an arm of that length. Check: the 3M grid read at 374k reproduces the 400k grid.
-- Code: `analysis/arm_length.py`, `scripts/studies/arm-length/arm_length_{ladder,report}.py`. Tables: `results/len-*` (04da1af); figure: f37db55.
+- Code: `analysis/arm_length.py`, `scripts/studies/arm-length/arm_length_{ladder,report}.py`. Tables: `results/arm-length/len-*` (04da1af); figure: f37db55.
 
 **Answer (three g1 DRCs, 400k → 3M).**
 - Drift's share climbs from 22–28% to 41–51%, at the expense of both write and residual.
@@ -103,19 +103,19 @@ The project asks what structure in the weights implements behavioural goal-direc
 - **Every base reverses past parity given the budget.** The zero crossing comes at 0.75–1.4M steps; at 3M the k arms sit at τ −1.5 to −3.0. "The DRC does not reverse" was a 400k artefact.
 
 **Mistakes.**
-- *"Consolidates by 750k"* had no support below 750k. On the old γ=0.995 ladder the residual is flat in absolute terms while drift and write grow (`results/arm-length-curve.txt`).
+- *"Consolidates by 750k"* had no support below 750k. On the old γ=0.995 ladder the residual is flat in absolute terms while drift and write grow (`results/arm-length/arm-length-curve.txt`).
 - *The past-parity "anomaly" was labelling.*
   - Arms past parity looked as if they swung back instead of reversing.
   - Cause: `CorrelatedFeatures` paints colour 0 on whichever objective is worth more, so a past-parity arm learns a relabelled task and τ turns at zero by construction.
   - Fix: `ColourKeyedFeatures` (5065a36) and the held-out k family (c780e28).
 
 **Writes past parity.**
-- Written axes flatten at τ≈0 on all four architectures and never reverse until reached collapses (`results/g1-*-o{0,1}-far.txt`). Fine-tuned arms instead track the task line to −15…−33 on ResNet, ViT and route model.
+- Written axes flatten at τ≈0 on all four architectures and never reverse until reached collapses (`results/g1/g1-*-o{0,1}-far.txt`). Fine-tuned arms instead track the task line to −15…−33 on ResNet, ViT and route model.
 - A fresh axis fitted to the far k arms and written from a neighbouring far arm is no closer to the fine-tuned threshold than a norm-matched random step on the DRC and ResNet. It is only modestly closer on the ViT and route model (median 0.9 vs 1.7, ~1.4 vs ~2.4 steps; `far_axis_fit.py`, eff00af).
 - Why the DRC's write stalls is answered in §5a (E6).
 
 **Open.**
-- The ResNet/ViT k-arm ladder (2026-10-02) mostly died of a cuSolver error, probably two JAX jobs on one GPU without `XLA_PYTHON_CLIENT_PREALLOCATE=false`. Only 8 of 32 tables survived (`results/len-resnet11nvg1.s2468-*` + 2; 6b8a9b2).
+- The ResNet/ViT k-arm ladder (2026-10-02) mostly died of a cuSolver error, probably two JAX jobs on one GPU without `XLA_PYTHON_CLIENT_PREALLOCATE=false`. Only 8 of 32 tables survived (`results/arm-length/len-resnet11nvg1.s2468-*` + 2; 6b8a9b2).
 - 250M-step DRC bases.
 
 ---
@@ -127,7 +127,7 @@ The project asks what structure in the weights implements behavioural goal-direc
 **Method.**
 - **Brightness.** Every architecture's first layer is linear, so a gain on colour c's input kernel ≡ scaling observation plane c. That makes a two-scalar gain testable without training (`analysis/input_gain.py`, `scripts/measure/input_gain.py`, e861ff7).
 - **Edit families** (`goalmisgen/edits/`): full-network norm ball, module-restricted, rank-1, gain, and later rotation.
-- `scripts/measure/cheapest_edit.py` fits each edit on the valid split and scores it on test (`results/cheapest-edit-report.txt`; 5dc319f, 5e5619c).
+- `scripts/measure/cheapest_edit.py` fits each edit on the valid split and scores it on test (`results/cheapest-edit/cheapest-edit-report.txt`; 5dc319f, 5e5619c).
 
 **Mistakes on the way to an objective** (pilots filed in 918a3a0).
 - Teacher forcing along solver routes cannot track rollouts: edits learn to game the solver's fork.
@@ -304,7 +304,7 @@ E1–E10 are on the three g1 DRCs (o1) unless stated. Each `results/gain-vs-fact
 **Method.**
 - Bases `bcov11.n{1k,10k}.s1`, trained only on N levels, with 25 o0 arms fine-tuned on the same N levels.
 - Control: bcnv11's own parameters with N-level arms.
-- `scripts/pods/overfit_axis_chain.sh`, `scripts/studies/overfit/overfit_axis_report.py`; `results/overfit-axis.txt` (acd2f84, 008597b, ec95ae2).
+- `scripts/pods/overfit_axis_chain.sh`, `scripts/studies/overfit/overfit_axis_report.py`; `results/overfit/overfit-axis.txt` (acd2f84, 008597b, ec95ae2).
 
 **Answer.**
 - **The geometric columns cannot tell the five conditions apart.** Collinearity, readback and reliability track how *quiet* the fine-tune was; reliability *rises* to 0.987 with 1k-level arms whether or not the base learned anything.
@@ -329,8 +329,8 @@ Craftax-Classic is used as an engine, not as a task (`goalmisgen/craftax/`, merg
     - the placed table had no observation channel, so the state was not Markov and the iron chain failed exactly at the walk back to the table (30fb705).
   - With both fixed, `cxcraft15.s1t` reaches 98% (70% of routes match the expert).
   - Arms and writes track the expert: o0 +23.3 / written +22.6, o1 −23.7 / written −22.9.
-  - Reliability 0.59; cos −0.862, permutation p at floor (`results/value_or_gap.cxcraft15.s1t.txt`, 0e700ec).
-- **Price probe** (`results/price.cxcraft15.s1t*.txt`).
+  - Reliability 0.59; cos −0.862, permutation p at floor (`results/craftax/value_or_gap.cxcraft15.s1t.txt`, 0e700ec).
+- **Price probe** (`results/craftax/price.cxcraft15.s1t*.txt`).
   - An extra ingredient in hand switches the model to iron; it is not a graded price.
   - On the ±0.45 arms the start-of-episode iron rate is 0.07 against 0.73.
   - Whether raised iron value propagates to instrumental steps is not analysed beyond these tables.
@@ -364,6 +364,6 @@ In decreasing order of confidence:
 
 **Pointers.**
 - Reports: `results/gain-vs-factorised/E1.md`–`E16.md`, `colour-*.md`.
-- Tables: `results/{cheapest-edit-report,one-axis-null,overfit-axis}.txt`, `results/{len,restrict,dose,input-gain,far-axis,g1}-*`.
+- Tables: `results/{cheapest-edit/cheapest-edit-report,one-axis/one-axis-null,overfit/overfit-axis}.txt`, `results/{arm-length/len,where-axis/restrict,where-axis/dose,input-gain/input-gain,far-axis/far-axis,g1/g1}-*`.
 - Figures: `figures/fragments/{where-axis,axis-dose,arm-length,value-axis,value-axis-far,scurves}.html`.
 - Narrative notes, with pod logistics: `~/.claude/projects/-home-rahul-projects-GoalMisgeneralisation/memory/{gain-vs-factorised-study,cheapest-edit-study,where-axis-appendix,ft-length-ladder,one-axis-appendix,bc-overfit-axis-study,craftax-stream}.md`.

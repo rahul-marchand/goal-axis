@@ -1,7 +1,7 @@
 """Table 1 read down a ladder of arm lengths, from the checkpoints the arms saved.
 
     uv run python scripts/studies/arm-length/arm_length_ladder.py /workspace/data/runs/novalue11g1.s1234 \
-        --arm-steps 400000 3000000 --out results/len-novalue11g1.s1234-weights.json
+        --arm-steps 400000 3000000 --out results/arm-length/len-novalue11g1.s1234-weights.json
 
 Each ``013`` arm saves evenly spaced checkpoints and trains at a constant learning
 rate, so an arm read at its k-th checkpoint is the arm it would have been with

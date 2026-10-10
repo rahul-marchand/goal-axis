@@ -3,7 +3,7 @@
     uv run python scripts/studies/arm-length/arm_length_report.py --agents novalue11g1.s1234 novalue11g1.s9012 novalue11g1.s3456e \
         --out figures/data/arm_length_ladder.json
 
-Reads ``results/len-<agent>-*`` -- the ``014`` tables at every checkpoint of the
+Reads ``results/arm-length/len-<agent>-*`` -- the ``014`` tables at every checkpoint of the
 400k and 3M grids, their ``--leave-one-out`` twins, the colour-keyed ``k`` arm
 thresholds, and the weight-space ladder JSON -- and prints one row per budget
 per agent: Table 1's shares, the axis reliability and cosine, what the arms
@@ -36,14 +36,16 @@ REVERSED = {"k1": 1.2, "k0": 0.3}  # the k arm asking for the strongest reversal
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--agents", nargs="+", required=True)
-    parser.add_argument("--results", type=Path, default=Path("results"))
+    parser.add_argument(
+        "--results", type=Path, default=Path("results"), help="The results root: reads arm-length/ and g1/ under it."
+    )
     parser.add_argument("--out", type=Path, default=None)
     return parser.parse_args()
 
 
 def load_tables(results: Path, agent: str) -> dict[tuple[str, str, int, bool], MeasureTable]:
     found = {}
-    for path in sorted(results.glob(f"len-{agent}-*.txt")):
+    for path in sorted((results / "arm-length").glob(f"len-{agent}-*.txt")):
         match = _NAME.match(path.name)
         if match is None:
             continue
@@ -64,7 +66,7 @@ def mean_or_nan(values: list[float]) -> float:
 
 def rows_for(agent: str, results: Path) -> list[dict]:
     tables = load_tables(results, agent)
-    weights_path = results / f"len-{agent}-weights.json"
+    weights_path = results / "arm-length" / f"len-{agent}-weights.json"
     weights = {}
     if weights_path.is_file():
         for row in json.loads(weights_path.read_text())["rows"]:
@@ -118,11 +120,11 @@ def rows_for(agent: str, results: Path) -> list[dict]:
         )
         loo_errors = [abs(w_ - a) for t in loo.values() if t is not None for a, w_ in t.loo.values()]
         row["loo_err"] = mean_or_nan(loo_errors)
-        # The 400k k-arms were measured by the crossing chain into results/g1-*;
+        # The 400k k-arms were measured by the crossing chain into results/g1/g1-*;
         # they are the ladder's first rung, read at the grid's last checkpoint.
         if steps == 400_000 and index == 3:
             for sweep in ("k0", "k1"):
-                path = results / f"g1-{agent}-{sweep}.txt"
+                path = results / "g1" / f"g1-{agent}-{sweep}.txt"
                 if k.get(sweep) is None and path.is_file():
                     k[sweep] = parse_measure_table(path.read_text())
         for sweep, table in k.items():

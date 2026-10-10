@@ -1,6 +1,6 @@
 """What the route model's choice actually depends on, beyond the distance gap.
 
-    uv run python scripts/studies/utility-rule/utility_rule_report.py > results/utility-rule-bcnv11.txt
+    uv run python scripts/studies/utility-rule/utility_rule_report.py > results/utility-rule/utility-rule-bcnv11.txt
 
 Reads the per-level decodes and level features in ``figures/data/h1`` and emits
 every number behind ``figures/fig_distance_rule.png``. Nothing here touches a

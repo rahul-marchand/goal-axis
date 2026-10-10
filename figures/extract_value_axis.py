@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT))  # run with plain python3 as well as uv
 
 from goalmisgen.analysis import tables  # noqa: E402
 
-RESULTS = ROOT / "results"
+RESULTS = ROOT / "results" / "value-axis-0995"
 OUT = Path(__file__).parent / "data"
 
 

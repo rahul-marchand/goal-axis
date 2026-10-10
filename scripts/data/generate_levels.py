@@ -87,7 +87,7 @@ def main() -> None:
     # the layout generator has far less entropy than the level count suggests --
     # about 455,000 distinct 11x11 mazes, so each recurs many times in a large
     # pool and an index-wise split shares almost every test maze with training.
-    # See results/maze-diversity.txt and goalmisgen/envs/splits.py.
+    # See results/scaling/maze-diversity.txt and goalmisgen/envs/splits.py.
     splits = split_by_layout(dataset.walls_packed, valid=args.valid_levels, test=args.test_levels, seed=args.seed)
     dataset.save(args.out, seed=args.seed, block_size=args.block_size, splits=splits)
     elapsed = time.perf_counter() - start

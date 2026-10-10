@@ -1,6 +1,6 @@
 """Did the probe move before the behaviour did? Read it off an early_warning.sh sweep.
 
-    uv run python scripts/studies/experiment1/early_warning_report.py results/early-warning.txt [more sweeps...] \
+    uv run python scripts/studies/experiment1/early_warning_report.py results/experiment1/early-warning.txt [more sweeps...] \
         [--out figures] [--name fig_early_warning]
 
 ``scripts/pods/early_warning.sh`` writes, per agent and checkpoint, 002's choice

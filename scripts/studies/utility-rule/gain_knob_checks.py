@@ -1,6 +1,6 @@
 """Red-team part 3: is the stretch or the exponential a measurement artifact?
 
-    uv run python scripts/studies/utility-rule/gain_knob_checks.py | tee results/utility-rule-gain-checks-bcnv11.txt
+    uv run python scripts/studies/utility-rule/gain_knob_checks.py | tee results/utility-rule/utility-rule-gain-checks-bcnv11.txt
 
 Four ways the result could be fake, each checked against the same grid:
 

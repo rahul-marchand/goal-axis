@@ -19,7 +19,7 @@
 #   5  014 on each sweep (+ leave-one-out on o0, + extrapolation on o1) and
 #      015 across both, with the exact flags the DRC results were made with
 #
-# Results land in results/arch-swap-value-axis-<AGENT>-*.txt in the checkout
+# Results land in results/arch-swap/arch-swap-value-axis-<AGENT>-*.txt in the checkout
 # this runs from, to be scp'd and committed. Logs under DATA/logs/arch-swap/.
 
 set -uo pipefail
@@ -76,7 +76,7 @@ EVAL_ENV=(env XLA_PYTHON_CLIENT_PREALLOCATE=false XLA_PYTHON_CLIENT_MEM_FRACTION
 done_file() { [ -s "$1" ] && ! grep -qs "Traceback" "$1"; }
 
 # ---- 2  competence ---------------------------------------------------------
-out="results/arch-swap-value-axis-${AGENT}-competence.txt"
+out="results/arch-swap/arch-swap-value-axis-${AGENT}-competence.txt"
 if done_file "${out}"; then say "competence present"; else
     say "=== 002 competence at rho=1.0 ==="
     {
@@ -111,7 +111,7 @@ say "sweep complete: $(ls -d "${run}"/arms/o*@* 2>/dev/null | wc -l) arm directo
 # ---- 5  analysis -----------------------------------------------------------
 ARMS="${run}/arms"
 analyse() {  # outfile script args...
-    local out="results/arch-swap-value-axis-${AGENT}-$1.txt"; shift
+    local out="results/arch-swap/arch-swap-value-axis-${AGENT}-$1.txt"; shift
     if done_file "${out}"; then say "${out} present"; return; fi
     say "=== $1 -> ${out} ==="
     "${EVAL_ENV[@]}" uv run python "$@" > "${out}" 2>&1 || say "!! $1 failed, see ${out}"

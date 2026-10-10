@@ -11,7 +11,7 @@ the path, and both of them cost something:
   convention.
 * **How long an arm trained for.** Seed 1234's arms ran 3M steps and seed
   5678's ran 750k, and every quantity that scales with fine-tune length is
-  therefore incomparable between them. ``results/seed-comparison.txt`` says so
+  therefore incomparable between them. ``results/value-axis-0995/seed-comparison.txt`` says so
   in a paragraph, which works exactly until somebody does not read it.
 
 So an arm is ``<sweep><offset>@<steps>`` beneath the agent it was fine-tuned

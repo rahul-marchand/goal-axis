@@ -34,7 +34,8 @@ trained on it, and a Craftax stage.
   drivers (`train/`), shared measurement tools (`measure/`), each study's own
   scripts (`studies/<study>/`) and the pod chains (`pods/`).
 - **Results and figures**: `results/` keeps the verbatim output of every
-  measurement (`INDEX.md` says which script wrote each file, `README.md` why);
+  measurement, one folder per study (`INDEX.md` says which script wrote each
+  file, `README.md` why);
   `figures/` builds the write-up and blog figures from them.
 - **Data**: datasets, runs and bulk figure data live on a RunPod network volume
   (`/workspace/data`), not in the repo. `RUNS.toml` says why each run exists;
@@ -50,7 +51,7 @@ trained on it, and a Craftax stage.
 | `goalmisgen/` | The package: environment, configs, networks, offline route model, Craftax, analysis, edits |
 | `experiments/` | Numbered experiment scripts, and the record of the early value-axis questions |
 | `scripts/` | Dataset generation, training drivers, measurement tools, per-study scripts, pod chains; see `scripts/README.md` |
-| `results/` | Raw measurement output; `INDEX.md` (generated) and `README.md` |
+| `results/` | Raw measurement output, one folder per study; `INDEX.md` (generated) and `README.md` |
 | `figures/` | Figure scripts, rendered figures and blog fragments; see `figures/README.md` |
 | `RUNS.toml`, `MANIFEST.md` | Why each run on the data volume exists; what is there (generated) |
 | `archive/` | Superseded results and volume provenance, each with a README |

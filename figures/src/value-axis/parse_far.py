@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Turn the far-past-parity measures into the appendix figure's ``farpanels``.
 
-    python3 figures/src/value-axis/parse_far.py --results results --bc figures/data/bc
+    python3 figures/src/value-axis/parse_far.py --results results/g1 --bc figures/data/bc
 
 Same four panels as ``parse_g1.py`` builds for fig 3, carried as far out as
 anything was measured. Fig 3 stops at ``PLOT_LIMIT`` because that is where the

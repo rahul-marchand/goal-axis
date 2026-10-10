@@ -30,7 +30,7 @@ export PATH="${HOME}/.local/bin:${PATH}"
 cd "$(dirname "$0")/../.."
 
 DATA="${1:-/workspace/data}"
-OUT="${OUT:-results/arm-length-curve.txt}"
+OUT="${OUT:-results/arm-length/arm-length-curve.txt}"
 RESAMPLES="${RESAMPLES:-2000}"
 LEVELS="${DATA}/levels/values/1.00-0.50@500k"
 

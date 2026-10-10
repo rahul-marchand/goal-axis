@@ -28,10 +28,10 @@ sys.path.insert(0, str(ROOT))  # run with plain python3 as well as uv
 
 from goalmisgen.analysis import tables  # noqa: E402
 
-RESULTS = ROOT / "results"
+RESULTS = ROOT / "results" / "value-axis-0995"
 OUT = Path(__file__).parent / "data"
 
-# results/wide-novalue11.s1234-o1-heldout.txt -> seed 1234, sweep o1.
+# results/value-axis-0995/wide-novalue11.s1234-o1-heldout.txt -> seed 1234, sweep o1.
 # ``x`` sweeps are the one-sided arms past the flip, held out of every fit.
 NAME = re.compile(r"^wide-(?P<agent>[\w.]+?)-(?P<sweep>[ox]\d)(?P<heldout>-heldout)?$")
 

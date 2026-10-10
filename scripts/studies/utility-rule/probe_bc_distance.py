@@ -1,7 +1,7 @@
 """Probe the route model's residual stream for its own distance estimates.
 
     uv run python scripts/studies/utility-rule/probe_bc_distance.py /workspace/data/offline/runs/bcnv11.s1 \
-        --choices figures/data/h1/bcnv11.s1.npz > results/gap-probe-bcnv11.s1.txt
+        --choices figures/data/h1/bcnv11.s1.npz > results/utility-rule/gap-probe-bcnv11.s1.txt
 
 The experiment docs/UtilityRule.md part 3 ends on: behaviour cannot tell a wobbling
 threshold from a misread gap, so read the gap out of the activations and ask

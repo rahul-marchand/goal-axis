@@ -1,7 +1,7 @@
 """Do the activations hold the model's own gap estimate, or the true one?
 
     uv run python scripts/studies/utility-rule/probe_flip_bc.py /workspace/data/offline/runs/bcnv11.s1 \
-        --flip figures/data/h1/flip/bcnv11.s1.npz > results/probe-flip-bcnv11.s1.txt
+        --flip figures/data/h1/flip/bcnv11.s1.npz > results/utility-rule/probe-flip-bcnv11.s1.txt
 
 The flip points (``scripts/studies/utility-rule/flip_points_bc.py``) give each level's effective gap
 as the model reads it - ``gap * (1 + eps)`` - measured behaviourally. That

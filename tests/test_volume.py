@@ -4,7 +4,7 @@ These names are load-bearing. An arm's directory is what tells the analysis
 which agent it belongs to and how long it trained, and the reason the scheme
 exists is that both facts used to live in prose — where the 3M-versus-750k
 incomparability between the two seeds sat as a paragraph in
-``results/seed-comparison.txt`` rather than as something a script could see.
+``results/value-axis-0995/seed-comparison.txt`` rather than as something a script could see.
 
 So the cases that matter are the ones where a name would be *accepted while
 meaning something other than it says*: a step count that rounds, an offset finer

@@ -32,7 +32,7 @@ Builders run with plain `python3` and every fragment rebuilds byte-identically.
 
 | fragment | `data.json` comes from |
 |---|---|
-| `value-axis`, `value-axis-both` | `src/value-axis/parse_g1.py` (the `g1-*` tables and the route model's JSON) |
+| `value-axis`, `value-axis-both` | `src/value-axis/parse_g1.py` (the `results/g1/` tables and the route model's JSON) |
 | `value-axis-far` | `src/value-axis/parse_far.py`, written into `src/value-axis/data.json` |
 | `scurves` | `extract_scurves.py` (decode npz on the volume) |
 | `where-axis` | `extract_where_axis.py` (restricted-write JSON) |
@@ -41,7 +41,7 @@ Builders run with plain `python3` and every fragment rebuilds byte-identically.
 | `basin` | `scripts/measure/basin_map.py`, injected into `src/basin/template.html` |
 | `task-planning` | `scripts/measure/plan_heatmap.py`, `scripts/measure/bc_plan_heatmap.py` |
 | `hierarchy` | none: `src/hierarchy/gen.py` draws a fixed diagram |
-| `model-table` | typeset by hand from `results/probe-plan-*` |
+| `model-table` | typeset by hand from `results/plan-probe/probe-plan-*` |
 
 **The two parsers in `src/value-axis/`** both assemble per-architecture,
 per-sweep series of trained arms against axis writes. `parse_g1.py` builds

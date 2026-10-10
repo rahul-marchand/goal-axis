@@ -321,9 +321,12 @@ runs, arms, and figure source data (npz and JSON) under
 what was tracked before that policy stays tracked.
 
 - `results/` holds the verbatim text (and some JSON) output of measurement
-  runs. Each file written since `goalmisgen/provenance.py` names its producer in
-  its header; `results/INDEX.md` is generated from those headers. Write why a
-  table exists in `results/README.md`.
+  runs, filed in one folder per study (`results/g1/`, `results/arm-length/`,
+  ...; the list is in `results/README.md`). Write a new table into its study's
+  folder, adding a folder and a README section for a new study. Each file
+  written since `goalmisgen/provenance.py` names its producer in its header;
+  `results/INDEX.md` is generated from those headers. Write why a table exists
+  in `results/README.md`.
 - **Figures pipeline** for the blog: `figures/src/<name>/build_fig.py` renders
   `figures/src/<name>/data.json` into `figures/fragments/<name>.html`, which is
   spliced into the post at `<!-- fig: name -->`. `data.json` comes from a parser

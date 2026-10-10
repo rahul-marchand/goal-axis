@@ -114,7 +114,13 @@ def main() -> None:
         folders.setdefault(folder, []).append(row)
     for folder, members in sorted(folders.items()):
         title = "top level" if folder == "." else f"`{folder}/`"
-        lines += ["", f"### {title} ({len(members)} files)", "", "| file | script | commit | arguments |", "|---|---|---|---|"]
+        lines += [
+            "",
+            f"### {title} ({len(members)} file{'s' if len(members) != 1 else ''})",
+            "",
+            "| file | script | commit | arguments |",
+            "|---|---|---|---|",
+        ]
         lines += [f"| `{name}` | {producer} | `{commit}` | {arguments} |" for name, producer, commit, arguments in members]
     lines += [
         "",

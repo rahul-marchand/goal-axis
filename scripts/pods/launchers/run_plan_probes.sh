@@ -11,7 +11,7 @@ DEMOS=/workspace/data/offline/demos/scaling/test.rho100
 BC_RUN=/workspace/data/offline/runs/scaling/sc11.d512l4.s1
 OUT=/workspace/data/figures-data/plan-probes
 mkdir -p "$OUT" results
-STATUS=results/plan-probes.status
+STATUS=results/plan-probe/plan-probes.status
 : > "$STATUS"
 
 cp_of() { python3 -c "import json;print(json.load(open('$1/BASE.json'))['checkpoint'])"; }
@@ -22,10 +22,10 @@ VIT=/workspace/data/runs/vit11novalue.s1234/$(cp_of /workspace/data/runs/vit11no
 run() { # name, command...
   local name=$1; shift
   echo "=== $name: $*"
-  if "$@" > "results/$name.txt" 2> "results/$name.err"; then
+  if "$@" > "results/plan-probe/$name.txt" 2> "results/plan-probe/$name.err"; then
     echo "$name ok" >> "$STATUS"
   else
-    echo "$name FAILED" >> "$STATUS"; tail -5 "results/$name.err"
+    echo "$name FAILED" >> "$STATUS"; tail -5 "results/plan-probe/$name.err"
   fi
 }
 

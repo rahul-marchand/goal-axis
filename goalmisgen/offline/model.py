@@ -172,7 +172,7 @@ class RoutePrefixLM(nn.Module):
 
     Default float32, so nothing changes unless a caller asks. ``jnp.bfloat16``
     turns on the H100's tensor cores, whose peak is roughly twice what float32
-    reaches through TF32 -- the probe in ``results/scaling-shape-probe-h100.txt``
+    reaches through TF32 -- the probe in ``results/scaling/scaling-shape-probe-h100.txt``
     measured the widest cell of the grid at 69 TFLOP/s, about 7% of the card.
 
     Mixed, not narrow: weights, the LayerNorms and the attention softmax are all

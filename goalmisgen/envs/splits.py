@@ -4,7 +4,7 @@
 That is the right shape when levels are independent, and they are not: a level
 is a layout plus a placement of the agent and the objectives, and the layout
 generator has far less entropy than the level count suggests. Measured on the
-7.78M-level pool in ``results/maze-diversity.txt``, an 11x11 grid yields about
+7.78M-level pool in ``results/scaling/maze-diversity.txt``, an 11x11 grid yields about
 455,000 distinct mazes, so each layout recurs about seventeen times and an
 index-wise split puts nearly every test layout into training as well.
 

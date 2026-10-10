@@ -1,6 +1,6 @@
 """Flip points for bcnv11: each level's own gap reading, from the decoded grid.
 
-    uv run python scripts/studies/utility-rule/flip_points_bc.py | tee results/flip-points-bcnv11.txt
+    uv run python scripts/studies/utility-rule/flip_points_bc.py | tee results/utility-rule/flip-points-bcnv11.txt
 
 Orders every decoded model of the value-axis grid by its measured crossing and
 fits one step per level (:mod:`goalmisgen.analysis.flips`). The step's location

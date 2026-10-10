@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Turn the g1 (undiscounted) measure tables into the figure's ``xpanels``.
 
-    python3 figures/src/value-axis/parse_g1.py --results <dir of g1-*.txt> --bc <dir of value_axis.bcnv11.*.json>
+    python3 figures/src/value-axis/parse_g1.py --results results/g1 --bc <dir of value_axis.bcnv11.*.json>
 
 One panel per architecture, each carrying both sweeps. Within a sweep the
 series are assembled from three sources, because one 014 run cannot produce

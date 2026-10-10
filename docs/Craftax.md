@@ -104,8 +104,8 @@ or a pickaxe already in hand).
 | `cxcraft15.s1t` (table channel, +20k) | 4 | 98% | −0.86 | 0.59 | +23.3, −23.7 / +22.6, −22.9 / ±20 |
 
 Slopes are actions of threshold per unit value. On stage 2, norm-matched random
-directions move the threshold by at most 0.3. Tables: `results/value_axis.cx*`,
-`results/value_or_gap.cx*`. `cxcraft15.s1t`'s axis statistics are close to
+directions move the threshold by at most 0.3. Tables: `results/craftax/value_axis.cx*`,
+`results/craftax/value_or_gap.cx*`. `cxcraft15.s1t`'s axis statistics are close to
 `cxcraft15.s1`'s because it is that model, warm-started.
 
 - **Stage 2.** A one-knob, writable axis, on the competent control as on the
@@ -115,7 +115,7 @@ directions move the threshold by at most 0.3. Tables: `results/value_axis.cx*`,
   expert's route on 70% of held-out fields; arms and held-out writes both track
   the expert's ±20. The axis is there even on the base without the table
   channel.
-- **Price probe** (`results/price.*`). The 5k-step `s1t` checkpoint's iron/coal
+- **Price probe** (`results/craftax/price.*`). The 5k-step `s1t` checkpoint's iron/coal
   exchange rate on the expert's own states is 11.1 actions against the expert's
   12. Off that manifold, an extra ingredient in hand acts as a switch rather
   than a price: one wood or one stone sends it to iron on 94-100% of fields

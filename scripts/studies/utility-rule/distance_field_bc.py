@@ -1,13 +1,13 @@
 """Per-cell distance fields in the route model's prefix: are they there at all?
 
     uv run python scripts/studies/utility-rule/distance_field_bc.py /workspace/data/offline/runs/bcnv11.s1 \
-        > results/distance-field-bcnv11.s1.txt
+        > results/utility-rule/distance-field-bcnv11.s1.txt
 
 Every probe so far read per-level scalars at named sites; this asks the DRC's
 question of the BC transformer: one shared linear readout applied at *every*
 cell token, predicting that cell's own BFS distance - to the agent, and to
-each objective. The DRC reference (results/distance-pilot.txt,
-results/outcome-keyed.txt): partial r ~0.70, hard R2 ~0.25, MAE ~3.5 on the
+each objective. The DRC reference (results/experiment1/distance-pilot.txt,
+results/experiment1/outcome-keyed.txt): partial r ~0.70, hard R2 ~0.25, MAE ~3.5 on the
 field to its preferred objective; untrained ~0.04.
 
 Why it matters here: the gap is a difference of such fields. If the fields are

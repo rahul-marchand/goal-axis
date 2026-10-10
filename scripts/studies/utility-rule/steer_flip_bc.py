@@ -1,7 +1,7 @@
 """Steer the probed gap direction at SEP and ask what it does to the choice.
 
     uv run python scripts/studies/utility-rule/steer_flip_bc.py /workspace/data/offline/runs/bcnv11.s1 \
-        --flip figures/data/h1/flip/bcnv11.s1.npz > results/steer-flip-bcnv11.s1.txt
+        --flip figures/data/h1/flip/bcnv11.s1.npz > results/utility-rule/steer-flip-bcnv11.s1.txt
 
 Three questions, sharing one set of steered decodes. The direction is the
 true-gap ridge probe at SEP, injected at ``--depth`` (residual depths as in

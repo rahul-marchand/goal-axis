@@ -1,7 +1,7 @@
 """The swap/start decomposition of xi: what do the model's mistakes depend on?
 
     uv run python scripts/studies/utility-rule/margin_swap_bc.py RUN --eval-demos DEMOS --choices NPZ \
-        > results/margin-swap-<model>.txt
+        > results/utility-rule/margin-swap-<model>.txt
 
 The model is deterministic, so its deviation from the utility rule is a fixed
 function of the presentation, not noise. This measures that function along two

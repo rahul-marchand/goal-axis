@@ -1,7 +1,7 @@
 """Is the axis's effect on choice a pure shift, and does it bend the contours the way brightness does?
 
     uv run python scripts/studies/gain-vs-factorised/separability_report.py DATA_DIR [DATA_DIR ...] \
-        --txt results/separability.txt --json figures/data/separability.json
+        --txt results/gain-vs-factorised/separability.txt --json figures/data/separability.json
 
 Reads the decodes written by ``scripts/studies/gain-vs-factorised/separability_decode.py`` (one directory
 per base) and reports, per base:

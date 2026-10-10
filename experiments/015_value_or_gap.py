@@ -43,7 +43,7 @@ Two traps, one of which this script fell into.
 behavioural effect, so each is a noisy estimate of its own direction and the
 cosine between them is pulled toward zero whichever hypothesis holds. Dividing by
 split-half reliability corrects for that in principle; in practice it multiplied
-by nearly seven on this grid, and in ``results/three-objective.txt`` it returned
+by nearly seven on this grid, and in ``results/value-axis-0995/three-objective.txt`` it returned
 cosines outside the range a cosine can take, which is a correction announcing
 that it has broken down.
 
@@ -254,7 +254,7 @@ def main() -> None:
     )
 
     # Kept as a secondary reading rather than the argument. On the first grid the
-    # correction reached x7, and in results/three-objective.txt it returned
+    # correction reached x7, and in results/value-axis-0995/three-objective.txt it returned
     # cosines outside the range a cosine can take.
     if reliability_one > 0 and reliability_zero > 0:
         corrected = observed / np.sqrt(reliability_one * reliability_zero)

@@ -1,6 +1,6 @@
 """Part 3 of docs/UtilityRule.md: is the threshold a stored count or a gain?
 
-    uv run python scripts/studies/utility-rule/gain_knob_report.py | tee results/utility-rule-gain-bcnv11.txt
+    uv run python scripts/studies/utility-rule/gain_knob_report.py | tee results/utility-rule/utility-rule-gain-bcnv11.txt
 
 Three witnesses, all read from the decoded grid (``scripts/studies/utility-rule/decode_grid.py``):
 
