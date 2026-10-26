@@ -583,6 +583,17 @@ beyond its 1k mazes. `N=1k scripts/pods/goal_vector_base.sh`.
 """
 
 [[entry]]
+match = "offline/results/retarget-requential/*"
+note = """
+Requential-coding records (THREADS.md RC.14), one directory per agent, one
+`tau<tau>.req-<teacher>.json` per goal and teacher: `goalmisgen.retarget.Record`s
+with a `Requential` result. The first set (2026-10-26) is the positive control
+bcgvr11.s1 at the eight pilot goals with the dial, full and full-ema teachers,
+from `scripts/pods/requential_control.sh`; summarised in
+`results/retarget/requential_control.bcgvr11.s1.txt`.
+"""
+
+[[entry]]
 match = "offline/demos/arms/*"
 note = """
 Demonstrations for the offline value-axis arms: the solver's optimal route at

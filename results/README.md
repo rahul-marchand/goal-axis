@@ -657,6 +657,15 @@ retrained on bcnv11's 900k mazes with one random goal each, so that its base is
 as competent as bcnv11's (RC.11); its runs are also in `pilot.txt` and the
 report's `data.json` (rows for the earlier agents unchanged).
 
+`requential_control.bcgvr11.s1.txt` is the first requential-coding run (RC.14):
+the positive control `bcgvr11.s1` at the eight pilot goals, coded by
+requential coding with three teachers (the goal vector alone, every weight,
+every weight taught from its moving average), written by `retarget_report.py`
+over the records in `offline/results/retarget-requential/` on the volume
+(`scripts/pods/requential_control.sh`). Its SDL column is the whole code, KL
+plus overhead, over 262k coded samples, so it is not comparable with the
+prequential rows of `pilot.txt`; the warning lights at its end are why.
+
 ## `craftax/`: Craftax (`value_axis.cx*`, `value_or_gap.cx*`, `price.*`, `diagnose.*`)
 
 `027`/`028` on the Craftax route models, the price probe

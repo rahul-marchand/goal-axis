@@ -1,0 +1,230 @@
+script retarget_report.py
+commit 208440e
+argv   offline/results/retarget-requential --table /home/rahul/projects/GoalMisgeneralisation/results/retarget/requential_control.bcgvr11.s1.txt
+
+Coding mechanisms here: requential. For requential runs SDL is the total code (cumulative
+teacher-student KL plus per-call overhead) over the coded samples, n is the number of samples, and
+L(0), L(n), EDL and ceiling read the student's curve on T: not comparable with prequential rows.
+
+Retargeting cost of route models: block-prequential code, doubling blocks, refit from the base
+before every block, early-stopped on V. Bits per route; SDL = MDL since L* = 0 (perfect mazes,
+tied levels dropped). flip = share of D whose expert choice differs from the base rate's.
+ceiling = n L(0), never leaving the base. SDL-null = SDL minus the agent's null arm (tau 10)
+at the same replicate settings, compared per token within each block (routes shorten as tau
+falls); raw = the same per route. min = wall-clock minutes for the run.
+
+agent                arm                          tau   flip    L(0)    L(n)       SDL       EDL   ceiling  SDL-null       raw   min
+bcgvr11.s1           tau0.5.req-full-ema          0.5  28.8%   1.939   0.404     22989    -83009    508337      5208      3217  11.5
+bcgvr11.s1           tau0.5.req-full              0.5  28.8%   1.939   0.415     50115    -58689    508337     14368     10125  11.4
+bcgvr11.s1           tau2.5.req-full-ema          2.5  20.6%   1.170   0.392     22821    -79986    306771      5023      3050  11.5
+bcgvr11.s1           tau2.5.req-full              2.5  20.6%   1.170   0.453     48540    -70084    306771     12804      8549  12.3
+bcgvr11.s1           tau6.5.req-full-ema          6.5   7.6%   0.478   0.412     18939    -89139    125363       229      -832  11.5
+bcgvr11.s1           tau6.5.req-full              6.5   7.6%   0.478   0.435     42691    -71275    125363      4979      2700  12.3
+bcgvr11.s1           tau8.5.req-full-ema          8.5   2.3%   0.359   0.416     19451    -89573     94111        61      -321  11.5
+bcgvr11.s1           tau8.5.req-full              8.5   2.3%   0.359   0.430     40186    -72578     94111      1008       195  12.3
+bcgvr11.s1           tau10.req-full-ema            10   0.0%   0.335   0.424     19771    -91444     87864         0         0  11.5
+bcgvr11.s1           tau10.req-full                10   0.0%   0.335   0.419     39991    -69806     87864         0         0  11.5
+bcgvr11.s1           tau12.5.req-full-ema        12.5   3.6%   0.356   0.439     19378    -95764     93399     -1115      -393  11.4
+bcgvr11.s1           tau12.5.req-full            12.5   3.6%   0.356   0.467     40073    -82307     93399     -1507        82  11.5
+bcgvr11.s1           tau14.5.req-full-ema        14.5   6.7%   0.421   0.425     17719    -93818    110368     -3513     -2053  11.4
+bcgvr11.s1           tau14.5.req-full            14.5   6.7%   0.421   0.442     39027    -76889    110368     -4121      -964  11.5
+bcgvr11.s1           tau18.5.req-full-ema        18.5  11.6%   0.528   0.404     16902    -88977    138312     -5557     -2869  11.4
+bcgvr11.s1           tau18.5.req-full            18.5  11.6%   0.528   0.410     41326    -66201    138312     -4532      1335  11.5
+bcgvr11.s1           tau0.5.req-dial              0.5  28.8%   1.939   0.418     17969    -91603    508337      5824      4482  11.2
+bcgvr11.s1           tau2.5.req-dial              2.5  20.6%   1.170   0.369     17051    -79799    306771      4932      3565  11.2
+bcgvr11.s1           tau6.5.req-dial              6.5   7.6%   0.478   0.373     16354    -81524    125363      3570      2867  11.2
+bcgvr11.s1           tau8.5.req-dial              8.5   2.3%   0.359   0.380     15694    -83824     94111      2438      2207  11.2
+bcgvr11.s1           tau10.req-dial                10   0.0%   0.335   0.372     13486    -83901     87864        -0         0  11.2
+bcgvr11.s1           tau12.5.req-dial            12.5   3.6%   0.356   0.368     13494    -83037     93399      -420         7  11.1
+bcgvr11.s1           tau14.5.req-dial            14.5   6.7%   0.421   0.380     12414    -87198    110368     -1962     -1072  11.4
+bcgvr11.s1           tau18.5.req-dial            18.5  11.6%   0.528   0.379     11663    -87618    138312     -3385     -1823  11.4
+
+Fraction of the behaviour change paid, per route: (SDL - null) / (ceiling - null).
+Then L(n) - L(n) of the same agent's full-weight learner, bits per route, and t90 (see the docstring).
+
+agent            learner             0.5     2.5     6.5     8.5    12.5    14.5    18.5
+bcgvr11.s1       requential fine-tuned    2.4%    3.9%    7.2%    3.1%    1.5%   -4.3%    2.6%
+                   L(n) - main         -       -       -       -       -       -       -
+                   t90             12288    8192   12288    flat    flat    flat    8192
+bcgvr11.s1       requential fine-tuned goal_embedding    1.1%    1.6%    7.6%   35.3%    0.1%   -4.8%   -3.6%
+                   L(n) - main         -       -       -       -       -       -       -
+                   t90             16384    8192   16384    flat    flat   12288    8192
+
+Checks (goalmisgen.retarget.diagnostics): . ok   ! warn   X fail   blank: could not run.
+
+agent                arm                                         1  2  3  4  5  6  7  8  9 10 11
+bcgvr11.s1           tau0.5.req-full-ema                            .  X  .  !  X  .  !  .  .  !
+bcgvr11.s1           tau0.5.req-full                                .  X  .  !  X  .  !  .  .  !
+bcgvr11.s1           tau2.5.req-full-ema                            .  X  .  !  X  .  !  .  .  !
+bcgvr11.s1           tau2.5.req-full                                .  X  .  !  X  .  !  .  .  !
+bcgvr11.s1           tau6.5.req-full-ema                            .  X  .  !  X  .  !  .  .  !
+bcgvr11.s1           tau6.5.req-full                                .  X  .  !  X  .  !  .  .  !
+bcgvr11.s1           tau8.5.req-full-ema                            X  X     !  X  .  !  .  .  !
+bcgvr11.s1           tau8.5.req-full                                X  X     !  X  .  !  .  .  !
+bcgvr11.s1           tau10.req-full-ema                             .  X     !  X  .  !  .  .  !
+bcgvr11.s1           tau10.req-full                                 .  X     !  X  .  !  .  .  !
+bcgvr11.s1           tau12.5.req-full-ema                           .  X     !  X  .  !  .  .  !
+bcgvr11.s1           tau12.5.req-full                               .  X     !  X  !  !  .  .  !
+bcgvr11.s1           tau14.5.req-full-ema                           X  X     !  X  .  !  .  .  !
+bcgvr11.s1           tau14.5.req-full                               X  X     !  X  .  !  .  .  !
+bcgvr11.s1           tau18.5.req-full-ema                           .  .  .  !  .  .  !  .  .  !
+bcgvr11.s1           tau18.5.req-full                               .  X  .  !  X  .  !  .  .  !
+bcgvr11.s1           tau0.5.req-dial                                .  X  .  !  X  !  !  .  .  !
+bcgvr11.s1           tau2.5.req-dial                                .  X  .  !  X  !  .  .  .  !
+bcgvr11.s1           tau6.5.req-dial                                .  X  .  !  X  !  !  .  .  !
+bcgvr11.s1           tau8.5.req-dial                                X  X     !  X  !  !  .  .  !
+bcgvr11.s1           tau10.req-dial                                 .  X     !  .  !  .  .  .  !
+bcgvr11.s1           tau12.5.req-dial                               .  X     !  .  !  .  .  .  !
+bcgvr11.s1           tau14.5.req-dial                               .  .  .  !  .  .  !  .  .  !
+bcgvr11.s1           tau18.5.req-dial                               .  .  .  !  .  !  !  .  .  !
+
+  1 competence   2 learned   3 finish   4 settled   5 drift   6 teacher learned   7 keeps up   8 teacher drift   9 overhead   10 side channel   11 resolution
+
+bcgvr11.s1 tau0.5.req-full-ema
+  FAIL  coded model reached the finish line      ends +0.113 bits/example above the finish line (0.404 vs 0.291): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.035 bits/example worse on levels the goal leaves alone (at t=40960): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.113 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.024 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0213 bits/example
+bcgvr11.s1 tau0.5.req-full
+  FAIL  coded model reached the finish line      ends +0.124 bits/example above the finish line (0.415 vs 0.291): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.190 bits/example worse on levels the goal leaves alone (at t=12288): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.145 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.118 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0216 bits/example
+bcgvr11.s1 tau2.5.req-full-ema
+  FAIL  coded model reached the finish line      ends +0.097 bits/example above the finish line (0.392 vs 0.295): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.036 bits/example worse on levels the goal leaves alone (at t=102400): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.125 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.060 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0224 bits/example
+bcgvr11.s1 tau2.5.req-full
+  FAIL  coded model reached the finish line      ends +0.157 bits/example above the finish line (0.453 vs 0.295): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.106 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.155 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.098 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0251 bits/example
+bcgvr11.s1 tau6.5.req-full-ema
+  FAIL  coded model reached the finish line      ends +0.099 bits/example above the finish line (0.412 vs 0.314): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.065 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.132 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.079 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0239 bits/example
+bcgvr11.s1 tau6.5.req-full
+  FAIL  coded model reached the finish line      ends +0.121 bits/example above the finish line (0.435 vs 0.314): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.195 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.158 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.105 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0246 bits/example
+bcgvr11.s1 tau8.5.req-full-ema
+  FAIL  coded model learned                      T loss fell only -0.057 bits/example
+  FAIL  coded model reached the finish line      ends +0.088 bits/example above the finish line (0.416 vs 0.327): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.075 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.120 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.095 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0226 bits/example
+bcgvr11.s1 tau8.5.req-full
+  FAIL  coded model learned                      T loss fell only -0.071 bits/example
+  FAIL  coded model reached the finish line      ends +0.103 bits/example above the finish line (0.430 vs 0.327): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.107 bits/example worse on levels the goal leaves alone (at t=16384): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.141 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.115 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0225 bits/example
+bcgvr11.s1 tau10.req-full-ema
+  FAIL  coded model reached the finish line      ends +0.089 bits/example above the finish line (0.424 vs 0.335): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.089 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.084 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.084 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0251 bits/example
+bcgvr11.s1 tau10.req-full
+  FAIL  coded model reached the finish line      ends +0.084 bits/example above the finish line (0.419 vs 0.335): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.084 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.108 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.108 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0240 bits/example
+bcgvr11.s1 tau12.5.req-full-ema
+  FAIL  coded model reached the finish line      ends +0.092 bits/example above the finish line (0.439 vs 0.348): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.092 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.077 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.080 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0240 bits/example
+bcgvr11.s1 tau12.5.req-full
+  FAIL  coded model reached the finish line      ends +0.119 bits/example above the finish line (0.467 vs 0.348): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.127 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.087 bits/example above the finish line
+  WARN  coded model kept up with its teacher     ends +0.032 bits/example behind the teacher
+  WARN  no teacher drift on unchanged levels     the teacher got +0.126 bits/example worse on levels the goal leaves alone (at t=163840): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0259 bits/example
+bcgvr11.s1 tau14.5.req-full-ema
+  FAIL  coded model learned                      T loss fell only -0.004 bits/example
+  FAIL  coded model reached the finish line      ends +0.063 bits/example above the finish line (0.425 vs 0.362): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.069 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.061 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.062 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0237 bits/example
+bcgvr11.s1 tau14.5.req-full
+  FAIL  coded model learned                      T loss fell only -0.021 bits/example
+  FAIL  coded model reached the finish line      ends +0.080 bits/example above the finish line (0.442 vs 0.362): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.093 bits/example worse on levels the goal leaves alone (at t=65536): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.072 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.077 bits/example worse on levels the goal leaves alone (at t=163840): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0230 bits/example
+bcgvr11.s1 tau18.5.req-full-ema
+  WARN  no drift on unchanged levels             the coded model got +0.066 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  no teacher drift on unchanged levels     the teacher got +0.078 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0223 bits/example
+bcgvr11.s1 tau18.5.req-full
+  FAIL  coded model reached the finish line      ends +0.024 bits/example above the finish line (0.410 vs 0.386): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.123 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.026 bits/example above the finish line
+  WARN  no teacher drift on unchanged levels     the teacher got +0.095 bits/example worse on levels the goal leaves alone (at t=262144): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0207 bits/example
+bcgvr11.s1 tau0.5.req-dial
+  FAIL  coded model reached the finish line      ends +0.127 bits/example above the finish line (0.418 vs 0.291): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.115 bits/example worse on levels the goal leaves alone (at t=102400): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.089 bits/example above the finish line
+  WARN  coded model kept up with its teacher     ends +0.038 bits/example behind the teacher
+  WARN  no teacher drift on unchanged levels     the teacher got +0.042 bits/example worse on levels the goal leaves alone (at t=24576): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0215 bits/example
+bcgvr11.s1 tau2.5.req-dial
+  FAIL  coded model reached the finish line      ends +0.074 bits/example above the finish line (0.369 vs 0.295): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.031 bits/example worse on levels the goal leaves alone (at t=40960): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.037 bits/example above the finish line
+  WARN  coded model kept up with its teacher     ends +0.037 bits/example behind the teacher
+  WARN  T resolves the finish line               standard error of the final T loss 0.0178 bits/example
+bcgvr11.s1 tau6.5.req-dial
+  FAIL  coded model reached the finish line      ends +0.060 bits/example above the finish line (0.373 vs 0.314): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.125 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.036 bits/example above the finish line
+  WARN  coded model kept up with its teacher     ends +0.024 bits/example behind the teacher
+  WARN  no teacher drift on unchanged levels     the teacher got +0.046 bits/example worse on levels the goal leaves alone (at t=4096): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0182 bits/example
+bcgvr11.s1 tau8.5.req-dial
+  FAIL  coded model learned                      T loss fell only -0.021 bits/example
+  FAIL  coded model reached the finish line      ends +0.052 bits/example above the finish line (0.380 vs 0.327): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.085 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  FAIL  teacher reached the finish line          teacher ends +0.022 bits/example above the finish line
+  WARN  coded model kept up with its teacher     ends +0.030 bits/example behind the teacher
+  WARN  no teacher drift on unchanged levels     the teacher got +0.028 bits/example worse on levels the goal leaves alone (at t=4096): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0184 bits/example
+bcgvr11.s1 tau10.req-dial
+  FAIL  coded model reached the finish line      ends +0.036 bits/example above the finish line (0.372 vs 0.335): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.052 bits/example worse on levels the goal leaves alone (at t=16384): the cost includes repairing damage
+  WARN  coded model kept up with its teacher     ends +0.030 bits/example behind the teacher
+  WARN  T resolves the finish line               standard error of the final T loss 0.0177 bits/example
+bcgvr11.s1 tau12.5.req-dial
+  FAIL  coded model reached the finish line      ends +0.021 bits/example above the finish line (0.368 vs 0.348): the cost is a lower bound
+  WARN  no drift on unchanged levels             the coded model got +0.042 bits/example worse on levels the goal leaves alone (at t=12288): the cost includes repairing damage
+  WARN  coded model kept up with its teacher     ends +0.022 bits/example behind the teacher
+  WARN  T resolves the finish line               standard error of the final T loss 0.0165 bits/example
+bcgvr11.s1 tau14.5.req-dial
+  WARN  no drift on unchanged levels             the coded model got +0.095 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  WARN  no teacher drift on unchanged levels     the teacher got +0.038 bits/example worse on levels the goal leaves alone (at t=4096): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0173 bits/example
+bcgvr11.s1 tau18.5.req-dial
+  WARN  no drift on unchanged levels             the coded model got +0.084 bits/example worse on levels the goal leaves alone (at t=8192): the cost includes repairing damage
+  WARN  coded model kept up with its teacher     ends +0.040 bits/example behind the teacher
+  WARN  no teacher drift on unchanged levels     the teacher got +0.052 bits/example worse on levels the goal leaves alone (at t=4096): the cost includes repairing damage
+  WARN  T resolves the finish line               standard error of the final T loss 0.0176 bits/example
+
+Study checks: 3 of 3 ok
