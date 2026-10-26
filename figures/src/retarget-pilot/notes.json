@@ -1,0 +1,65 @@
+{
+ "intro": [
+  "The retargeting cost from the EDL spec (§1–3), in its simplest form, on route models. For each agent and each new goal (the expert at exchange rate τ; the agent's own goal is τ = 10), the expert's routes on 16,384 fresh mazes are encoded block by block. Before each block the agent is fine-tuned from scratch on everything before it, with early stopping on a fixed validation set. The total code length (SDL) counts the bits it takes to move the agent onto the new goal. Mazes are perfect, so the expert is deterministic and L* = 0."
+ ],
+ "takeaways": [
+  "<b>The measurement is precise.</b> Re-running one arm with a different data order, learner seed, validation-set size or learning rate, or on another trained base, moves its cost by −5% to +9%. Across the sweep the cost spans more than an order of magnitude (0.35k to 5.3k bits). Data order is the largest source of noise.",
+  "<b>The positive control passes.</b> An agent built with a goal vector (one learned vector per training τ, the only way it can tell goals apart) really has a dial: swapping vectors sets its exchange rate. When the learner may move only that vector, one demonstration takes it most of the way and four take it all the way. Against the same agent with its dial preset by an oracle, its extra cost peaks at 1–65 bits across the eight goals, close to the theoretical floor of about 3. The metric does see a dial when one exists.",
+  "<b>The learner bcnv11 shows no cheap dial.</b> Its cost grows with the size of the behaviour change: about a fifth of what an agent that learned nothing would pay for the largest changes, and close to all of it for the smallest. It stays two to three orders of magnitude above a perfect dial (about 3 bits). This is in tension with the value-axis results (Experiment 2), where a one-dimensional weight direction moves the same agent's threshold. Worth discussing.",
+  "<b>Even with a dial present, full-weight SGD is slow to use it.</b> Retargeting the goal-vector agent with an unrestricted learner takes 2–4 thousand demonstrations to reach the dial's level rather than 4, and its excess over the oracle peaks at up to 461 bits rather than 65. So the metric's answer depends on the learner as well as the agent, and that dependence is now measured.",
+  "<b>Two flaws in the metric, both found by running it.</b> (1) It only applies to agents that are competent on the new mazes: the memoriser scores about 100 bits per route before retargeting, so its cost is mostly relearning navigation. (2) Subtracting the null arm is biased by which routes each arm contains (route length, and which objective they go to). That is about ±0.6k bits for bcnv11, which is tolerable, and about ±2.5k for the less competent goal-vector agent, which is not. The cleaner reference, where one exists, is the agent's own best dial setting."
+ ],
+ "headline": [
+  "Each point is one exchange rate. The x-axis is how far that goal moves the expert's behaviour from the agent's: the bits the unchanged agent would pay on the new routes, less what it pays on its own. The y-axis is what retargeting cost, less the same agent's null arm. An agent that learned nothing sits on the dashed diagonal; an agent with a perfect dial sits on the dotted floor. The learner (three trained seeds) rises with the change, about a factor of 4–5 below the diagonal for the largest changes and close to it for the smallest, where only 2–4% of mazes change their choice. Grey bars span the two ways of subtracting the null arm (per route and per token), which brackets the composition bias in flaw (2)."
+ ],
+ "all-agents": [
+  "Each panel is one new goal. Each curve is an agent's test loss as demonstrations arrive, minus that agent's reference level (dashed line at 0). For the learner bcnv11 the reference is its own null arm at the same n. For the goal-vector agent it is its oracle dial, shifted down by whatever general navigation skill that learner's null arm has picked up by n (about 0.2 bits per route for all weights by 16k, almost nothing for the dial alone). Without that shift, the all-weights curves dive below zero at the end, but that is the agent getting better at mazes, not at the new goal. The area between a curve and zero is, roughly, its retargeting cost. The y-axes differ between panels because the size of the change differs.",
+  "<b>Speed.</b> With the dial alone, the goal-vector agent is at its reference within 4–8 demonstrations at every goal. With all weights, the same agent takes about 500 (τ 6.5) to 2–4 thousand (τ 0.5, 2.5, 18.5). The learner's curves have the same shape as that, but run later and are still above zero at 16k. For the small changes (τ 8.5, 12.5, 14.5, where 2–7% of mazes switch) they hardly move at all: early stopping keeps the base, because a 2% change barely shows on the validation set. The learner's two other seeds (dotted) agree.",
+  "The memoriser (last panel) has no usable reference: every arm, its null included, starts near 100 bits per route and falls together as it learns to navigate at all. That is flaw (1), the competence gate."
+ ],
+ "metric": [
+  "The final number for each agent and goal: description length (SDL) at n = 16k, less the reference. It is the running total of figure 2's curves, summed over the training stream D, not over optimiser steps. The dot is the spec's version: less the null arm's SDL, per route. The bar runs to the per-token subtraction. The two disagree because the arms' routes differ in length and destination from the null arm's (flaw 2), so the truth is somewhere along the bar, roughly. The diamond, where an oracle dial exists, is the version without that bias: the arm's excess over its oracle, less the null arm's excess over its own.",
+  "<b>Reading.</b> The learner bcnv11 costs 0.35k–6k bits, rising with the size of the change, and its three seeds agree to within a few hundred bits. The goal-vector agent sits around zero under both learners, but only within a band of ±3k that is all bias: at about 1 bit per route of its own error, the null subtraction cannot resolve it. The oracle-based diamonds narrow that to ±0.7k. Those that land below zero are where the learner beat the oracle's coarse grid of 49 settings, most at τ 0.5, which lies outside the 1–19 the vectors were trained on. The new agent being trained on 900k mazes (RC.11) is meant to shrink the bars."
+ ],
+ "close-up": [
+  "One goal (τ = 2.5, about a fifth of the mazes change their choice), test-set loss as demonstrations arrive. Left: the learner starts at 1.34 bits per route and is still well above its own null arm (dashed) after 16k demonstrations. Middle: the goal-vector agent with the same full-weight learner reaches its oracle dial level (dotted) after 2–4 thousand. Right: the same agent with the learner restricted to its goal vector, which gets there in 4. The number under each panel is the total cost against that agent's proper reference: the null arm for the learner, and the best dial setting for the goal-vector agent, which avoids flaw (2). Both goal-vector totals are negative because by n = 16k each learner has tuned past the oracle's 49 discrete settings; the cost of finding the dial is the peak of the running excess before that, shown in A7: 60 bits (dial only) and 461 bits (all weights) at this τ."
+ ],
+ "noise": [
+  "Learner, τ = 2.5: the cost (SDL less the null arm under the same setting) when one stage of the pipeline is changed at a time, and on two other trained bases. Everything lands between −5% and +9% of the reference (3.76k bits), against costs from 0.35k to 5.3k across the sweep. The goal-vector agent at the same τ is drawn for scale."
+ ],
+ "appendix": [
+  "Controls and exploration. Nothing here changes the core reading, but each item either backs a sentence above or records something that went wrong."
+ ],
+ "curves-learner": [
+  "Every exchange rate for the learner. The null arm (ink) stays flat: early stopping keeps the base at almost every block, as it should. Goals further from τ = 10 start higher and fall further, but none is near its null level by 16k."
+ ],
+ "curves-goalvec": [
+  "The goal-vector agent with the full-weight learner. Every arm, the null included, falls by about 0.2 bits per route. That is general competence being learned (this agent is less competent on fresh mazes than bcnv11: 93% reach against 98%), and it is what makes null-arm subtraction unreliable for it."
+ ],
+ "curves-dial": [
+  "The goal-vector agent with the dial-only learner (lr 3e-3, 128 trainable numbers). Each arm drops to its plateau within a few demonstrations, then barely moves, because the rest of the network is frozen. The occasional jump back up at t = 2 is early stopping keeping the base when two demonstrations do not beat it on V. It is a small fragility of tiny blocks. Against the oracle the dial-only learner comes out 230–910 bits ahead at every τ, including its own goal (−316 at τ = 10), because tuning the vector continuously beats the 49 discrete candidates. That margin is the oracle's resolution."
+ ],
+ "curves-memoriser": [
+  "The memoriser (the bcnv11 recipe on 1k mazes) starts at 92–116 bits per route on fresh mazes, whatever the goal: it cannot navigate them. Its fits hit the 2,000-step cap at large t, so these numbers are budget-limited too. It fails the competence condition, and its null-arm differences (negative for τ below 10, since it already prefers the nearer objective) are not interpretable."
+ ],
+ "sweep": [
+  "Total SDL against τ for every agent. The memoriser is about 20 times more expensive than everything else and nearly flat in τ: its bits are navigation, not goal."
+ ],
+ "split": [
+  "Where each agent's SDL goes: levels whose choice the goal flips (coloured) against levels it leaves alone (grey). For the learner the unchanged levels carry most of the total at every τ; that is the null arm's residual error, which subtraction is meant to remove."
+ ],
+ "convergence": [
+  "Cumulative cost as n grows, against each agent's proper reference: the learner against its null arm, and the goal-vector agent against its oracle dial on the same stream. The learner is still rising at n = 16k (the spec's plateau is not reached at this n). The goal-vector agent's dial-only excess peaks at 1–65 bits and then turns negative, as finer tuning beats the discrete oracle. The full-weight excess peaks at 8–461 bits and then turns down too, as it learns general competence the oracle does not have."
+ ],
+ "steps": [
+  "The step early stopping chose in each fit. Fits stay short (tens to a few hundred steps) because a fresh Adam drifts a converged base, so held-out loss turns up quickly. The arms' 1e-4 rate made this much worse: it raised the loss on unchanged levels from 0.27 to 0.48 bits per route at t = 256, which is why the pilot uses 3e-5 (chosen on τ = 4.5, which no arm uses)."
+ ],
+ "method": [
+  "<b>Pool.</b> 30,000 levels: bcnv11's test split minus the arm pool's training split, so held out from every base here (THREADS IN.2). Levels tied at τ = 10 are dropped for every arm. One fixed shuffle gives T (2,048), D (16,384) and V (1,024), the same for every agent and arm.",
+  "<b>Goals.</b> τ ∈ {0.5, 2.5, 6.5, 8.5, 12.5, 14.5, 18.5}, half-integers so that no level ties, plus the null arm τ = 10. Values (1.0, 1 − 0.05τ), colours unchanged, so below parity throughout.",
+  "<b>Code.</b> Blocks double from t = 1. Before each block the agent is refit from its base on everything before it: AdamW (batch 256, weight decay 0.01, clip 1.0, 20 warmup steps), lr 3e-5, validated at log-spaced steps, patience 6, at most 2,000 steps, with the base itself as a candidate. Bits are −log₂ p of every move and the EOS token.",
+  "<b>Agents.</b> bcnv11.s1–s3 (the published route models); bcov11.n1k.s1 (the memoriser); bcgv11.s1, trained tonight: the bcnv11 recipe on the o1 arm sweep's 25 demonstration sets at once (τ 1–19), with a learned 128-d vector per set added at the SEP token. Its own goal is τ = 10 and none of the arms' rates is one of its training rates.",
+  "<b>The oracle dial.</b> For each goal, the best of the goal-vector agent's 25 trained vectors and 24 midpoints by loss on V, scored on the same D. Choosing among 49 is worth about 6 bits, once.",
+  "<b>Dropped mid-run.</b> The memoriser's noise grid and a from-scratch anchor, once both turned out to fail the competence condition. EDL is reported in the table but not used: n × the test set's sampling error (±0.02 bits per route) is about ±330 bits, and it came out negative on 5 of the learner's 8 arms."
+ ]
+}

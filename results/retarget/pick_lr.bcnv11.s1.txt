@@ -1,0 +1,18 @@
+script pick_lr.py
+commit unknown
+argv   /workspace/data/offline/runs/bcnv11.s1 --pool /workspace/data/offline/demos/retarget/pool.rho100 --lr 3e-6 1e-5 3e-5 1e-4
+tau 4.5: 16.1% of V flipped; base scores 0.885 bits/route (4.08 flipped, 0.271 unflipped)
+
+      lr      t  best step  stopped       V  flipped  unflipped
+   3e-06     16         24       91   0.869     3.92      0.282
+   3e-06    256         73      278   0.606     2.12      0.314
+   3e-06   4096        278     1059   0.491     1.33      0.329
+   1e-05     16         12       47   0.871     3.95      0.279
+   1e-05    256         37      142   0.585     1.82      0.348
+   1e-05   4096        142      542   0.486     1.31      0.327
+   3e-05     16          8       30   0.871     3.93      0.284
+   3e-05    256         19       73   0.587     1.52      0.409
+   3e-05   4096         58      222   0.482     1.19      0.346
+   1e-04     16          5       19   0.874     3.91      0.290
+   1e-04    256         12       47   0.617     1.33      0.480
+   1e-04   4096         58      222   0.505     1.27      0.359

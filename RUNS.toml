@@ -530,6 +530,59 @@ stands in the results is the relaunch with the input rescaled by 255.
 """
 
 [[entry]]
+match = "offline/demos/retarget/goals-random.s*"
+note = """
+Training data for `bcgvr11`, the retargeting study's positive control on as
+many mazes as bcnv11 (THREADS.md RC.11). Every level of
+`offline/demos/train.rho100` (bcnv11's 900k) is re-demonstrated at ONE of the
+25 value pairs of the o1 sweep (tau 1-19), drawn uniformly at random with the
+seed in the name, so the 25 sets are disjoint (~36k levels each) and named like
+`offline/demos/arms/1.00-*.train.rho100`, whose values they copy: a sorted
+listing gives bcgv11.s1's goal order. Disjoint from the retargeting pool
+(checked at build). `scripts/data/make_goal_split.py`, from
+`scripts/pods/goal_vector_random.sh`. `BUILT` marks a finished build.
+"""
+
+[[entry]]
+match = "offline/runs/bcgvr11.s*"
+note = """
+The retargeting study's positive control, retrained so that the only change
+from bcnv11 is the goal vector (THREADS.md RC.11). bcgv11.s1 saw the o1 sweep's
+50k mazes at all 25 rates and navigated fresh mazes badly (1.03 bits per route
+against bcnv11's 0.33), so its null arm kept improving. This is the same
+recipe (hidden values, 30k steps, batch 256, a goal vector per rate at SEP,
+base goal tau 10) on `offline/demos/retarget/goals-random.s0`: bcnv11's 900k
+mazes, one random rate each. `scripts/pods/goal_vector_random.sh`.
+"""
+
+[[entry]]
+match = "offline/subspaces/*"
+note = """
+Direction sets for the subspace retargeting learner (THREADS.md RC.12), one
+directory per base: each `<name>.npz` is a `goalmisgen.offline.retarget.Subspace`
+(orthonormal rows over the flat parameter vector) built from the base's o1@1k
+value-axis arms by `scripts/studies/retarget/make_subspace.py`. `axis` is the
+Experiment 2 axis as published (027's fit_axis_and_drift slope over the 24
+non-null arms); `axis-heldout/tau<tau>.npz` refits it without the arms whose
+own rate is within 2 of tau; `axis-drift` adds the fit's intercept; `pca<k>` are
+the top k principal directions of the centred arm diffs; `random<k>` are iid
+Gaussian controls (seed 0). Read by `retarget_cost.py --subspace` and
+`oracle_subspace.py`.
+"""
+
+[[entry]]
+match = "offline/runs/bcgvm11.s*"
+note = """
+The retargeting study's "factorised but memorised" control (THREADS.md RC.13):
+the bcgv11 recipe (hidden values, 30k steps, batch 256, a learned goal vector
+per rate at SEP, base goal tau 10, the o1 sweep's 25 goal sets with the same
+levels in each) on only the first 1k mazes of each set
+(`offline/demos/overfit/1.00-*.n1k.train.rho100`), as the memoriser
+bcov11.n1k.s1 saw 1k. It has a goal slot by construction and no navigation
+beyond its 1k mazes. `N=1k scripts/pods/goal_vector_base.sh`.
+"""
+
+[[entry]]
 match = "offline/demos/arms/*"
 note = """
 Demonstrations for the offline value-axis arms: the solver's optimal route at
@@ -563,7 +616,10 @@ note = """
 The training sets of the overfitting study: the first N demonstrations of each
 `offline/demos/arms/<values>.train.rho100`, N in the name. One per values tag of
 the o0 sweep, so a base and all 25 of its arms train on *the same* N levels and
-differ only in what the objectives are worth. The slices are prefixes, so a
+differ only in what the objectives are worth. The o1 tags at n1k
+(`1.00-*.n1k.train.rho100`) were added for the memorised goal-vector control
+bcgvm11 (`N=1k scripts/pods/goal_vector_base.sh`, checked level for level
+against the null tag's slice). The slices are prefixes, so a
 rung at 1k is nested inside one at 10k and a difference between rungs is the
 amount of data rather than which data; `make_demo_subset.py --check` asserts
 that the tags agree level for level.

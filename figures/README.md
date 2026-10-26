@@ -41,6 +41,7 @@ Builders run with plain `python3` and every fragment rebuilds byte-identically.
 | `basin` | `scripts/measure/basin_map.py`, injected into `src/basin/template.html` |
 | `task-planning` | `scripts/measure/plan_heatmap.py`, `scripts/measure/bc_plan_heatmap.py` |
 | `hierarchy` | none: `src/hierarchy/gen.py` draws a fixed diagram |
+| `retarget-pilot` (a standalone report page, not a blog fragment) | `scripts/studies/retarget/retarget_report.py --data`; prose in `src/retarget-pilot/notes.json` |
 | `model-table` | typeset by hand from `results/plan-probe/probe-plan-*` |
 
 **The two parsers in `src/value-axis/`** both assemble per-architecture,

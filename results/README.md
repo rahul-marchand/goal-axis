@@ -634,6 +634,29 @@ value at 1k, 3k, 10k and 900k levels). Behaviour here is read on
 `test.rho100` minus the arms' training split, because the two pools' level
 splits do not agree (`THREADS.md` IN.2). `docs/Experiment3.md` §6.
 
+## `retarget/`: retargeting cost, the metric's first pilot
+
+The owner's EDL spec run in its simplest form on route models (`THREADS.md`
+RC.1-RC.5). For each base and exchange rate τ, `retarget_cost.py` encodes
+16,384 expert routes in doubling blocks, refitting from the base before each
+block with early stopping on a fixed V. It writes the per-route bits and the
+learning curve on T as JSON on the volume (`offline/results/retarget/`).
+`pilot.txt` is `retarget_report.py`'s summary of every run. `pick_lr.*` is the
+learning-rate choice, made on τ = 4.5, which no arm uses.
+`goal_vector_check.*` decodes the positive control `bcgv11.s1` at each of its
+goal vectors and their midpoints, to confirm it has its dial (RC.6).
+`oracle_dial.*` is that agent's best dial setting for each arm, the reference
+its costs are read against (RC.9). The report is
+https://claude.ai/artifact/WZkGyjxZG4V2FtHyq6CY3Q, built by
+`figures/src/retarget-pilot/build_fig.py`. The pool is
+`test.rho100` minus the arm pool's training split, so it is held out from both
+`bcnv11` and the memoriser (IN.2). Levels tied at τ = 10 are dropped for every
+arm, so the expert is deterministic and SDL = MDL.
+`*.bcgvr11.s1.*` are the same checks on `bcgvr11.s1`, the positive control
+retrained on bcnv11's 900k mazes with one random goal each, so that its base is
+as competent as bcnv11's (RC.11); its runs are also in `pilot.txt` and the
+report's `data.json` (rows for the earlier agents unchanged).
+
 ## `craftax/`: Craftax (`value_axis.cx*`, `value_or_gap.cx*`, `price.*`, `diagnose.*`)
 
 `027`/`028` on the Craftax route models, the price probe

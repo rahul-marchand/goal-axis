@@ -1,0 +1,11 @@
+script oracle_dial.py
+commit unknown
+argv   /workspace/data/offline/runs/bcgv11.s1 --pool /workspace/data/offline/demos/retarget/pool.rho100 --out /workspace/data/offline/results/retarget/oracle/bcgv11.s1
+tau   0.5: oracle tau 1.4          V 1.120  T 1.114  D total 18,292 bits
+tau   2.5: oracle mid 1.8..2       V 0.990  T 0.969  D total 16,048 bits
+tau   6.5: oracle tau 6            V 1.136  T 1.051  D total 16,699 bits
+tau   8.5: oracle mid 6..8         V 1.095  T 1.076  D total 17,076 bits
+tau    10: oracle mid 8..9         V 1.138  T 1.033  D total 17,108 bits
+tau  12.5: oracle tau 11           V 1.130  T 1.046  D total 17,273 bits
+tau  14.5: oracle mid 11..12       V 1.178  T 1.056  D total 17,551 bits
+tau  18.5: oracle tau 17.8         V 1.132  T 1.045  D total 17,066 bits
