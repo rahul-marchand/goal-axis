@@ -34,13 +34,36 @@ from goalmisgen import provenance
 from goalmisgen.offline.decode import evaluate
 from goalmisgen.offline.demonstrations import load_demonstrations
 from goalmisgen.offline.demos import shared_levels
+from goalmisgen.offline.goals import GoalMixture
+from goalmisgen.offline.mixture import MixedDemoSet
 from goalmisgen.offline.model import ModelConfig, RoutePrefixLM
 from goalmisgen.offline.train import TrainConfig, load_run_config, train
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--demos", type=Path, required=True, help="Training demonstrations.")
+    parser.add_argument("--demos", type=Path, default=None, help="Training demonstrations (or give --goal-demos).")
+    parser.add_argument(
+        "--goal-demos",
+        type=Path,
+        nargs="*",
+        default=[],
+        help="One demonstration set per goal, on one level pool at different values: trains a model with "
+        "a learned goal vector per set (ModelConfig.n_goals), each demonstration tagged with its set.",
+    )
+    parser.add_argument(
+        "--base-tau",
+        type=float,
+        default=10.0,
+        help="With --goal-demos: the exchange rate whose goal vector is the model's own (base_goal).",
+    )
+    parser.add_argument(
+        "--goal-levels",
+        choices=("same", "disjoint"),
+        default="same",
+        help="With --goal-demos: whether the sets hold the same levels at different values (the o1 "
+        "sweep's sets) or split one pool between them, one goal per level (GoalMixture.load).",
+    )
     parser.add_argument(
         "--eval",
         type=str,
@@ -109,15 +132,29 @@ def main() -> None:
         source = load_run_config(args.init_from.parent.parent)
         hide_values = bool(source["demos"].get("hide_values", False))
         model_config = ModelConfig.from_dict(source["model"])
-    demos = load_demonstrations(args.demos, hide_values=hide_values)
+    goal_mixture = None
+    if args.goal_demos:
+        if args.demos is not None or args.init_from is not None or args.extra_demos:
+            raise SystemExit(
+                "--goal-demos trains a fresh goal-vector model on its own sets; drop --demos/--init-from/--extra-demos"
+            )
+        goal_mixture = GoalMixture.load(args.goal_demos, hide_values=hide_values, levels=args.goal_levels)
+        matches = [k for k, tau in enumerate(goal_mixture.taus) if abs(tau - args.base_tau) < 1e-6]
+        if not matches:
+            raise SystemExit(f"no goal set has exchange rate {args.base_tau}; rates are {goal_mixture.taus}")
+        demos = goal_mixture.parts[matches[0]]
+    elif args.demos is None:
+        raise SystemExit("give --demos or --goal-demos")
+    else:
+        demos = load_demonstrations(args.demos, hide_values=hide_values)
     # A receding-horizon task trains on every state along its routes; evaluation
     # sets stay whole so they decode closed-loop from the start of each episode.
     train_set = (
         demos.suffixes(args.after_pickaxe_weight) if getattr(getattr(demos, "task", None), "receding", False) else demos
     )
+    if goal_mixture is not None:
+        train_set = goal_mixture
     if args.extra_demos:
-        from goalmisgen.craftax.dagger import MixedDemoSet
-
         extras = [load_demonstrations(path, hide_values=hide_values) for path in args.extra_demos]
         if args.extra_fraction is None:
             train_set = MixedDemoSet((train_set, *extras))
@@ -133,6 +170,8 @@ def main() -> None:
             d_model=args.d_model,
             n_layers=args.layers,
             n_heads=args.heads,
+            n_goals=0 if goal_mixture is None else len(goal_mixture.parts),
+            base_goal=0 if goal_mixture is None else matches[0],
         )
     elif model_config.n_channels != demos.n_channels:
         raise SystemExit(
@@ -160,8 +199,10 @@ def main() -> None:
         if not path:
             raise SystemExit(f"--eval expects name=path, got {item!r}")
         held_out[name] = load_demonstrations(path, hide_values=hide_values)
+    # Every goal set is training data; with disjoint sets the base goal's is only a part of it.
+    trained_on = goal_mixture.parts if goal_mixture is not None else (demos,)
     for name, other in held_out.items():
-        shared = shared_levels(demos, other)
+        shared = sum(shared_levels(part, other) for part in trained_on)
         if shared:
             raise SystemExit(f"evaluation set {name} shares {shared} levels with the training set")
     indices = np.arange(min(args.eval_levels, *(len(d) for d in held_out.values()))) if held_out else None
@@ -170,8 +211,10 @@ def main() -> None:
     if args.note:
         (args.out / "note.txt").write_text(args.note.strip() + "\n")
     print(
-        f"training on {args.demos} (rho={demos.rho}, {len(demos):,} demonstrations, values {'hidden' if hide_values else 'shown'})"
+        f"training on {args.demos or 'goal mixture'} (rho={demos.rho}, {len(train_set):,} demonstrations, values {'hidden' if hide_values else 'shown'})"
     )
+    if goal_mixture is not None:
+        print(f"goals: tau {', '.join(f'{t:g}' for t in goal_mixture.taus)}; base goal {matches[0]} (tau {args.base_tau:g})")
     if args.init_from is not None:
         print(f"fine-tuning from {args.init_from}")
     print(f"model {model_config}")

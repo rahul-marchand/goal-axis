@@ -192,14 +192,26 @@ class _Csv:
             csv.DictWriter(handle, fieldnames=self._columns, extrasaction="ignore").writerow(row)
 
 
-def batches(demos: DemoSet, batch_size: int, rng: np.random.Generator) -> Iterable[tuple[np.ndarray, np.ndarray, np.ndarray]]:
-    """Shuffled epochs of ``(observations, actions, lengths)``, forever."""
+def batches(
+    demos: DemoSet, batch_size: int, rng: np.random.Generator
+) -> Iterable[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray | None]]:
+    """Shuffled epochs of ``(observations, actions, lengths, goals)``, forever.
+
+    ``goals`` is ``None`` unless the set tags each demonstration with a goal
+    (:class:`~goalmisgen.offline.goals.GoalMixture`).
+    """
     n = len(demos)
+    tagged = hasattr(demos, "goal_ids")
     while True:
         order = rng.permutation(n)
         for start in range(0, n - batch_size + 1, batch_size):
             index = np.sort(order[start : start + batch_size])  # sorted: memory-mapped reads stay sequential
-            yield demos.observations(index), demos.routes(index), np.asarray(demos.lengths[index], dtype=np.int32)
+            yield (
+                demos.observations(index),
+                demos.routes(index),
+                np.asarray(demos.lengths[index], dtype=np.int32),
+                demos.goal_ids(index) if tagged else None,
+            )
 
 
 Evaluator = Callable[[dict, int], dict[str, float]]
@@ -278,11 +290,11 @@ def train(
     eos = model_config.eos
 
     @jax.jit
-    def train_step(state, observations, actions, lengths):
+    def train_step(state, observations, actions, lengths, goals):
         targets = targets_from_routes(actions, lengths, eos)
 
         def loss_fn(p):
-            logits, _ = state.apply_fn(p, observations, actions)
+            logits, _ = state.apply_fn(p, observations, actions, goals=goals)
             return cross_entropy(logits, targets), token_accuracy(logits, targets)
 
         (loss, accuracy), grads = jax.value_and_grad(loss_fn, has_aux=True)(state.params)
@@ -315,8 +327,14 @@ def train(
         if step == train_config.total_steps:
             break
 
-        observations, actions, lengths = next(stream)
-        state, loss, accuracy = train_step(state, jnp.asarray(observations), jnp.asarray(actions), jnp.asarray(lengths))
+        observations, actions, lengths, goals = next(stream)
+        state, loss, accuracy = train_step(
+            state,
+            jnp.asarray(observations),
+            jnp.asarray(actions),
+            jnp.asarray(lengths),
+            None if goals is None else jnp.asarray(goals),
+        )
         recent_loss += float(loss)
         recent_accuracy += float(accuracy)
         recent_count += 1

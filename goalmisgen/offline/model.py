@@ -48,9 +48,25 @@ class ModelConfig:
     n_heads: int = 4
     mlp_ratio: int = 4
 
+    n_goals: int = 0
+    """Learned goal vectors, one per goal the model is trained on; 0 for none.
+
+    A goal vector is added to the SEP token, so it is the one place goal
+    information can enter: trained on demonstrations of several goals with the
+    values hidden, the model can only tell them apart through it. That makes it
+    a dial the network is built to have (the retargeting study's positive
+    control). Added at SEP rather than as a token of its own so that sequence
+    positions, and every probe and decoder that indexes them, are unchanged.
+    """
+
+    base_goal: int = 0
+    """The goal vector used when a caller passes no goal ids: the model's own goal."""
+
     def __post_init__(self) -> None:
         if self.d_model % self.n_heads:
             raise ValueError(f"d_model={self.d_model} is not divisible by n_heads={self.n_heads}")
+        if self.n_goals and not 0 <= self.base_goal < self.n_goals:
+            raise ValueError(f"base_goal {self.base_goal} is not one of {self.n_goals} goals")
 
     @property
     def n_cells(self) -> int:
@@ -85,7 +101,8 @@ class ModelConfig:
 
     @classmethod
     def from_dict(cls, data: dict) -> "ModelConfig":
-        return cls(**{field.name: data[field.name] for field in dataclasses.fields(cls)})
+        """Absent keys take the field default, which reproduces every run written before the field existed."""
+        return cls(**{field.name: data[field.name] for field in dataclasses.fields(cls) if field.name in data})
 
 
 def prefix_mask(prefix_length: int, sequence_length: int) -> np.ndarray:
@@ -218,6 +235,8 @@ class RoutePrefixLM(nn.Module):
         actions: jnp.ndarray,
         edit: jnp.ndarray | None = None,
         edit_depth: int = 0,
+        *,
+        goals: jnp.ndarray | None = None,
     ) -> tuple[jnp.ndarray, list[jnp.ndarray]]:
         """
         ``observations``: ``(B, size, size, n_channels)`` float.
@@ -246,6 +265,10 @@ class RoutePrefixLM(nn.Module):
         ``n_layers + 1`` arrays of shape ``(B, L, d_model)``: the embedding and
         the stream after each block. Slice ``[:, :n_cells]`` for the per-cell
         grid the probes read.
+
+        ``goals``: ``(B,)`` int, which goal vector each example uses, for a model
+        with ``n_goals``; omitted, every example uses ``base_goal``. A model
+        without goal vectors refuses them rather than ignoring them.
         """
         cfg = self.config
         batch = observations.shape[0]
@@ -260,6 +283,12 @@ class RoutePrefixLM(nn.Module):
         x_cells = nn.Dense(width, name="cell_in")(cells) + row_embedding[rows] + col_embedding[cols]
 
         sep = jnp.broadcast_to(self.param("sep", small, (1, 1, width)), (batch, 1, width))
+        if cfg.n_goals:
+            table = self.param("goal_embedding", small, (cfg.n_goals, width))
+            ids = jnp.full((batch,), cfg.base_goal, dtype=jnp.int32) if goals is None else goals
+            sep = sep + table[ids][:, None, :]
+        elif goals is not None:
+            raise ValueError("goal ids given to a model with no goal vectors")
 
         tokens = jnp.where(actions >= 0, actions, cfg.pad)
         action_embedding = nn.Embed(cfg.n_actions + 2, width, embedding_init=small, name="action_embedding")

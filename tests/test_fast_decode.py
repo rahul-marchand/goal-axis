@@ -110,3 +110,18 @@ def test_narrow_dtype_is_refused(model_and_params):
     cfg = ModelConfig(size=7, n_channels=4, n_layers=3, d_model=32, n_heads=4, max_actions=12)
     with pytest.raises(ValueError, match="float32 only"):
         fast_decode.greedy_decode_cached(RoutePrefixLM(cfg, dtype=jnp.bfloat16), params, observations(cfg, 2))
+
+
+def test_cached_decode_reads_the_goal_vector():
+    """The manual prefix must add the base goal's vector, or a goal-vector model decodes as goalless."""
+    cfg = ModelConfig(size=7, n_channels=4, n_layers=2, d_model=32, n_heads=4, max_actions=12, n_goals=3, base_goal=2)
+    model = RoutePrefixLM(cfg)
+    rng = jax.random.PRNGKey(1)
+    params = model.init(rng, jnp.zeros((1, cfg.size, cfg.size, cfg.n_channels)), jnp.zeros((1, cfg.max_actions), jnp.int32))
+    leaves, treedef = jax.tree_util.tree_flatten(params)
+    keys = jax.random.split(rng, len(leaves))
+    params = jax.tree_util.tree_unflatten(treedef, [jax.random.normal(k, leaf.shape) * 0.5 for k, leaf in zip(keys, leaves)])
+    obs = observations(cfg, 16, seed=3)
+    np.testing.assert_array_equal(
+        fast_decode.greedy_decode_cached(model, params, obs).actions, greedy_decode(model, params, obs).actions
+    )

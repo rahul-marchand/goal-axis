@@ -101,6 +101,8 @@ def _embed_prefix(params, cfg: ModelConfig, observations):
     cols = jnp.arange(cfg.n_cells) % cfg.size
     x = _dense(cells, params["cell_in"]) + params["row_embedding"][rows] + params["col_embedding"][cols]
     sep = jnp.broadcast_to(params["sep"], (batch, 1, cfg.d_model))
+    if cfg.n_goals:  # the base goal's vector, as model.apply adds when given no goal ids
+        sep = sep + params["goal_embedding"][cfg.base_goal][None, None, :]
     return jnp.concatenate([x, sep], axis=1)
 
 
