@@ -7,7 +7,7 @@ Blog post: https://rahulmarchand.com/posts/decision-threshold/
 **Frozen 2026-10-26 (tag `frozen-2026-10-26`).** No new work happens in this
 repo. Threads still marked `open` stay open as a record of what was not
 answered here; none will be pursued in this repo. The retargeting-cost threads
-(RC.*) continue in the goalbits repository (link to follow), which starts
+(RC.*) continue in [goalbits](https://github.com/rahul-marchand/goalbits) (private for now), which starts
 from a fresh design and re-runs the pilot on clean splits. The corrections
 found by the 2026-10-26 audits are recorded in the threads they affect (G.2,
 E2.4, IN.2, IN.6–IN.8, UR.10, RC.1, RC.8, RC.11, RC.13, RC.14).

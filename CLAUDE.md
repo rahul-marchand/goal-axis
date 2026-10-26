@@ -3,7 +3,7 @@
 **This repo is frozen (2026-10-26, tag `frozen-2026-10-26`).** It is the
 record of the mechanistic-interpretability work behind
 https://rahulmarchand.com/posts/decision-threshold/. The project continues in
-the goalbits repository. Here, only fix bugs that affect a recorded result,
+https://github.com/rahul-marchand/goalbits. Here, only fix bugs that affect a recorded result,
 and note each one in `THREADS.md`. No refactoring, no new studies. The
 description below is of the repo as it stood at the freeze.
 
@@ -14,7 +14,7 @@ structure in the weights implements that, how well it can be understood, and
 whether it can be used to make AI-safety-relevant decisions. The maze agents
 (DRC, ResNet, ViT, and a behaviour-cloned prefix-LM, the "route model") and a
 Craftax stage are the testbed; most of the code in this repo builds that
-testbed. The follow-up, a metric for LLMs, is in goalbits; its pilot (RC.*) is recorded here.
+testbed. The follow-up, a metric for LLMs, is in goalbits (https://github.com/rahul-marchand/goalbits); its pilot (RC.*) is recorded here.
 
 Goal misgeneralisation was Experiment 1's subject ("do internals predict it
 before behaviour?" was never tested directly). It is part of the record, not

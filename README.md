@@ -4,7 +4,7 @@ Research code for **[A Steerable Decision Threshold in a Planning Agent](https:/
 Read the post first; this repo is its record.
 
 > **Frozen 2026-10-26** (tag `frozen-2026-10-26`). Formerly `GoalMisgeneralisation`.
-> The follow-up work lives in goalbits (upcoming).
+> The follow-up work lives in [goalbits](https://github.com/rahul-marchand/goalbits) (private for now).
 
 Agents solve 11×11 mazes holding two goals of different value, which they
 cannot see. The optimal policy accepts up to a fixed number of extra steps to
@@ -16,7 +16,7 @@ as fine-tuning on a different reward, and leaves its navigation intact.
 
 **Follow-up (upcoming):** turning this into a scalable metric of mechanistic
 goal-directedness: how many bits it takes to retarget an agent to a new goal.
-That work continues in a new repository; the pilot that started it is recorded
+That work continues in [goalbits](https://github.com/rahul-marchand/goalbits) (private for now); the pilot that started it is recorded
 here (`THREADS.md`, RC.*).
 
 ## Where to read
