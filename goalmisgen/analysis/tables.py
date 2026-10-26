@@ -21,12 +21,45 @@ environment.
 from __future__ import annotations
 
 import re
+import warnings
 from dataclasses import dataclass, field
 
 ROW = re.compile(
     r"^\s*(?P<label>\S.*?)\s+(?P<point>-?\d+\.\d)\s+\[\s*(?P<low>-?\d+\.\d),\s*(?P<high>-?\d+\.\d)\]\s+(?P<reach>\d+\.\d)%"
 )
 """One measured line: label, threshold, ``[low, high]``, reach in percent. Trailing columns are ignored."""
+
+_NUMBER_OR_NAN = r"(?:-?\d+\.\d|nan)"
+NAN_ROW = re.compile(
+    rf"^\s*(?P<label>\S.*?)\s+{_NUMBER_OR_NAN}\s+\[\s*{_NUMBER_OR_NAN},\s*{_NUMBER_OR_NAN}\]\s+(?:\d+\.\d|nan)%"
+)
+""":data:`ROW` with ``nan`` allowed in any number: a measured line :data:`ROW` cannot read.
+
+A threshold is ``nan`` when the agent never chose both ways, and an interval
+when the bootstrap was skipped; such lines are in the format but hold no
+number, so the parser skips them. :func:`dropped_rows` names them, and the
+readers here warn with the count, so a table missing a value says so.
+"""
+
+
+class DroppedRowsWarning(UserWarning):
+    """A table held measured lines with a NaN threshold, interval or reach, which the parser skipped."""
+
+
+def dropped_rows(text: str) -> list[str]:
+    """The lines of ``text`` in the row format that :data:`ROW` skips because a number is ``nan``."""
+    return [line.strip() for line in text.splitlines() if ROW.match(line) is None and NAN_ROW.match(line)]
+
+
+def _warn_dropped(text: str) -> None:
+    dropped = dropped_rows(text)
+    if dropped:
+        warnings.warn(
+            f"{len(dropped)} measured row(s) with a NaN value skipped: " + "; ".join(dropped[:5]),
+            DroppedRowsWarning,
+            stacklevel=3,
+        )
+
 
 KINDS = ("fine-tuned", "written, held out", "written (grid)", "written (unseen)")
 VALUE_LABEL = re.compile(r"^v=(?P<value>-?\d+\.\d+) (?P<kind>" + "|".join(re.escape(k) for k in KINDS) + r")$")
@@ -83,7 +116,8 @@ def parse_row(line: str) -> Row | None:
 
 
 def rows(text: str) -> list[Row]:
-    """Every measured row in ``text``, in file order."""
+    """Every measured row in ``text``, in file order. Warns (:class:`DroppedRowsWarning`) for rows holding a NaN."""
+    _warn_dropped(text)
     return [row for row in map(parse_row, text.splitlines()) if row is not None]
 
 
@@ -133,7 +167,11 @@ class MeasureTable:
 
 
 def parse_measure_table(text: str) -> MeasureTable:
-    """Read a ``014`` / ``arm_thresholds`` / ``--leave-one-out`` table into one record."""
+    """Read a ``014`` / ``arm_thresholds`` / ``--leave-one-out`` table into one record.
+
+    Warns (:class:`DroppedRowsWarning`) for rows holding a NaN, which are left out.
+    """
+    _warn_dropped(text)
     table = MeasureTable()
     steps: set[int] = set()
     in_loo = False

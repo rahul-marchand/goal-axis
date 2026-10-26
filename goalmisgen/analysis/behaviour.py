@@ -267,6 +267,18 @@ def indifference_point(gaps: np.ndarray, took_richer: np.ndarray) -> float:
     :func:`goalmisgen.analysis.closed_loop.logistic_fit` maximises the same
     likelihood unridged to convergence and also returns the scale, so the two
     agree only as far as the descent has converged.
+
+    .. warning:: **Biased high above ~14 steps for sharp choosers.** The 4000
+       descent steps from zero do not converge when the slope is steep and few
+       decisions lie past the threshold, and the unconverged slope is too
+       shallow, which pushes the crossing outward. In the audit (2026-10-26;
+       1500 decisions, gaps ~ round(N(0, 6)), mean of 5 draws) the two fits
+       agree within 0.2 steps up to a threshold of 10, but at a true 14 with
+       scale 0.3 this reads 15.6 against Newton's 14.0, and at a true 18 it
+       reads 22.3 (scale 1.0) and 20.1 (scale 2.0) against 17.5 and 18.6. Kept
+       unchanged because every recorded threshold was computed with it; read
+       large thresholds as upper-biased, and use ``logistic_fit`` where it
+       matters. ``tests/test_behaviour.py`` holds the bias visible.
     """
     if len(np.unique(took_richer)) < 2:
         return float("nan")

@@ -52,16 +52,48 @@ from pathlib import Path
 import numpy as np
 
 from goalmisgen import provenance
+from goalmisgen.analysis.behaviour import optimal_threshold
 from goalmisgen.analysis.weights import cosine, explained, fit_axis_and_drift, projected_offset
 from goalmisgen.axis import Greedy, checkpoint_eval_config, load_checkpoint
 from goalmisgen.axis import arm_checkpoints as sweep_checkpoints
+from goalmisgen.configs import saved
 from goalmisgen.configs.env import MazeConfig
+from goalmisgen.volume import sweep_index
+
+LEGACY_BASE_VALUES = {"v": 0.5, "c": 1.0}
+"""The legacy sweep names' swept objective's base value, which recorded invocations rely on."""
 
 BASE_VALUE = 0.5  # default; --base-value overrides for the colour-0 sweep
 """What colour 1 was worth to the agent before any fine-tuning."""
 
 
-def parse_args() -> argparse.Namespace:
+def task_threshold(base_values, objective: int, value: float, step_penalty: float, gamma: float) -> float:
+    """The task's own threshold with ``objective`` worth ``value`` and every other objective at its base value.
+
+    What the "task says" column prints. It once printed ``(1.0 - value) /
+    step_penalty``, which is right only for a colour-1 sweep of a gamma = 1
+    agent whose colour 0 is worth 1.0: wrong in sign for a colour-0 sweep and
+    off by the discount for the gamma = 0.995 agents.
+    """
+    values = [float(v) for v in base_values]
+    values[objective] = float(value)
+    return float(optimal_threshold(values[0], values[1], step_penalty, gamma))
+
+
+def base_value_of(prefix: str, base_value: float | None) -> float:
+    """``--base-value``, or the legacy ``v``/``c`` default; any other sweep must say."""
+    if base_value is not None:
+        return base_value
+    cleaned = prefix.strip().rstrip("_")
+    if cleaned in LEGACY_BASE_VALUES:
+        return LEGACY_BASE_VALUES[cleaned]
+    raise ValueError(
+        f"--prefix {prefix} needs --base-value: only the legacy 'v' (0.5) and 'c' (1.0) have a default, and "
+        "defaulting another sweep to 0.5 would measure every offset from the wrong value"
+    )
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--base", type=Path, required=True, help="The checkpoint every arm was fine-tuned from.")
     parser.add_argument(
@@ -89,7 +121,14 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=None,
         help="What the swept objective is worth in the untouched agent, so offsets are "
-        "measured from it. Defaults to 0.5 for the colour-1 sweep, 1.0 for colour 0.",
+        "measured from it. Defaults to 0.5 for the legacy 'v' sweep and 1.0 for 'c'; "
+        "required for every other prefix.",
+    )
+    parser.add_argument(
+        "--gamma",
+        type=float,
+        default=None,
+        help="Discount for the task's own threshold; defaults to the base's own, from its cfg.json.",
     )
     parser.add_argument(
         "--extrapolate",
@@ -130,7 +169,12 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="Which replicate of the grid to analyse; 1 is the original, unsuffixed sweep.",
     )
-    return parser.parse_args()
+    args = parser.parse_args(argv)
+    try:
+        args.base_value = base_value_of(args.prefix, args.base_value)
+    except ValueError as refused:
+        parser.error(str(refused))
+    return args
 
 
 def eval_config(args: argparse.Namespace) -> MazeConfig:
@@ -172,7 +216,10 @@ def measure(params, greedy: Greedy, args, label: str) -> tuple[float, float, flo
 def main() -> None:
     global BASE_VALUE
     args = parse_args()
-    BASE_VALUE = args.base_value if args.base_value is not None else (1.0 if args.prefix == "c" else 0.5)
+    BASE_VALUE = args.base_value
+    gamma = args.gamma if args.gamma is not None else saved.discount(args.base)
+    if gamma is None:
+        sys.exit(f"{args.base} records no discount; pass --gamma for the task's own threshold")
     print(provenance.header() + "\n")
 
     config = eval_config(args)
@@ -318,7 +365,7 @@ def main() -> None:
     print(f"  {'value':>8}{'task says':>12}{'fine-tuned':>13}{'written':>10}")
     trained = dict(arm_points)
     for value, point in written:
-        expected = (1.0 - value) / args.step_penalty
+        expected = task_threshold(base.values, sweep_index(args.prefix), value, args.step_penalty, gamma)
         actual = trained.get(value)
         print(f"  {value:>8.2f}{expected:>12.1f}{(f'{actual:.1f}' if actual is not None else '—'):>13}{point:>10.1f}")
     print(

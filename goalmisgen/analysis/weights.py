@@ -333,6 +333,22 @@ def split_half_reliability(
 
     Returns ``nan`` when there are fewer than four pairs, which cannot be split
     into two halves that each fit a slope.
+
+    .. warning:: **Biased low on the 8-arm mirrored grid.** Spearman-Brown
+       assumes the two halves are parallel forms of equal leverage. With four
+       pairs at offsets +-0.1..0.4, a half holding the +-0.4 pair carries far
+       more of the slope than the other, so the halves are not parallel and the
+       corrected value understates the full fit's reliability. Simulated with an
+       exact one-knob agent (axis_1 = -axis_0) and iid per-arm noise on that
+       grid (audit, 2026-10-26), the ceiling read 0.921 against a true
+       reliability of 0.938, 0.561 against 0.602, and 0.172 against 0.190: low
+       by about 2-10%, more the noisier the arms. So ``cos / ceiling`` below -1
+       (-1.02 to -1.11 in that simulation) is what an exact one-knob agent
+       gives, not evidence of anything beyond one axis. The output is kept
+       as is because recorded tables were computed with it; for a ceiling
+       without this bias use the replicate-based one (cosine between axes
+       fitted from independent fine-tune replicates, ``.r<k>`` arms), recorded
+       in THREADS.md G.2.
     """
     offsets = np.asarray(offsets, dtype=np.float64)
     diffs = _as_float(diffs)

@@ -1,5 +1,7 @@
 """The one parser of 014-format tables (goalmisgen.analysis.tables)."""
 
+import pytest
+
 from goalmisgen.analysis import tables
 
 FAR = """\
@@ -46,6 +48,27 @@ def test_the_measure_table_reads_negative_writes() -> None:
     assert set(table.unseen) == {-0.5, 1.4}
     assert table.random[0.3].point == 7.0
     assert table.base.reached == 1.0
+
+
+NAN_ROWS = (
+    FAR
+    + "\n     v=0.10 written (unseen)            nan  [  nan,   nan]      12.0%\n"
+    + ("     v=0.20 fine-tuned                  9.1  [  nan,   nan]     100.0%\n")
+)
+
+
+def test_rows_holding_a_nan_are_counted_not_dropped_silently() -> None:
+    """A NaN threshold or a skipped bootstrap's NaN interval used to vanish from the parse without a word."""
+    with pytest.warns(tables.DroppedRowsWarning, match="2 measured row"):
+        found = tables.rows(NAN_ROWS)
+    assert found == tables.rows(FAR)  # parsed values unchanged
+    assert len(tables.dropped_rows(NAN_ROWS)) == 2
+    with pytest.warns(tables.DroppedRowsWarning):
+        table = tables.parse_measure_table(NAN_ROWS)
+    assert set(table.unseen) == {-0.5, 1.4} and not table.fine_tuned
+    assert tables.dropped_rows(FAR) == []
+    other_format = "     gap     write   -4.0      nan         [nan,nan]     nan        4.0     0.0% 100.0%"
+    assert tables.dropped_rows(other_format) == []
 
 
 def test_leave_one_out_summary() -> None:

@@ -243,3 +243,35 @@ def test_the_undiscounted_threshold_is_the_limit_of_the_discounted_one() -> None
 def test_the_discounted_threshold_sits_below_the_undiscounted_one() -> None:
     """The DRC's discounted optimum is ~9.3 against the undiscounted 10 (CLAUDE.md)."""
     assert optimal_threshold(1.0, 0.5, 0.05, 0.995) == pytest.approx(9.3, abs=0.1)
+
+
+def sharp_chooser(threshold: float, scale: float, seed: int, n: int = 1500) -> tuple[np.ndarray, np.ndarray]:
+    """Decisions of an agent switching at ``threshold`` with logistic ``scale``, gaps peaked at 0 as in a maze."""
+    rng = np.random.default_rng(seed)
+    gaps = np.round(rng.normal(0, 6, size=n))
+    took_richer = (rng.random(n) < 1 / (1 + np.exp(-(threshold - gaps) / scale))).astype(float)
+    return gaps, took_richer
+
+
+def test_the_indifference_point_is_biased_high_for_far_sharp_thresholds() -> None:
+    """Documents a known bias (audit 2026-10-26) rather than fixing it: recorded thresholds were computed with it.
+
+    The descent stops short of a steep slope, which moves the crossing out. A
+    Newton MLE on the same decisions does not. If this starts failing because
+    the bias is gone, the estimator changed and recorded thresholds no longer
+    reproduce.
+    """
+    from goalmisgen.analysis.closed_loop import logistic_fit
+
+    def bias(threshold, scale):
+        pairs = [
+            (indifference_point(g, y), logistic_fit(g, y)[0])
+            for g, y in (sharp_chooser(threshold, scale, s) for s in range(6))
+        ]
+        return np.mean([a - b for a, b in pairs]), np.mean([b for _, b in pairs])
+
+    near, newton_near = bias(6.0, 0.3)
+    assert abs(near) < 0.2 and newton_near == pytest.approx(6.0, abs=0.2)
+    far, newton_far = bias(18.0, 1.0)
+    assert far > 2.0 and newton_far == pytest.approx(18.0, abs=1.5)
+    assert bias(14.0, 0.3)[0] > 0.5
