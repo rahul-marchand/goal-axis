@@ -51,8 +51,13 @@ def plot(r: Record, finish: float | None, findings: list[diagnostics.Finding], t
         curves_ax.axhline(finish, color="black", lw=1, ls=":", label=f"finish line {finish:.3f}")
     for ax in (curves_ax, cost_ax):
         ax.set_xscale("log", base=2)
-        ax.set_xticks(x)
-        ax.set_xticklabels([f"{t:,}" if t < 1000 else f"{t / 1000:g}k" for t in bounds], fontsize=7)
+        shown, last = [0], x[0]
+        for i in range(1, len(x)):
+            if x[i] >= 2.5 * last:  # label only checkpoints far enough apart on the log axis to read
+                shown.append(i)
+                last = x[i]
+        ax.set_xticks([x[i] for i in shown])
+        ax.set_xticklabels([f"{bounds[i]:,}" if bounds[i] < 1000 else f"{bounds[i] / 1000:.0f}k" for i in shown], fontsize=7)
         ax.minorticks_off()
     curves_ax.set_xlabel("examples coded")
     curves_ax.set_ylabel("bits per example on T")

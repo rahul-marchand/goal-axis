@@ -105,13 +105,19 @@ def test_a_teacher_that_differs_costs_bits(demos, model_and_params):
 
 
 def test_the_student_learns_only_from_what_was_coded(demos, model_and_params):
-    """Replaying the coded draws (seeded by call and row) through the same steps rebuilds the student."""
+    """Replaying the coded draws (seeded by call and row) through the same steps rebuilds the student.
+
+    The draws must match exactly; the bits to float tolerance, since a GPU's
+    reductions are not bit-reproducible between runs (2e-6 bits seen).
+    """
     model, params = model_and_params
     teacher = FixedTeacher(initial_params(RoutePrefixLM(TINY), jax.random.PRNGKey(7)), "another init")
     first = code(demos, model, params, teacher, calls=3)
     again = code(demos, model, params, teacher, calls=3)
-    np.testing.assert_array_equal(first.example_bits, again.example_bits)
-    np.testing.assert_array_equal(first.test_bits, again.test_bits)
+    np.testing.assert_array_equal(first.inputs, again.inputs)
+    np.testing.assert_array_equal(first.units, again.units)
+    np.testing.assert_allclose(first.example_bits, again.example_bits, atol=1e-4)
+    np.testing.assert_allclose(first.test_bits, again.test_bits, atol=1e-4)
 
 
 def test_a_restricted_teacher_moves_only_what_it_trains(demos):

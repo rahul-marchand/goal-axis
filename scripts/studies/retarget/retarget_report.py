@@ -284,8 +284,17 @@ def main() -> None:
     lights, statuses = checks(records, nulls, diagnostics.Thresholds(competence=args.competence))
     for row in rows:
         row["checks"] = statuses[(row["agent"], row["arm"])]
+    kinds = sorted({r.result.kind for r in records.values()})
+    mechanisms = (
+        ""
+        if kinds == ["prequential"]
+        else f"Coding mechanisms here: {', '.join(kinds)}. For requential runs SDL is the total code (cumulative\n"
+        "teacher-student KL plus per-call overhead) over the coded samples, n is the number of samples, and\n"
+        "L(0), L(n), EDL and ceiling read the student's curve on T: not comparable with prequential rows.\n\n"
+    )
     text = (
         f"{header()}\n\n"
+        f"{mechanisms}"
         "Retargeting cost of route models: block-prequential code, doubling blocks, refit from the base\n"
         "before every block, early-stopped on V. Bits per route; SDL = MDL since L* = 0 (perfect mazes,\n"
         "tied levels dropped). flip = share of D whose expert choice differs from the base rate's.\n"
