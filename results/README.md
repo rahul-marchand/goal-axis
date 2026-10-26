@@ -623,6 +623,8 @@ brightness, and the share of the axis's input-layer slice that is a gain on the
 base kernel. On the DRC colour-1 brightness is a clean two-way knob, but the
 axis's own gain part moves the threshold by at most 0.6 of the full axis's 4-5
 steps. The `vit11nvg1.s1234` and `vit11nvg1lr` tables are bases without an axis.
+`input-gain-resnet11nvg1.s1234.txt` has one row with no threshold (colour 1
+×0.25 reads nan); the parsers now warn about it rather than dropping it silently.
 
 ## `cheapest-edit/`: the cheapest edit
 

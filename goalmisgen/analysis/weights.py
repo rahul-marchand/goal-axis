@@ -345,10 +345,12 @@ def split_half_reliability(
        by about 2-10%, more the noisier the arms. So ``cos / ceiling`` below -1
        (-1.02 to -1.11 in that simulation) is what an exact one-knob agent
        gives, not evidence of anything beyond one axis. The output is kept
-       as is because recorded tables were computed with it; for a ceiling
-       without this bias use the replicate-based one (cosine between axes
-       fitted from independent fine-tune replicates, ``.r<k>`` arms), recorded
-       in THREADS.md G.2.
+       as is because recorded tables were computed with it. On real agents
+       the error goes both ways: against the cosine between axes fitted from
+       independent fine-tune replicates (``.r<k>`` arms) it is accurate on the
+       g1 DRC, low on the ResNet and high on the ViT (THREADS.md G.2,
+       ``results/one-axis/one-axis-replicate-ceiling.txt``). Use the replicate
+       reliability where replicates exist.
     """
     offsets = np.asarray(offsets, dtype=np.float64)
     diffs = _as_float(diffs)

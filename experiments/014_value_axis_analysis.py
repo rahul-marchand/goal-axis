@@ -34,9 +34,13 @@ exactly this in ``tests/test_weights.py``. The leave-one-out columns are the
 ones that carry the claim.
 
 Everything is scored on one held-out set of levels at the *base* values, so the
-readout is identical across arms and no arm is measured on levels it trained on.
-The grid shares its mazes — only what the objectives pay differs — so the test
-split is common to all of them.
+readout is identical across arms. The grid shares its mazes — only what the
+objectives pay differs — so the test split is common to all of them. That split
+is *not* unseen: the default ``1.00-0.50@500k`` is a prefix of the bases'
+training pool with an index-wise split, so most of its levels are training
+levels of the base and some sit in arms' train splits (THREADS.md IN.2, IN.6).
+Comparisons between arms, the base and written axes are paired on the same
+levels; absolute thresholds are read mostly on training levels.
 
 Two controls run alongside: the ``v=0.5`` arm, fine-tuned on the value it
 already had, which measures drift rather than value; and norm-matched random
