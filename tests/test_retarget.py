@@ -217,3 +217,144 @@ def test_a_spec_names_its_coding_and_pilot_specs_pair_as_prequential():
     pilot = {k: v for k, v in spec(10.0).items() if k != "coding"}
     assert comparison_key(new) == comparison_key(pilot)
     assert comparison_key(spec(2.5, coding=RequentialCoding())) != comparison_key(spec(10.0))
+
+
+# ----------------------------------------------------------------------
+# Regressions from the 2026-10-26 audit
+# ----------------------------------------------------------------------
+
+
+def requential_record(goal=2.5) -> Record:
+    """A requential run: 2 calls of 4 samples, so ``n`` = 8 samples while D has 4 examples."""
+    from goalmisgen.retarget import Requential
+
+    curve = np.array([3.0, 1.0, 0.5])
+    result = Requential(
+        bounds=[0, 4, 8],
+        example_bits=np.full(8, 0.5),
+        call_kl=np.array([2.0, 2.0]),
+        test_bits=curve,
+        test_example_bits=np.stack([np.full(2, c) for c in curve]),
+        teacher_curve=curve,
+        teacher_example_curve=np.stack([np.full(2, c) for c in curve]),
+        inputs=np.arange(8) % 4,
+        units=np.full(8, 3),
+        truncated=np.zeros(8, dtype=bool),
+        seconds=np.ones(3),
+    )
+    return Record(spec(goal), result, np.zeros(8, dtype=bool), np.full(8, 3), 0.5)
+
+
+def test_prequential_scaled_metrics_refuse_a_requential_record():
+    """``n L(0)`` with n = calls x batch is no ceiling of a requential code; it read like one in RC.14's table."""
+    arm, null = requential_record(2.5), requential_record(10.0)
+    for call in (
+        lambda: metric.ceiling(arm),
+        lambda: metric.edl(arm),
+        lambda: metric.ceiling_over_null(arm, null, "route"),
+        lambda: metric.ceiling_over_null(arm, null, "unit"),
+        lambda: metric.fraction_paid(arm, null),
+        lambda: metric.excess_over_oracle(arm, np.zeros(8)),
+    ):
+        with pytest.raises(ValueError, match="prequential codes only"):
+            call()
+    assert metric.excess_over_null(arm, null, "route") == 0.0  # total code less the null's still reads
+
+
+def test_the_report_leaves_prequential_scaled_columns_blank_for_requential_runs():
+    from scripts.studies.retarget import retarget_report
+
+    arm, null = requential_record(2.5), requential_record(10.0)
+    row = retarget_report.summarise("agent", "tau2.5.req", arm)
+    assert row["ceiling"] is None and row["edl"] is None and row["never_learned"] is None
+    retarget_report.with_null_differences(row, arm, null)
+    assert row["ceiling_minus_null_raw"] is None and row["ceiling_minus_null"] is None
+    assert row["sdl_minus_null_raw"] == 0.0
+    assert "agent" in retarget_report.table([row])  # blank cells, not a crash
+    prequential = retarget_report.summarise("agent", "tau2.5", record())
+    assert prequential["ceiling"] == metric.ceiling(record()) and prequential["edl"] == metric.edl(record())
+
+
+def test_the_fraction_paid_from_a_row_never_mixes_normalisations():
+    """plot_core.py divided the per-token cost by the per-route change."""
+    from scripts.studies.retarget.plot_core import Rows
+
+    row = {
+        "agent": "a",
+        "variant": "main",
+        "tau": 2.5,
+        "sdl_minus_null_raw": 30.0,
+        "ceiling_minus_null_raw": 60.0,
+        "sdl_minus_null": 10.0,
+        "ceiling_minus_null": 40.0,
+    }
+    assert metric.row_fraction_paid(row, "route") == 0.5
+    assert metric.row_fraction_paid(row, "unit") == 0.25
+    assert Rows([row]).fraction_paid("a", "main", 2.5) == (0.5, 0.25)
+    assert metric.row_fraction_paid({**row, "ceiling_minus_null": None}, "unit") is None
+    arm = record(2.5)
+    null = record(10.0, bits=(1.0, 1.0, 1.0, 1.0), test=(1.0, 1.0, 1.0, 1.0))
+    as_row = {
+        "sdl_minus_null_raw": metric.excess_over_null(arm, null, "route"),
+        "ceiling_minus_null_raw": metric.ceiling_over_null(arm, null, "route"),
+        "sdl_minus_null": metric.excess_over_null(arm, null, "unit"),
+        "ceiling_minus_null": metric.ceiling_over_null(arm, null, "unit"),
+    }
+    for per in ("route", "unit"):
+        assert metric.row_fraction_paid(as_row, per) == pytest.approx(metric.fraction_paid(arm, null, per))
+
+
+def test_runs_of_different_goal_grids_do_not_pair():
+    """The grid decides which levels are eligible, so D, V and T; the key once ignored it."""
+    other = RunSpec(base="agent", pool="pool", goal=10.0, study_goals=(3.0, 10.0), n=4).to_dict()
+    assert comparison_key(spec(2.5)) != comparison_key(other)
+    assert comparison_key(spec(2.5)) == comparison_key({**spec(10.0), "study_goals": [10, 2.5]})  # order, int vs float
+    no_coding = {k: v for k, v in spec(10.0).items() if k != "coding"}
+    assert comparison_key(spec(2.5)) == comparison_key(no_coding)
+
+
+def pilot_flat(tau: float, dropped: list[float]) -> dict:
+    return {
+        "base": "/runs/bcnv11.s1",
+        "pool": "/pool",
+        "tau": tau,
+        "taus_dropped": dropped,
+        "ordering": 0,
+        "seed": 0,
+        "n_valid": 1024,
+        "n_test": 2048,
+        "learner": {
+            "learning_rate": 3e-5,
+            "batch_size": 256,
+            "weight_decay": 0.01,
+            "clip_norm": 1.0,
+            "warmup_steps": 20,
+            "eval_first": 5,
+            "eval_ratio": 1.25,
+            "patience": 6,
+            "max_steps": 2000,
+        },
+        "flipped_train": [1, 0],
+        "flipped_test_fraction": 0.3,
+        "bounds": [0, 1, 2],
+        "example_bits": [1.5, 2.5],
+        "test_bits": [2.0, 1.0, 0.5],
+        "valid_bits": [2.0, 1.0, 0.5],
+        "best_step": [0, 5, 6],
+        "steps_run": [0, 9, 9],
+        "seconds": [1, 1, 1],
+        "mdl": 4.0,
+        "edl": 3.0,
+    }
+
+
+def test_pilot_records_still_pair_with_their_null_arm(tmp_path):
+    """The pilot dropped ties per arm, so its rebuilt goal lists differ between an arm and its null."""
+    import json
+
+    (tmp_path / "arm.json").write_text(json.dumps(pilot_flat(2.5, [10.0])))
+    (tmp_path / "null.json").write_text(json.dumps(pilot_flat(10.0, [])))
+    arm, null = Record.load(tmp_path / "arm.json"), Record.load(tmp_path / "null.json")
+    assert arm.spec["study_goals"] != null.spec["study_goals"]
+    nulls = metric.null_arms([("a", arm), ("a", null)], 10.0)
+    assert metric.null_of(nulls, "a", arm) is null

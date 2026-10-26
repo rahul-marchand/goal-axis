@@ -205,7 +205,13 @@ class Requential:
     inputs: np.ndarray
     units: np.ndarray
     truncated: np.ndarray
-    """Per coded example: the sampler had to cut the draw short, so it is not an exact draw from the teacher."""
+    """Per coded example: the sampler had to cut the draw short, so it is not an exact draw from the teacher.
+
+    A cut draw is still scored as a whole route, end token included, under both
+    teacher and student, so its share of the KL charges an end token nobody
+    drew. :func:`goalmisgen.retarget.diagnostics.check_draws_complete` lights
+    when any are.
+    """
 
     seconds: np.ndarray
     """Wall-clock seconds spent reaching each checkpoint from the one before."""
@@ -325,8 +331,19 @@ def requential(
     seed: int = 0,
     log: Callable[[str], None] = print,
 ) -> Requential:
-    """Code the student's path from the base toward the teacher, call by call."""
+    """Code the student's path from the base toward the teacher, call by call.
+
+    Each call draws ``coding.batch`` distinct rows of D. Draws are keyed by row
+    (the decoder replays them from the row ids), so a row drawn twice in one
+    call would get the same sample twice: a batch of copies, not of independent
+    draws, whose KL the sum counts twice. A D smaller than the batch is refused.
+    """
     train, test = np.asarray(split.train), np.asarray(split.test)
+    if len(train) < coding.batch:
+        raise ValueError(
+            f"a requential call draws {coding.batch} distinct rows of D, which has only {len(train)}: rows drawn "
+            "twice in a call get identical samples (draws are keyed by row), so shrink the call batch or grow D"
+        )
     student = Trainer(scorer, learner.optimiser, learner.trains)
     state = student.start(params0)
     minibatch = min(student.batch_size, coding.batch)
@@ -352,7 +369,7 @@ def requential(
 
     checkpoint(0)
     for call in range(coding.calls):
-        rows = np.sort(rng.choice(train, size=coding.batch, replace=len(train) < coding.batch))
+        rows = np.sort(rng.choice(train, size=coding.batch, replace=len(train) < coding.batch))  # never True: refused above
         drawn = scorer.sample(teacher.params(), data, rows, seed=seed * 1_000_003 + call)
         everything = np.arange(len(rows))
         teacher_bits = example_bits(scorer, teacher.params(), drawn, everything)
@@ -372,6 +389,12 @@ def requential(
         if call + 1 in at:
             checkpoint(call + 1)
 
+    cut = int(np.concatenate(truncated).sum())
+    if cut:
+        log(
+            f"  WARNING: {cut} of {coding.calls * coding.batch} draws were cut short by the sampler and are scored "
+            "with an end token that was never drawn: not exact draws from the teacher (diagnostics: draws complete)"
+        )
     return Requential(
         bounds=bounds,
         example_bits=np.concatenate(coded),

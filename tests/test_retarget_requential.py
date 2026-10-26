@@ -186,3 +186,10 @@ def test_a_requential_run_records_reads_back_and_lights_its_teacher_checks(demos
     ):
         assert findings[check] is not diagnostics.Status.SKIP, check
     assert findings["unpaid information small"] is diagnostics.Status.OK
+
+
+def test_a_d_smaller_than_one_call_is_refused(demos, model_and_params):
+    """Draws are keyed by row, so rows repeated within a call would get identical samples, not independent draws."""
+    model, params = model_and_params
+    with pytest.raises(ValueError, match="distinct rows"):
+        code(demos, model, params, FixedTeacher(params, "the base"), calls=1, batch=len(SPLIT.train) + 1)

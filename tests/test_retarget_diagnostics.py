@@ -193,3 +193,21 @@ def test_render_and_worst():
     assert diagnostics.worst(findings) is Status.WARN
     text = diagnostics.render(findings, skipped=False)
     assert "n/a" not in text and "[run 1] hmm" in text
+
+
+@dataclasses.dataclass
+class Drawing(Prequential):
+    """A result that codes the model's own draws, standing in for requential coding."""
+
+    truncated: np.ndarray | None = None
+
+
+def test_draws_cut_short_by_the_sampler_light_up():
+    """Requential coding scored cut draws with an end token never drawn, and no check read ``truncated``."""
+    assert status(diagnostics.run_checks(record()), "draws complete") is Status.SKIP  # prequential codes no draws
+    whole = record(result_type=Drawing, truncated=np.zeros(8, dtype=bool))
+    assert status(diagnostics.run_checks(whole), "draws complete") is Status.OK
+    cut = record(result_type=Drawing, truncated=np.array([True, False, True] + [False] * 5))
+    (finding,) = [f for f in diagnostics.run_checks(cut) if f.check == "draws complete"]
+    assert finding.status is Status.WARN and finding.value == pytest.approx(2 / 8)
+    assert "2 of 8" in finding.message

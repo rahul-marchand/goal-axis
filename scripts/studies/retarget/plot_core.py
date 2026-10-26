@@ -23,6 +23,8 @@ import pathlib
 
 import matplotlib
 
+from goalmisgen.retarget import metric
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
@@ -70,8 +72,7 @@ class Rows:
         arms' routes differing in length and destination from the null arm's.
         """
         r = self.get(agent, variant, tau)
-        change = r["ceiling_minus_null_raw"]
-        return r["sdl_minus_null_raw"] / change, r["sdl_minus_null"] / change
+        return metric.row_fraction_paid(r, "route"), metric.row_fraction_paid(r, "unit")
 
 
 def plot_metric(rows: Rows, out: pathlib.Path):

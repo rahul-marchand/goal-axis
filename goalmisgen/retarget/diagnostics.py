@@ -278,6 +278,29 @@ def check_resolution(r: Record, c: RunContext) -> Finding:
     return Finding(name, status, f"standard error of the final T loss {error:.4f} bits/example", error)
 
 
+def check_draws_complete(r: Record, c: RunContext) -> Finding:
+    """A mechanism that codes the model's own draws (requential) is exact only if every draw finished.
+
+    The sampler cuts a draw that runs past its length limit, and the cut draw
+    is still scored with an end token it never drew.
+    """
+    name = "draws complete"
+    truncated = getattr(r.result, "truncated", None)
+    if truncated is None:
+        return Finding(name, Status.SKIP, "the mechanism codes no draws")
+    cut = int(np.sum(truncated))
+    total = len(truncated)
+    if cut == 0:
+        return Finding(name, Status.OK, f"all {total:,} draws finished", 0.0)
+    share = cut / total if total else 0.0
+    return Finding(
+        name,
+        Status.WARN,
+        f"{cut:,} of {total:,} draws cut short ({share:.2%}): scored with an end token never drawn, not exact draws",
+        share,
+    )
+
+
 RUN_CHECKS: tuple[Callable[[Record, RunContext], Finding], ...] = (
     check_competence,
     check_learned,
@@ -290,6 +313,7 @@ RUN_CHECKS: tuple[Callable[[Record, RunContext], Finding], ...] = (
     check_overhead,
     check_side_channel,
     check_resolution,
+    check_draws_complete,
 )
 
 

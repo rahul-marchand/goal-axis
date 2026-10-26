@@ -76,8 +76,15 @@ def variant_of(spec: dict) -> str:
 
 
 def summarise(agent: str, arm: str, r: Record) -> dict:
+    """One row of the table and the figure data.
+
+    ``edl``, ``ceiling`` and ``never_learned`` scale T's curve by ``n``, the
+    examples of D a prequential code transmitted; for any other mechanism they
+    are ``None`` (blank in the table), since ``n`` there counts coded samples.
+    """
     result = r.result
     bounds = result.bounds
+    prequential = result.kind == "prequential"
     return {
         "agent": agent,
         "arm": arm,
@@ -91,9 +98,9 @@ def summarise(agent: str, arm: str, r: Record) -> dict:
         "best_step": result.best_step.tolist() if hasattr(result, "best_step") else None,
         "steps_run": result.steps_run.tolist() if hasattr(result, "steps_run") else None,
         "mdl": result.total_bits,
-        "edl": metric.edl(r),
-        "ceiling": metric.ceiling(r),
-        "never_learned": float(result.n * result.test_bits[-1]),
+        "edl": metric.edl(r) if prequential else None,
+        "ceiling": metric.ceiling(r) if prequential else None,
+        "never_learned": float(result.n * result.test_bits[-1]) if prequential else None,
         "flipped_fraction": float(r.changed.mean()),
         "seconds": float(np.sum(result.seconds)),
         "block_bits": metric.block_sums(result.example_bits, bounds),
@@ -114,15 +121,16 @@ def with_null_differences(row: dict, r: Record, null: Record | None) -> None:
         row.update(sdl_minus_null_raw=None, ceiling_minus_null_raw=None)
         row.update(sdl_minus_null=None, ceiling_minus_null=None, excess_cumulative=None)
         return
+    prequential = r.result.kind == null.result.kind == "prequential"  # the ceiling is prequential only
     row["sdl_minus_null_raw"] = metric.excess_over_null(r, null, "route")
-    row["ceiling_minus_null_raw"] = metric.ceiling_over_null(r, null, "route")
+    row["ceiling_minus_null_raw"] = metric.ceiling_over_null(r, null, "route") if prequential else None
     excess = metric.excess_by_block(r, null)
     if excess is None:
         row.update(sdl_minus_null=None, ceiling_minus_null=None, excess_cumulative=None)
         return
     row["excess_cumulative"] = [0.0, *np.cumsum(excess).tolist()]
     row["sdl_minus_null"] = float(sum(excess))
-    row["ceiling_minus_null"] = metric.ceiling_over_null(r, null, "unit")
+    row["ceiling_minus_null"] = metric.ceiling_over_null(r, null, "unit") if prequential else None
 
 
 def with_oracle(row: dict, r: Record, root: pathlib.Path) -> None:
@@ -151,10 +159,12 @@ def table(rows: list[dict]) -> str:
     for r in sorted(rows, key=lambda r: (r["agent"], r["variant"] != "main", r["variant"], r["tau"])):
         diff = "" if r["sdl_minus_null"] is None else f"{r['sdl_minus_null']:9.0f}"
         raw = "" if r["sdl_minus_null_raw"] is None else f"{r['sdl_minus_null_raw']:9.0f}"
+        edl = "" if r["edl"] is None else f"{r['edl']:9.0f}"
+        ceiling = "" if r["ceiling"] is None else f"{r['ceiling']:9.0f}"
         lines.append(
             f"{r['agent']:<20} {r['arm']:<26} {r['tau']:>5g} {r['flipped_fraction']:>6.1%} "
-            f"{r['test_bits'][0]:>7.3f} {r['test_bits'][-1]:>7.3f} {r['mdl']:>9.0f} {r['edl']:>9.0f} "
-            f"{r['ceiling']:>9.0f} {diff:>9} {raw:>9} {r['seconds'] / 60:>5.1f}"
+            f"{r['test_bits'][0]:>7.3f} {r['test_bits'][-1]:>7.3f} {r['mdl']:>9.0f} {edl:>9} "
+            f"{ceiling:>9} {diff:>9} {raw:>9} {r['seconds'] / 60:>5.1f}"
         )
     return "\n".join(lines)
 
@@ -190,9 +200,8 @@ def fractions(rows: list[dict], records: dict) -> str:
             return f"{'-':>7}" if out is None else out
 
         def paid(r):
-            if r["sdl_minus_null_raw"] is None or not r["ceiling_minus_null_raw"]:
-                return None
-            return f"{r['sdl_minus_null_raw'] / r['ceiling_minus_null_raw']:>7.1%}"
+            paid = metric.row_fraction_paid(r, "route")
+            return None if paid is None else f"{paid:>7.1%}"
 
         def excess_loss(r):
             reference = main.get((agent, r["tau"]))
@@ -290,7 +299,8 @@ def main() -> None:
         if kinds == ["prequential"]
         else f"Coding mechanisms here: {', '.join(kinds)}. For requential runs SDL is the total code (cumulative\n"
         "teacher-student KL plus per-call overhead) over the coded samples, n is the number of samples, and\n"
-        "L(0), L(n), EDL and ceiling read the student's curve on T: not comparable with prequential rows.\n\n"
+        "L(0) and L(n) read the student's curve on T: not comparable with prequential rows. EDL, ceiling and\n"
+        "the fraction paid scale T's curve by the examples of D transmitted, so they are blank for requential runs.\n\n"
     )
     text = (
         f"{header()}\n\n"

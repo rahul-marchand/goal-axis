@@ -62,14 +62,33 @@ class RunSpec:
         }
 
 
+PILOT_SPLIT = "per-arm (pilot)"
+"""``spec["split_rule"]`` of a pilot record: ties were dropped per arm, not over a study's goal grid."""
+
+
+def _goal_key(goal):
+    """A goal as it compares in a key: numbers as floats, so 10 and 10.0 are one goal."""
+    return float(goal) if isinstance(goal, (int, float)) and not isinstance(goal, bool) else goal
+
+
 def comparison_key(spec: dict) -> str:
     """Everything that must match for two runs to be compared across goals: the spec less its goal.
 
     A learner's parameterisation counts by kind and name only, so a held-out
     axis refitted per goal (one file per goal, one name) pairs with its own
     null arm.
+
+    The study's goals count: which levels are eligible, and so D, V and T,
+    depend on all of them (``splits.py``), so runs of two different goal grids
+    coded different mazes and must not pair. The pilot's flat records are the
+    exception (:data:`PILOT_SPLIT`): the pilot dropped ties per arm, so the goal
+    list :func:`_pilot_record` rebuilds from ``taus_dropped`` differs between
+    an arm and its own null arm and names no study grid. Those are keyed
+    without it, as they always were, and so pair only with each other.
     """
-    rest = {k: v for k, v in spec.items() if k not in ("goal", "study_goals")}
+    rest = {k: v for k, v in spec.items() if k not in ("goal", "study_goals", "split_rule")}
+    if spec.get("split_rule") != PILOT_SPLIT:
+        rest["study_goals"] = sorted((_goal_key(g) for g in spec.get("study_goals", [])), key=json.dumps)
     rest.setdefault("coding", PrequentialCoding().to_dict())  # records from before the field were all prequential
     learner = dict(rest["learner"])
     learner["trains"] = {k: v for k, v in learner["trains"].items() if k in ("kind", "name")}
@@ -177,6 +196,7 @@ def _pilot_record(data: dict) -> Record:
         "pool": data["pool"],
         "goal": data["tau"],
         "study_goals": sorted({*data.get("taus_dropped", []), data["tau"]}),
+        "split_rule": PILOT_SPLIT,
         "n": len(data["example_bits"]),
         "n_valid": data["n_valid"],
         "n_test": data["n_test"],

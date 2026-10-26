@@ -14,7 +14,10 @@ at its own goal, so the pilot reads it against a reference:
 
 The **ceiling** is ``n L(0)``, the bits of never leaving the base, and the
 **fraction paid** is the cost over the null divided by the ceiling over the
-null: 0 is a free dial, 1 learns nothing reusable.
+null: 0 is a free dial, 1 learns nothing reusable. The ceiling, EDL and the
+fraction paid scale T's curve by the examples of D transmitted, so they are
+defined for prequential codes only and refuse any other
+(:func:`require_prequential`).
 
 **Competence** is a gate, not something the null subtracts away (RC.8): an
 agent whose null arm codes its own goal badly is relearning the task, not
@@ -44,13 +47,37 @@ def cumulative(values: np.ndarray, bounds: list[int]) -> list[float]:
     return [float(values[:t].sum()) for t in bounds]
 
 
+def require_prequential(r: Record, what: str) -> None:
+    """Refuse ``what`` on a record whose code is not prequential.
+
+    ``n L(0)``, ``n L(n)`` and everything built from them scale the curve on T
+    by ``result.n``, the number of examples of D the code transmitted. Only a
+    prequential code transmits D: a requential result's ``n`` is the number of
+    *samples* coded (calls x batch: 64 x 4,096 in RC.14), and
+    its bits are a teacher-student KL, not a code for D, so the product is no
+    ceiling of anything it paid. Raises rather than returning a number that
+    reads like the prequential one.
+    """
+    kind = getattr(r.result, "kind", "prequential")
+    if kind != "prequential":
+        raise ValueError(
+            f"{what} is defined for prequential codes only (it scales L(t) on T by n, the examples of D "
+            f"transmitted); this record's code is {kind!r}, whose n = {r.result.n} counts coded samples"
+        )
+
+
 def ceiling(r: Record) -> float:
-    """``n L(0)``: what D costs if the learner never leaves the base."""
+    """``n L(0)``: what D costs if the learner never leaves the base. Prequential codes only."""
+    require_prequential(r, "the ceiling n L(0)")
     return float(r.result.n * r.result.test_bits[0])
 
 
 def edl(r: Record) -> float:
-    """MDL less ``n L(n)``. Kept for the record: at the pilot's n, n times T's sampling error is about +-330 bits (RC.2)."""
+    """MDL less ``n L(n)``. Kept for the record: at the pilot's n, n times T's sampling error is about +-330 bits (RC.2).
+
+    Prequential codes only (:func:`require_prequential`).
+    """
+    require_prequential(r, "EDL = MDL - n L(n)")
     return float(r.result.total_bits - r.result.n * r.result.test_bits[-1])
 
 
@@ -107,6 +134,8 @@ def ceiling_over_null(arm: Record, null: Record, per: Per = "route") -> float | 
     """
     if per == "route":
         return ceiling(arm) - ceiling(null)
+    require_prequential(arm, "the ceiling over the null arm")
+    require_prequential(null, "the ceiling over the null arm")
     arm_units, null_units = units_per_example(arm), units_per_example(null)
     if arm_units is None or null_units is None:
         return None
@@ -114,8 +143,32 @@ def ceiling_over_null(arm: Record, null: Record, per: Per = "route") -> float | 
 
 
 def fraction_paid(arm: Record, null: Record, per: Per = "route") -> float | None:
-    """(MDL - null) / (ceiling - null): 0 is a free dial, 1 learns nothing reusable."""
+    """(MDL - null) / (ceiling - null): 0 is a free dial, 1 learns nothing reusable. Prequential codes only.
+
+    Numerator and denominator always use the same normalisation ``per``.
+    """
     cost, change = excess_over_null(arm, null, per), ceiling_over_null(arm, null, per)
+    return _ratio(cost, change)
+
+
+ROW_FIELDS: dict[str, tuple[str, str]] = {
+    "route": ("sdl_minus_null_raw", "ceiling_minus_null_raw"),
+    "unit": ("sdl_minus_null", "ceiling_minus_null"),
+}
+"""The (cost, change) fields of a report row (``retarget_report.py --data``) under each normalisation."""
+
+
+def row_fraction_paid(row: dict, per: Per = "route") -> float | None:
+    """:func:`fraction_paid` read from a report row, numerator and denominator from the same normalisation.
+
+    A per-token cost over a per-route change mixes two normalisations; plot_core.py
+    once did exactly that. Looking both fields up by ``per`` makes it impossible.
+    """
+    cost, change = (row.get(name) for name in ROW_FIELDS[per])
+    return _ratio(cost, change)
+
+
+def _ratio(cost: float | None, change: float | None) -> float | None:
     if cost is None or not change:
         return None
     return cost / change
@@ -123,6 +176,7 @@ def fraction_paid(arm: Record, null: Record, per: Per = "route") -> float | None
 
 def excess_over_oracle(arm: Record, oracle_bits: np.ndarray) -> float:
     """MDL less the oracle's bits on the same D: the cost of finding the dial. ``oracle_bits`` per example of D."""
+    require_prequential(arm, "the excess over the oracle")
     oracle_bits = np.asarray(oracle_bits)
     if len(oracle_bits) != arm.result.n:
         raise ValueError(f"the oracle coded {len(oracle_bits)} examples, the run {arm.result.n}")
