@@ -46,7 +46,7 @@ trained on it, and a Craftax stage.
 | path | contents |
 |---|---|
 | `THREADS.md` | The ledger of questions: open, closed, dropped, and where each answer lives |
-| `docs/` | Experiment write-ups (`Experiment1-3.md`), `UtilityRule.md`, `Craftax.md` |
+| `docs/` | Experiment write-ups (`Experiment1-3.md`), `UtilityRule.md`, `Craftax.md`; `notes/`, session notes that `THREADS.md` cites |
 | `CLAUDE.md` | Working rules and hard-won facts about the stack (read before changing code) |
 | `goalmisgen/` | The package: environment, configs, networks, offline route model, Craftax, analysis, edits |
 | `experiments/` | Numbered experiment scripts, and the record of the early value-axis questions |
@@ -90,6 +90,7 @@ uv run pytest
 
 ## Where to read next
 
-`THREADS.md` for what is known and open, then `docs/Experiment3.md` for the
-current state of the mechanism work. `docs/Experiment1.md` and
+The blog post https://rahulmarchand.com/posts/decision-threshold/ is the
+summary of the project so far. Then `THREADS.md` for what is known and open,
+and `docs/Experiment3.md` for the current state of the mechanism work. `docs/Experiment1.md` and
 `docs/Experiment2.md` record the earlier stages as they stood at the time.
