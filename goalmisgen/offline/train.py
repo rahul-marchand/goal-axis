@@ -199,8 +199,16 @@ def batches(
 
     ``goals`` is ``None`` unless the set tags each demonstration with a goal
     (:class:`~goalmisgen.offline.goals.GoalMixture`).
+
+    Only whole batches are yielded, so a set smaller than one batch would yield
+    nothing and loop forever; it is refused instead (on the first ``next``).
     """
     n = len(demos)
+    if n < batch_size:
+        raise ValueError(
+            f"{n} demonstrations cannot fill one batch of {batch_size}; every epoch would be empty and training "
+            "would hang. Use a smaller batch_size or a larger demonstration set"
+        )
     tagged = hasattr(demos, "goal_ids")
     while True:
         order = rng.permutation(n)

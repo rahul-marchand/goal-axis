@@ -355,3 +355,15 @@ def test_a_finetune_does_not_rewrite_the_checkpoint_it_started_from(tmp_path) ->
     finetune.discard(0)
     assert 0 in fresh, "a base must keep its untrained checkpoint"
     assert finetune == {1000}, "a fine-tune keeps only what it produced"
+
+
+def test_a_set_smaller_than_one_batch_is_refused_rather_than_hanging():
+    """``batches`` yields whole batches only, so it once looped forever on a set below the batch size."""
+    from goalmisgen.offline.train import batches
+
+    class Tiny:
+        def __len__(self) -> int:
+            return 100
+
+    with pytest.raises(ValueError, match="cannot fill one batch"):
+        next(batches(Tiny(), 256, np.random.default_rng(0)))

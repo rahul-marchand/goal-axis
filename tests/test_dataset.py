@@ -422,3 +422,33 @@ def test_the_fingerprint_is_fixed_for_the_life_of_a_process(monkeypatch):
     monkeypatch.setattr(_ast, "parse", lambda src, *a, **k: original(changed if src == source else src, *a, **k))
 
     assert source_fingerprint() == before, "a mid-process source change must not move the fingerprint"
+
+
+def test_a_dataset_without_stored_splits_warns_that_its_split_can_leak(tmp_path):
+    """The index-wise fallback can put one maze layout in train and in valid/test; it used to do so silently."""
+    from goalmisgen.configs.env import MazeConfig, UnsplitDatasetWarning
+    from goalmisgen.envs.dataset import split_indices
+
+    unsplit, split = tmp_path / "unsplit", tmp_path / "split"
+    small_dataset(n=300).save(unsplit, seed=7, block_size=25)
+    small_dataset(n=300).save(split, seed=7, block_size=25, splits=split_indices(300, valid=50, test=50))
+
+    def config(path):
+        return MazeConfig(
+            max_episode_steps=120,
+            min_size=5,
+            max_size=11,
+            level_dataset=str(path),
+            verify_dataset_fingerprint=False,
+            dataset_valid_levels=50,
+            dataset_test_levels=50,
+        )
+
+    with pytest.warns(UnsplitDatasetWarning, match="layout"):
+        fallback = config(unsplit).sampler()
+    assert len(fallback.indices) == 200  # the same split as before, only louder
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UnsplitDatasetWarning)
+        config(split).sampler()

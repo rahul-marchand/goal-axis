@@ -201,3 +201,31 @@ def test_indices_from_different_datasets_are_not_compared() -> None:
     held_out = _demo_set(level_index=[1, 2, 3], fingerprint="def")
 
     assert shared_levels(train, held_out) == 0
+
+
+def test_a_set_made_by_other_level_code_warns_on_load_but_still_loads(dataset, tmp_path):
+    """``code_fingerprint`` was written into every set and never read back."""
+    import json
+    import warnings
+
+    from goalmisgen.offline.demos import StaleDemonstrationsWarning
+
+    demos = DemoSet.generate(dataset, np.arange(10), rho=1.0, seed=0)
+    demos.save(tmp_path / "current")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", StaleDemonstrationsWarning)
+        DemoSet.load(tmp_path / "current")
+
+    demos.save(tmp_path / "stale")
+    meta_path = tmp_path / "stale" / "meta.json"
+    meta = json.loads(meta_path.read_text())
+    meta_path.write_text(json.dumps({**meta, "code_fingerprint": "0000000000000000"}))
+    with pytest.warns(StaleDemonstrationsWarning, match="0000000000000000"):
+        stale = DemoSet.load(tmp_path / "stale")
+    np.testing.assert_array_equal(stale.actions, demos.actions)
+
+    del meta["code_fingerprint"]  # sets from before the field are not checked
+    meta_path.write_text(json.dumps(meta))
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", StaleDemonstrationsWarning)
+        DemoSet.load(tmp_path / "stale")

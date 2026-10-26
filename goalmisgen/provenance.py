@@ -33,22 +33,38 @@ from pathlib import Path
 _LABEL = 7
 
 
-def commit() -> str:
-    """The short SHA, or ``unknown`` outside a repository.
+def commit(root: Path | None = None) -> str:
+    """The short SHA, suffixed ``-dirty`` when tracked files differ from it; ``unknown`` outside a repository.
 
     Public because ``012`` records it in the JSON the figures read, so the
     number in a figure and the number in its results file come from one place.
+
+    A SHA alone claims the output came from that commit's code, which is false
+    when the checkout had uncommitted edits (pods run from a shared checkout
+    that other sessions edit). Untracked files do not count: scratch files and
+    new outputs are not code that ran; nor do build files inside the pinned
+    submodule, though a moved submodule pointer does. ``unknown`` covers both a missing git
+    and a copy of the code without ``.git``, such as the snapshot copies long
+    chains run from (CLAUDE.md, RunPod); those are made by hand, with no
+    marker to tell them apart. ``root`` defaults to this checkout.
     """
+    root = Path(__file__).resolve().parent.parent if root is None else Path(root)
     try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
+        result = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=root)
+        sha = result.stdout.strip()
+        if result.returncode != 0 or not sha:
+            return "unknown"
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no", "--ignore-submodules=dirty"],
             capture_output=True,
             text=True,
-            cwd=Path(__file__).resolve().parent.parent,
+            cwd=root,
         )
     except OSError:
         return "unknown"
-    return result.stdout.strip() or "unknown"
+    if status.returncode != 0:
+        return f"{sha}-unknown-state"
+    return f"{sha}-dirty" if status.stdout.strip() else sha
 
 
 def header(argv: list[str] | None = None) -> str:

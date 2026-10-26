@@ -12,6 +12,7 @@ It subclasses cleanba's ``EnvConfig`` and is used exactly like
 from __future__ import annotations
 
 import dataclasses
+import warnings
 from functools import partial
 from typing import TYPE_CHECKING, Callable, Literal
 
@@ -38,6 +39,10 @@ if TYPE_CHECKING:
 
 Observation = Literal["planes", "legend"]
 """How a level is drawn for the network; see :attr:`MazeConfig.observation`."""
+
+
+class UnsplitDatasetWarning(UserWarning):
+    """A level dataset with no stored splits was split by index, which can put one maze layout in two splits."""
 
 
 class SeededVectorEnv(gym.vector.VectorEnvWrapper):
@@ -276,11 +281,21 @@ class MazeConfig(EnvConfig):
         # Splits written at generation time are authoritative: recomputing them
         # here means a later change to the holdout sizes silently moves levels
         # between train and validation, and no fingerprint catches it.
-        splits = dataset.stored_splits or split_indices(
-            len(dataset),
-            valid=self.dataset_valid_levels,
-            test=self.dataset_test_levels,
-        )
+        splits = dataset.stored_splits
+        if not splits:
+            warnings.warn(
+                f"level dataset {self.level_dataset} has no stored splits, so they are recomputed by level index "
+                "(split_indices), not by maze layout (envs/splits.py): a layout can appear in train and in "
+                "valid/test, so evaluation may run on mazes the agent trained on. Regenerate the dataset with "
+                "stored splits to rule the leak out",
+                UnsplitDatasetWarning,
+                stacklevel=2,
+            )
+            splits = split_indices(
+                len(dataset),
+                valid=self.dataset_valid_levels,
+                test=self.dataset_test_levels,
+            )
         if self.dataset_split not in splits:
             raise ValueError(f"unknown dataset_split {self.dataset_split!r}; expected one of {sorted(splits)}")
 

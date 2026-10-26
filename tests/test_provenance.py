@@ -68,3 +68,24 @@ def test_the_body_cannot_be_mistaken_for_a_header() -> None:
 
 def test_a_missing_argv_zero_does_not_crash() -> None:
     assert parse_header(header([])).script == "unknown"
+
+
+def test_the_commit_says_when_the_tree_had_uncommitted_edits(tmp_path) -> None:
+    """A bare SHA claimed the output came from that commit's code even when the checkout was edited."""
+    import subprocess
+
+    from goalmisgen.provenance import commit
+
+    assert commit(tmp_path) == "unknown"  # no repository: a copy of the code, or no git
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+    subprocess.run([*git, "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "code.py").write_text("x = 1\n")
+    subprocess.run([*git, "add", "code.py"], cwd=tmp_path, check=True)
+    subprocess.run([*git, "commit", "-q", "-m", "c"], cwd=tmp_path, check=True)
+    sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=tmp_path, capture_output=True, text=True).stdout.strip()
+    assert commit(tmp_path) == sha
+    (tmp_path / "scratch.txt").write_text("untracked output\n")
+    assert commit(tmp_path) == sha  # untracked files are not code that ran
+    (tmp_path / "code.py").write_text("x = 2\n")
+    assert commit(tmp_path) == f"{sha}-dirty"
+    assert parse_header(f"script s.py\ncommit {sha}-dirty\nargv   \n").commit == f"{sha}-dirty"
