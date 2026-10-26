@@ -41,6 +41,7 @@ code lives in `goalmisgen/`.
 | `generate_craftax_demos.py` | The same for an ore-field dataset, as Craftax routes (stage 2). |
 | `generate_craft_demos.py` | Demonstrate a range of the crafting pool (stage 4). |
 | `make_demo_subset.py` | The first N demonstrations of a set, optionally excluding another pool's (the overfit study). |
+| `make_goal_split.py` | Split a demonstration set between several goals, each level re-solved at one goal drawn at random (the goal-vector agent `bcgvr11`, `THREADS.md` RC.11). |
 | `resplit_by_layout.py` | Re-split an existing level dataset so train and test share no maze. |
 | `migrate_volume.py` | Move the data volume onto the naming scheme in `goalmisgen/volume.py`. |
 | `manifest.py` | Index every dataset and trained agent on the volume into `MANIFEST.md`. |
@@ -87,6 +88,7 @@ code lives in `goalmisgen/`.
 | `utility-rule/` | The route model's utility rule and the noise programme (`docs/UtilityRule.md`) | see below |
 | `overfit/` | Does an axis need a base that learned the task? (§6) | `overfit_gap.py`, `overfit_axis_report.py` |
 | `scaling/` | The width/depth campaign | `shape_probe.py` |
+| `retarget/` | Retargeting cost, the metric's pilot (`THREADS.md` RC); the metric is the package `goalmisgen/retarget/`, the maze and route-model parts `goalmisgen/offline/retarget.py` | `retarget_cost.py` (one prequential code), `pick_lr.py` (the learner's rate), `goal_vector_check.py` and `oracle_dial.py` (the positive control's dial and its best setting), `oracle_subspace.py` and `make_subspace.py` (restricted learners along weight-space directions), `retarget_report.py` (table, warning lights and figure data), `diagnose.py` (every run's warning lights and a standard figure per run); chains `pods/retarget_chain.sh`, `pods/goal_vector_base.sh` (`bcgv11`) and `pods/goal_vector_random.sh` (`bcgvr11`, RC.11) |
 | `craftax/` | Craftax stages 2 and 4 (`docs/Craftax.md`) | `craftax_report.py`, `craft_diagnose.py`, `craft_price_probe.py`, `craft_dagger.py`, `craft_widen_input.py` |
 
 **`gain-vs-factorised/`**, by experiment (each `E<N>.md` names its code):
