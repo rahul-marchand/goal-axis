@@ -41,6 +41,13 @@ carried forward or patched: the whole set has to be re-measured.
 | `numbers/smoke5b.csv` | Training metrics, 5×5 run |
 | `numbers/measured.json` | Behavioural table behind figures 2 and 3 |
 
+Two of these files were carried forward unchanged: `figures/data/maze11.csv` and
+`figures/data/smoke5b.csv` are byte-identical to `numbers/`. They are the agents'
+own training metrics, which the analysis bugs above did not touch, and the
+agents themselves were kept and remeasured. `maze11.csv` is legitimately read by
+`fig4_dynamics` (`docs/Experiment1.md` Figure 6); `smoke5b.csv` is read by no
+current figure. `clean11.csv` differs from the current copy.
+
 The level datasets these were measured on are archived on the pod at
 `/workspace/data/archive/2026-08-04-pre-bugfix/`. They no longer load: their
 source fingerprint does not match current code, and `LevelDataset` raises

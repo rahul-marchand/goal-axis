@@ -22,13 +22,36 @@ data.
 `extract_value_axis.py` and `extract_wide_axis.py` turn results tables into the
 JSON these read.
 
+**File names do not match caption numbers.** Where each figure appears:
+
+| file | used as |
+|---|---|
+| `fig1_task` | `docs/Experiment1.md` Figure 1 |
+| `fig5_example_plan` | `docs/Experiment1.md` Figure 2 |
+| `fig8_intervention` | `docs/Experiment1.md` Figure 3 |
+| `fig2_rho_response` | `docs/Experiment1.md` Figure 4 |
+| `fig3_margin` | `docs/Experiment1.md` Figure 5 |
+| `fig4_dynamics` | `docs/Experiment1.md` Figure 6 |
+| `fig9_no_value_task` | `docs/Experiment2.md` Figure 1 |
+| `fig10_written_value` | `docs/Experiment2.md` Figure 2 |
+| `fig11_ood_writes` | `docs/Experiment2.md` Figure 3 |
+| `fig_distance_rule`, `fig_axis_dial`, `fig_gain_knob` | `docs/UtilityRule.md` parts 1, 2, 3 (unnumbered) |
+
+No doc uses `fig6_distance_field`, `fig12_written_ood`, `fig13_wide_threshold`,
+the five `fig_bc_*`, `fig_arch_swap_dynamics` or `fig_early_warning` (the last two
+are named in `results/README.md`), nor any figure in `craftax/`.
+
 ## 2. Blog fragments (`src/` → `fragments/`)
 
 Each blog figure is a self-contained HTML fragment with build-time SVG and no
 runtime JavaScript (except `basin`, which has a slider).
 `src/<name>/build_fig.py` renders `src/<name>/data.json` into
 `fragments/<name>.html`, which is spliced into the post at `<!-- fig: name -->`.
-Builders run with plain `python3` and every fragment rebuilds byte-identically.
+Builders run with plain `python3`. Checked 2026-10-26: `basin`, `task-planning`,
+`axis-dose`, `hierarchy` and the retarget report rebuild byte-identically;
+`value-axis`, `value-axis-both`, `value-axis-far`, `scurves`, `where-axis` and
+`arm-length` rebuild with differences only in the last digits of SVG
+coordinates (float noise), so the committed fragments were left as published.
 
 | fragment | `data.json` comes from |
 |---|---|
@@ -44,12 +67,25 @@ Builders run with plain `python3` and every fragment rebuilds byte-identically.
 | `retarget-pilot` (a standalone report page, not a blog fragment) | `scripts/studies/retarget/retarget_report.py --data`; prose in `src/retarget-pilot/notes.json` |
 | `model-table` | typeset by hand from `results/plan-probe/probe-plan-*` |
 
+In the published post (https://rahulmarchand.com/posts/decision-threshold/, as
+of 2026-10-26): `basin` is the unnumbered interactive demo at the top,
+`task-planning` is figure 2, `value-axis` 3, `arm-length` 4, `where-axis` 5,
+`axis-dose` 6, `scurves` 7, and `value-axis-far` the appendix-G figure.
+`value-axis-both` and `hierarchy` are not in it.
+
 **The two parsers in `src/value-axis/`** both assemble per-architecture,
 per-sweep series of trained arms against axis writes. `parse_g1.py` builds
-fig 3's panels, windowed to the fitted range. `parse_far.py` builds the
-appendix's panels, unwindowed, and records the offset at which a written
-agent's reach collapses rather than cutting it silently. Both regenerate the
-committed `data.json` exactly from the committed results.
+fig 3's panels (`xpanels`, `fit_window`), windowed to the fitted range.
+`parse_far.py` builds the appendix's panels (`farpanels`), unwindowed, and
+records the offset at which a written agent's reach collapses rather than
+cutting it silently. Run in that order from an empty `data.json`, they
+regenerate it exactly from `results/g1/` and `--bc`, a directory holding
+`figures/data/bc/value_axis.bcnv11.*.json` plus the sidecars
+`extrap_axisonly{,_far}.json` (untracked: the far one is written to
+`figures-data/bc/` by `scripts/studies/value-axis/bc_extrap_far.py`; the near
+one's producer, a pod job, was never committed). Rebuilt that way on 2026-10-26, which dropped keys no
+builder read (`series`, `scurves`, `panels`, `base_values`, left from an earlier
+design).
 
 **Builders deliberately do not share chart primitives.** The owner hand-tunes
 each figure; a shared module would couple them. Duplicate a primitive rather
@@ -71,5 +107,8 @@ tasks, beside the maze route model), `make_craft_fig1.py` with
 
 The repo keeps code, write-ups, `results/` tables and rendered figures. Figure
 source data (npz and JSON) is measured on the pod and kept on the data volume
-under `/workspace/data/figures-data`. `figures/data/` is gitignored: files
-tracked before the policy (84e80ca) stay tracked, new ones are not added.
+under `/workspace/data/figures-data/` (`figures-data/` for short). `figures/data/`
+is gitignored: files tracked before the policy (84e80ca) stay tracked, new ones
+are not added. The route model's arm copies once tracked under
+`figures/data/bc/arms/` (576 files nothing read) were removed on 2026-10-26; the
+arms themselves are on the volume.

@@ -12,9 +12,8 @@ reference in every panel: the task's own exchange rate, threshold =
 (1.0 − v)/0.05 — a property of the maze, identical everywhere, so deviations
 from it read as each architecture's bias.
 
-`data.json['panels']`: [{key, title, seeds: [{name, trained: [{v, steps,
-lo?, hi?}], written: [...]}]}]. `scurves` stays in the file for the separate
-psychometric mini-figure.
+Reads `data.json['xpanels']`, `fit_window` and `step_penalty`, written by
+parse_g1.py. The same file's `farpanels` (parse_far.py) feeds value-axis-far.
 
 Output: ../../fragments/value-axis.html — splice with <!-- fig: value-axis -->.
 """
