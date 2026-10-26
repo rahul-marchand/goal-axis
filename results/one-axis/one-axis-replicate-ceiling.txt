@@ -1,0 +1,45 @@
+script scripts/studies/one-axis/one_axis_replicate_ceiling.py
+commit 60346db (snapshot housekeeping-20261026)
+argv   --rl novalue11g1.s1234=cp_149995520 resnet11nvg1.s1234=cp_120176640 vit11nvg1.s9012=cp_249999360
+
+=== novalue11g1.s1234 (cp_149995520, 1,449,605 parameters) ===
+  o0 r1: 8 arms -0.40..+0.40  |axis| 8.219  |drift| 2.32  split-half r (SB) +0.603
+  o1 r1: 8 arms -0.40..+0.40  |axis| 8.202  |drift| 2.307  split-half r (SB) +0.605
+  o1 r2: 8 arms -0.40..+0.40  |axis| 8.039  |drift| 2.281  split-half r (SB) +0.591
+  o1 r3: 8 arms -0.40..+0.40  |axis| 8.144  |drift| 2.335  split-half r (SB) +0.597
+  o0: no replicates at 400000 steps; replicate reliability not computable
+  o1 replicate cosines: r1~r2 +0.605  r1~r3 +0.616  r2~r3 +0.611   mean +0.611
+  o1 drift cosines:     r1~r2 +0.570  r1~r3 +0.585  r2~r3 +0.579
+  cos(axis_0, axis_1) original -0.609;  with each o1 replicate: r1 -0.609  r2 -0.589  r3 -0.589
+  split-half ceiling sqrt(r0 r1) +0.604   cos/ceiling -1.01
+  replicate ceiling sqrt(r0 r1): NOT COMPUTABLE (only o1 is replicated)
+
+=== resnet11nvg1.s1234 (cp_120176640, 1,234,405 parameters) ===
+  o0 r1: 8 arms -0.40..+0.40  |axis| 5.758  |drift| 1.857  split-half r (SB) +0.125
+  o1 r1: 8 arms -0.40..+0.40  |axis| 5.757  |drift| 1.88  split-half r (SB) +0.121
+  o1 r2: 8 arms -0.40..+0.40  |axis| 5.774  |drift| 1.838  split-half r (SB) +0.140
+  o1 r3: 8 arms -0.40..+0.40  |axis| 5.871  |drift| 1.867  split-half r (SB) +0.143
+  o0: no replicates at 400000 steps; replicate reliability not computable
+  o1 replicate cosines: r1~r2 +0.150  r1~r3 +0.163  r2~r3 +0.147   mean +0.153
+  o1 drift cosines:     r1~r2 +0.380  r1~r3 +0.393  r2~r3 +0.383
+  cos(axis_0, axis_1) original -0.118;  with each o1 replicate: r1 -0.118  r2 -0.115  r3 -0.138
+  split-half ceiling sqrt(r0 r1) +0.123   cos/ceiling -0.96
+  replicate ceiling sqrt(r0 r1): NOT COMPUTABLE (only o1 is replicated)
+
+=== vit11nvg1.s9012 (cp_249999360, 2,192,133 parameters) ===
+  o0 r1: 8 arms -0.40..+0.40  |axis| 10.25  |drift| 5.062  split-half r (SB) +0.258
+  o1 r1: 8 arms -0.40..+0.40  |axis| 10.42  |drift| 4.961  split-half r (SB) +0.287
+  o1 r2: 8 arms -0.40..+0.40  |axis| 10.3  |drift| 5.023  split-half r (SB) +0.292
+  o1 r3: 8 arms -0.40..+0.40  |axis| 10.01  |drift| 5.071  split-half r (SB) +0.278
+  o0: no replicates at 400000 steps; replicate reliability not computable
+  o1 replicate cosines: r1~r2 +0.177  r1~r3 +0.177  r2~r3 +0.188   mean +0.181
+  o1 drift cosines:     r1~r2 +0.380  r1~r3 +0.352  r2~r3 +0.366
+  cos(axis_0, axis_1) original -0.232;  with each o1 replicate: r1 -0.232  r2 -0.157  r3 -0.164
+  split-half ceiling sqrt(r0 r1) +0.273   cos/ceiling -0.85
+  replicate ceiling sqrt(r0 r1): NOT COMPUTABLE (only o1 is replicated)
+
+=== summary ===
+base                   cos(a0,a1)      cos/a1 reps   r0 SB   r1 SB old ceil cos/old  r0 rep  r1 rep r1rep/r1SB rep ceil
+novalue11g1.s1234          -0.609      -0.59/-0.59  +0.603  +0.605   +0.604   -1.01     n/a  +0.611       1.01      n/a
+resnet11nvg1.s1234         -0.118      -0.11/-0.14  +0.125  +0.121   +0.123   -0.96     n/a  +0.153       1.27      n/a
+vit11nvg1.s9012            -0.232      -0.16/-0.16  +0.258  +0.287   +0.273   -0.85     n/a  +0.181       0.63      n/a

@@ -45,6 +45,7 @@ code lives in `goalmisgen/`.
 | `resplit_by_layout.py` | Re-split an existing level dataset so train and test share no maze. |
 | `migrate_volume.py` | Move the data volume onto the naming scheme in `goalmisgen/volume.py`. |
 | `manifest.py` | Index every dataset and trained agent on the volume into `MANIFEST.md`. |
+| `arm_eval_overlap.py` | Count evaluation levels that also sit in an arm's or a base's training split, by level and by layout (`THREADS.md` IN.2, IN.6). |
 | `results_index.py` | Index every table under `results/` (recursively) by the script and commit that produced it, into `results/INDEX.md`. |
 
 ## `train/`
@@ -80,7 +81,7 @@ code lives in `goalmisgen/`.
 | `arch-swap/` | Experiment 1 on a ResNet and a ViT | `arch_swap_report.py` |
 | `value-axis/` | The value-axis figures across architectures | `bc_extrap_far.py` (the route model's far writes for the appendix), `bc_value_axis_table.py` (the route model's o-sweep summary) |
 | `arm-length/` | Fine-tune length (`docs/Experiment3.md` §3) | `arm_length_ladder.py`, `arm_length_report.py` |
-| `one-axis/` | One knob or two, against a null | `one_axis_null.py` |
+| `one-axis/` | One knob or two, against a null | `one_axis_null.py`, `one_axis_replicate_ceiling.py` |
 | `where-axis/` | Where in the weights the axis acts (§2) | `conv0_planes.py`; the writes themselves are `measure/restricted_writes*.py` |
 | `far-axis/` | A fresh axis past parity | `far_axis_fit.py`, `far_axis_fit_bc.py` |
 | `cheapest-edit/` | The cheapest edit (§4) | `cheapest_edit_report.py`, `edit_compare.py`, `edit_overfit_check.py`, `fork_margin_diagnostic.py`; the search is `measure/cheapest_edit.py` |

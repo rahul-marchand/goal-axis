@@ -543,6 +543,9 @@ Every table behind the four-architecture value-axis figures, on the γ=1 bases
 - `g1-vit11nvg1lr.*`: the tuned-learning-rate ViTs, kept as negative controls
   (no axis, reliability 0.05-0.13);
 - `g1-probe-plan-novalue11g1.s1234.txt`: the plan probe on a g1 DRC.
+- `g1-eval-overlap.txt` (2026-10-26): how many of the evaluation levels
+  (`1.00-0.50@500k` test split) sit in an arm's or the bases' training split;
+  85.8% are training levels of the bases (`THREADS.md` IN.2, IN.6).
 
 **The "task says" column of every `g1-*-o0*.txt` is wrong.** `014` prints
 (1 − v)/0.05, the colour-1 sweep's optimum, for both sweeps; for o0 the
@@ -566,9 +569,16 @@ no axis.
 permutation null and the noise ceiling √(r₀r₁). Every base with an axis sits at
 its ceiling (cos/ceiling −0.85 to −1.02, p at its floor). Quote this, not raw
 cosines against a 1/√d null, and not disattenuated cosines. The split-half
-ceiling is biased low by ~3-10% on the 8-arm grid, so the ratios overstate the
-fit (roughly −0.94…−0.97 DRC, ~−0.87 ResNet once corrected); the p-values stand
-(`THREADS.md` G.2).
+ceiling is not a reliable denominator at low reliability: against
+fine-tune-seed replicates it is accurate on the DRC and off by about 30% either
+way on the ResNet and ViT, so only the DRC's "at its ceiling" is supported; the
+p-values stand (`THREADS.md` G.2).
+
+`one-axis-replicate-ceiling.txt` (2026-10-26): the o1 axis fitted on each
+fine-tune-seed replicate set (`.r2`, `.r3`) of the three replicated bases, the
+mean cosine between independent fits (replicate reliability) beside the
+split-half one. Only o1 is replicated, so √(r₀r₁) from replicates is not
+computable.
 
 ## `where-axis/`: where in the weights (`restrict-*`, `dose-*`)
 

@@ -1,0 +1,44 @@
+script scripts/data/arm_eval_overlap.py
+commit 60346db (snapshot housekeeping-20261026)
+argv   --eval /workspace/data/levels/values/1.00-0.50@500k --eval-split test --arms-glob /workspace/data/runs/novalue11g1.*/arms/* /workspace/data/runs/resnet11nvg1.*/arms/* /workspace/data/runs/vit11nvg1.*/arms/* /workspace/data/runs/vit11nvg1lr.*/arms/* --also /workspace/data/levels/values/1.00-0.50@1M=train
+
+eval   /workspace/data/levels/values/1.00-0.50@500k  split=test  (50,000 of 500,000 levels; splits stored; 47,025 distinct layouts)
+arm pools: 31 (pool, split) pairs over 420 arms with a cfg.json
+
+pool                                         split  arms  n_split stored nested level-overlap layout-overlap
+0.00-0.50@150k                               train     7  140,056   True   True        0.2780         0.4803
+0.10-0.50@150k                               train    14  140,056   True   True        0.2780         0.4803
+0.20-0.50@150k                               train    14  140,056   True   True        0.2780         0.4803
+0.30-0.50@150k                               train    17  140,056   True   True        0.2780         0.4803
+0.40-0.50@150k                               train    17  140,056   True   True        0.2780         0.4803
+0.50-0.50@150k                               train    17  140,111   True  False        0.0101         0.2944
+0.60-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+0.70-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+0.80-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+0.90-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+1.00-0.10@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-0.20@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-0.30@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-0.40@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-0.50@150k                               train    26  140,000   True   True        0.2741         0.4856
+1.00-0.60@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-0.70@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-0.80@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-0.90@150k                               train    16  140,000   True   True        0.2741         0.4856
+1.00-1.00@150k                               train    17  140,000   True  False        0.0104         0.2978
+1.00-1.10@150k                               train    17  140,000   True   True        0.2741         0.4856
+1.00-1.20@150k                               train    17  140,000   True   True        0.2741         0.4856
+1.00-1.30@150k                               train    14  140,000   True   True        0.2741         0.4856
+1.00-1.40@150k                               train    14  140,056   True   True        0.2780         0.4803
+1.00-1.50@150k                               train     7  140,000   True   True        0.2741         0.4856
+1.00-1.75@150k                               train     7  140,056   True   True        0.2780         0.4803
+1.00-2.00@150k                               train     7  140,000   True   True        0.2741         0.4856
+1.10-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+1.20-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+1.30-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+1.40-0.50@150k                               train    10  140,000   True   True        0.2741         0.4856
+[not an arm pool] 1.00-0.50@1M                train     -  900,000   True   True        0.8582         0.9814
+
+pools whose content is a prefix of the eval pool: 29 of 31
+eval levels present (identical level) in ANY arm train split:  14,865 / 50,000 = 0.2973
+eval levels whose LAYOUT is in ANY arm train split:            32,571 / 50,000 = 0.6514
