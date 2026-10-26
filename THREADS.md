@@ -4,6 +4,24 @@
 
 Blog post: https://rahulmarchand.com/posts/decision-threshold/
 
+**Frozen 2026-10-26 (tag `frozen-2026-10-26`).** No new work happens in this
+repo. Threads still marked `open` stay open as a record of what was not
+answered here; none will be pursued in this repo. The retargeting-cost threads
+(RC.*) continue in the goalbits repository (link to follow), which starts
+from a fresh design and re-runs the pilot on clean splits. The corrections
+found by the 2026-10-26 audits are recorded in the threads they affect (G.2,
+E2.4, IN.2, IN.6–IN.8, UR.10, RC.1, RC.8, RC.11, RC.13, RC.14).
+
+Decisions deliberately left open at the freeze:
+- **Expert ties** (UR.10): mask tied demonstrations, or break ties by value.
+- **The default code** for the metric: prequential or requential (RC.4, RC.14).
+- **Volume checkpoints**: about 100 GB of intermediate arm and scaling-run
+  checkpoints are kept. Deleting them saves nothing on a network volume.
+- **`RUNS.toml` gaps**: 444 volume entries, mostly Craftax demo arms and
+  per-arm level pools, have no note (`MANIFEST.md` shows them as **none**).
+- **RC.12 and RC.13** were launched on 2026-10-12. Any results are on the volume
+  under `offline/results/` and were never recorded here.
+
 The project's ledger: every question asked, its status, and where the answer or
 the evidence lives. It replaces `CLAIMS.md` and the three `Preregistration*.md`
 files, which are deleted; their rows appear below under their old IDs, and
@@ -161,6 +179,8 @@ volume.
 | K.6 | closed | Bring `docs/Craftax.md` up to date: it stopped before stage 4's table-channel result and quoted the superseded (2.0, 0.5) / 30-action design. Updated 2026-10-09. | `docs/Craftax.md`; commits b921329, 30fb705 |
 
 ## Retargeting cost: the metric's first pilot (route model, 2026-10-10)
+
+**Continues in goalbits.** The open RC threads are forwarded there; this section is the pilot's record.
 
 The owner's EDL spec, in its simplest form: block-prequential code with doubling blocks, a refit from the base before each block, and early stopping on a fixed V. Bits are those of the expert's own moves; L* = 0 on perfect mazes. Code: `goalmisgen/offline/retarget.py`, `scripts/studies/retarget/`, `scripts/pods/retarget_chain.sh`.
 

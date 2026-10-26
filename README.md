@@ -3,6 +3,9 @@
 Research code for **[A Steerable Decision Threshold in a Planning Agent](https://rahulmarchand.com/posts/decision-threshold/)**.
 Read the post first; this repo is its record.
 
+> **Frozen 2026-10-26** (tag `frozen-2026-10-26`). Formerly `GoalMisgeneralisation`.
+> The follow-up work lives in goalbits (upcoming).
+
 Agents solve 11×11 mazes holding two goals of different value, which they
 cannot see. The optimal policy accepts up to a fixed number of extra steps to
 reach the richer goal: a decision threshold. In every agent that learned the
@@ -37,8 +40,8 @@ in git (`RUNS.toml` says why each run exists, `MANIFEST.md` what is there).
 Requires [uv](https://docs.astral.sh/uv/).
 
 ```sh
-git clone https://github.com/rahul-marchand/GoalMisgeneralisation
-cd GoalMisgeneralisation
+git clone https://github.com/rahul-marchand/goal-axis
+cd goal-axis
 git submodule update --init third_party/train-learned-planner
 git -C third_party/train-learned-planner submodule update --init third_party/gym-sokoban
 uv sync              # add --extra gpu for CUDA JAX
