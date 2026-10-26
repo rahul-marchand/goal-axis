@@ -1,4 +1,4 @@
-"""Greedy decoding with a key/value cache.
+"""Greedy decoding with a key/value cache, and sampling with the same cache.
 
 :func:`goalmisgen.offline.decode.greedy_decode` re-runs the whole sequence at
 every one of ``max_actions + 1`` steps. That is the honest thing to write and it
@@ -28,6 +28,7 @@ than ignored, because ignoring it would make this fast and wrong.
 
 from __future__ import annotations
 
+import dataclasses
 import functools
 import math
 
@@ -191,3 +192,84 @@ def greedy_decode_cached(model: RoutePrefixLM, params, observations: np.ndarray,
         lengths.append(np.asarray(n, dtype=np.int32))
         finished.append(np.asarray(f, dtype=bool))
     return Decoded(np.concatenate(actions), np.concatenate(lengths), np.concatenate(finished))
+
+
+@functools.partial(jax.jit, static_argnums=(0,))
+def _sample_chunk(cfg: ModelConfig, params, observations, row_keys):
+    """``_decode_chunk`` with each token drawn from the model instead of its argmax.
+
+    ``row_keys`` holds one PRNG key per row; the token at position ``p`` of a row
+    is drawn with ``fold_in(row_key, p)``, so a row's route does not depend on
+    which other rows share its batch.
+    """
+    prefix, cache = prefix_pass(params, cfg, observations)
+    batch = observations.shape[0]
+
+    def draw(logits, position):
+        keys = jax.vmap(jax.random.fold_in, in_axes=(0, None))(row_keys, position)
+        log_probs = jax.nn.log_softmax(logits, axis=-1)
+        token = jax.vmap(jax.random.categorical)(keys, log_probs)
+        return token, jnp.take_along_axis(log_probs, token[:, None], axis=-1)[:, 0]
+
+    first, first_log_prob = draw(_logits(params, prefix[:, -1:])[:, 0], 0)
+
+    def body(carry, position):
+        cache, token, finished, lengths, log_prob = carry
+        ended = (token == cfg.eos) & ~finished
+        lengths = jnp.where(ended, position, lengths)
+        finished = finished | ended
+        emitted = jnp.where(finished, NO_ACTION, token)
+        x, cache = action_step(params, cfg, cache, jnp.where(emitted >= 0, emitted, cfg.pad), position)
+        token, step_log_prob = draw(_logits(params, x)[:, 0], position + 1)
+        log_prob = log_prob + jnp.where(finished, 0.0, step_log_prob)
+        return (cache, token, finished, lengths, log_prob), emitted
+
+    init = (cache, first, jnp.zeros(batch, bool), jnp.full(batch, cfg.max_actions, jnp.int32), first_log_prob)
+    (_, last, finished, lengths, log_prob), actions = jax.lax.scan(body, init, jnp.arange(cfg.max_actions))
+    ended = (last == cfg.eos) & ~finished
+    return actions.T, jnp.where(ended, cfg.max_actions, lengths), finished | ended, log_prob
+
+
+@dataclasses.dataclass
+class Sampled:
+    actions: np.ndarray
+    lengths: np.ndarray
+    emitted_eos: np.ndarray
+    """Whether the route drew EOS. One that reached ``max_actions`` without it is cut there and is not a draw from the model."""
+
+    log_prob: np.ndarray
+    """Natural log-probability of each route under the model that drew it, EOS included where drawn."""
+
+
+def sample_cached(
+    model: RoutePrefixLM,
+    params,
+    observations: np.ndarray,
+    seed: int,
+    rows: np.ndarray | None = None,
+    batch_size: int | None = None,
+) -> Sampled:
+    """One route per maze, drawn from the model; reproducible from ``seed`` and each row's id in ``rows``.
+
+    ``rows`` names each maze for the randomness (default its position), so the
+    same maze under the same seed draws the same route whatever else is in the
+    call: the shared randomness a requential code's decoder replays.
+    """
+    if model.dtype != jnp.float32:
+        raise ValueError(f"cached decoding is float32 only, got dtype={model.dtype}")
+    cfg = model.config
+    batch_size = decode_batch_size(model) if batch_size is None else batch_size
+    tree = params["params"] if "params" in params else params
+    rows = np.arange(len(observations)) if rows is None else np.asarray(rows)
+    base = jax.random.PRNGKey(seed)
+
+    actions, lengths, finished, log_prob = [], [], [], []
+    for start in range(0, len(observations), batch_size):
+        chunk = jnp.asarray(observations[start : start + batch_size])
+        keys = jax.vmap(jax.random.fold_in, in_axes=(None, 0))(base, jnp.asarray(rows[start : start + batch_size]))
+        a, n, f, lp = _sample_chunk(cfg, tree, chunk, keys)
+        actions.append(np.asarray(a, dtype=np.int32))
+        lengths.append(np.asarray(n, dtype=np.int32))
+        finished.append(np.asarray(f, dtype=bool))
+        log_prob.append(np.asarray(lp, dtype=np.float64))
+    return Sampled(np.concatenate(actions), np.concatenate(lengths), np.concatenate(finished), np.concatenate(log_prob))

@@ -125,3 +125,45 @@ def test_cached_decode_reads_the_goal_vector():
     np.testing.assert_array_equal(
         fast_decode.greedy_decode_cached(model, params, obs).actions, greedy_decode(model, params, obs).actions
     )
+
+
+# ----------------------------------------------------------------------
+# Sampling, for requential coding
+# ----------------------------------------------------------------------
+
+
+def test_sampled_routes_are_well_formed_and_carry_their_own_probability(model_and_params):
+    """Each draw's log-probability is what the module assigns the route, so draws and scores agree."""
+    from goalmisgen.offline.model import targets_from_routes
+
+    model, params = model_and_params
+    cfg = model.config
+    obs = observations(cfg, 32, seed=7)
+    drawn = fast_decode.sample_cached(model, params, obs, seed=0)
+    positions = np.arange(cfg.max_actions)[None, :]
+    assert ((drawn.actions >= 0) & (drawn.actions < cfg.n_actions))[positions < drawn.lengths[:, None]].all()
+    assert (drawn.actions[positions >= drawn.lengths[:, None]] == -1).all()
+
+    logits, _ = model.apply(params, jnp.asarray(obs), jnp.asarray(drawn.actions))
+    targets = targets_from_routes(jnp.asarray(drawn.actions), jnp.asarray(drawn.lengths), cfg.eos)
+    log_probs = jax.nn.log_softmax(logits.astype(jnp.float32), axis=-1)
+    picked = jnp.take_along_axis(log_probs, jnp.maximum(targets, 0)[..., None], axis=-1)[..., 0]
+    scored = np.asarray((picked * (targets >= 0)).sum(axis=-1))
+    ended = drawn.emitted_eos
+    assert ended.any()
+    np.testing.assert_allclose(drawn.log_prob[ended], scored[ended], rtol=1e-4, atol=1e-4)
+
+
+def test_sampling_is_replayable_from_its_seed_and_row_ids(model_and_params):
+    model, params = model_and_params
+    obs = observations(model.config, 20, seed=9)
+    rows = np.arange(100, 120)
+    whole = fast_decode.sample_cached(model, params, obs, seed=3, rows=rows, batch_size=64)
+    split = fast_decode.sample_cached(model, params, obs, seed=3, rows=rows, batch_size=7)
+    np.testing.assert_array_equal(whole.actions, split.actions)
+    np.testing.assert_array_equal(whole.lengths, split.lengths)
+    # One maze alone draws what it drew among the others: its randomness is its own.
+    alone = fast_decode.sample_cached(model, params, obs[4:5], seed=3, rows=rows[4:5])
+    np.testing.assert_array_equal(alone.actions[0], whole.actions[4])
+    other = fast_decode.sample_cached(model, params, obs, seed=4, rows=rows)
+    assert not np.array_equal(other.actions, whole.actions)
