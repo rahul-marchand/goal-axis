@@ -13,13 +13,21 @@ matplotlib figures read JSON in `figures/data/`; the blog fragments' parsers
 `.json`. Every file written since `goalmisgen/provenance.py` names its producer
 in its header. Older files mostly cannot say: the index infers a producer from
 the flags in `argv` where they identify one script and marks the guess with
-`?`, and marks the rest unknown (at 2026-10-09: 783 files, 691 self-describing,
-20 inferred, 72 unknown).
+`?`, and marks the rest unknown.
 
 What stays here is the part no script can recover: *why* a measurement was taken
 and what to make of it. Same split as `RUNS.toml` against `MANIFEST.md`.
 Longer write-ups live in `docs/` and, for the gain-vs-factorised study, in
-`gain-vs-factorised/`.
+`gain-vs-factorised/`. `figures-data/` below is `/workspace/data/figures-data/`
+on the volume.
+
+**Not to be cited.** Kept as records, superseded or never valid as results:
+`experiment1/early-warning.contended.txt` (provenance unknown: nothing records
+how it differs from `early-warning.txt`); `value-axis-0995/axis-ladder-prelim.txt`
+(superseded by `axis-ladder.txt`); `value-axis-0995/axis-ladder-weights.txt`
+(empty: one XLA warning, no output); `scaling/scaling-smoke-029.*` and
+`gain-vs-factorised/e13-smoke.txt` (pre-launch smoke runs); the cheapest-edit
+pilots listed in that section.
 
 ## Layout
 
@@ -51,6 +59,7 @@ folder is written `folder/name`.
 | [`plan-probe/`](plan-probe/) | The blog's plan-probe tables | the blog post |
 | [`depth/`](depth/) | The route-model depth sweep | `THREADS.md` SC.4 |
 | [`overfit/`](overfit/) | Does an axis need a base that learned the task? | `docs/Experiment3.md` §6 |
+| [`retarget/`](retarget/) | Retargeting cost: the metric's first pilot, and requential coding | `THREADS.md` RC.1-RC.14; `figures/src/retarget-pilot/report.html` |
 | [`craftax/`](craftax/) | Craftax stages 2 and 4 | `docs/Craftax.md` |
 
 ## `experiment1/`: Experiment 1 (γ=0.995 DRC)
@@ -80,7 +89,7 @@ current code.
 the behavioural gap at every saved checkpoint of `maze11` and `clean11fv`,
 written by `scripts/pods/early_warning.sh` and read by
 `scripts/studies/experiment1/early_warning_report.py`. What distinguishes the
-`.contended` run is not recorded. The same protocol on the other architectures
+`.contended` run is not recorded: **do not cite it** (provenance unknown). The same protocol on the other architectures
 is `arch-swap/arch-swap-early-warning-*`.
 
 ## `value-axis-0995/`: Experiment 2 (γ=0.995 DRC)
@@ -92,6 +101,27 @@ The sections below follow `experiments/README.md`'s line of questions; `seed5678
 `seed-comparison.txt` repeat the sweep on a second seed, and `v2-*` are
 `016`/`018`/`021` on the second three-objective base
 (`scripts/pods/three_objective_v2.sh`).
+
+Prefixes, with the experiment that wrote them (`INDEX.md` for each file):
+
+| prefix | experiment | question |
+|---|---|---|
+| `value-axis-{full,quarter,heldout}` | `014` | the seven-arm grid's axis at the arms' last / first checkpoint, and leave-one-out writes |
+| `value-axis-ood{,-colour0}` | `014 --extrapolate` | writing the axis outside the grid, colour 1 / colour 0 |
+| `value-or-gap{,-cross}` | `015` | value or gap (`--cross`: the causal test that cannot decide it) |
+| `where-the-axis-lives` | `017` | the axis's layer and gate composition |
+| `decomposition` | unknown | each grid arm's weight diff split into drift, axis and residual |
+| `which-channels`, `seed5678-which-channels` | `018` | channel enrichment of the axis |
+| `restricted-axis` | `019` | the write restricted to enriched channels |
+| `value-channels`, `probe-selected-channels` | `020` | are the enriched channels value channels (probe and steer them) |
+| `three-objective{,-wide,-channels,-gate}` | `016`, `018`, gate note | the three-objective base (`-gate`: the 80M go/no-go) |
+| `own-task-threeobj2`, `v2-own-task` | `021` | arms' quality at their own task |
+| `v2-rank-{full,quarter}`, `v2-channels` | `016`, `018` | the second three-objective base (1.0, 0.55, 0.4) |
+| `seed5678-{heldout,value-or-gap}`, `seed-comparison` | `014`, `015`, by hand | the second seed |
+| `flip-axis-novalue11.s1234` | unknown | do arms past parity (values 1.0-1.5) extend the grid's axis? cos −0.48 against a null of sd 0.25 |
+| `axis-ladder*` | `022` | the base-checkpoint ladder (below) |
+| `wide-novalue11.<seed>-*` | `014`, `015` | the wide sweeps (below); `-x1*` are arms past parity |
+| `novalue-behaviour` | `006` | does a no-value-channel agent trade value against distance |
 
 ### The value grid
 
@@ -191,8 +221,8 @@ two-objective agent sits.
 `novalue11.s1234`: 2M, 5M, 10M, 15M, 20M, 30M, 40M, 50M, 60M, 70M and the 140.2M
 the run finished at. Both objectives at every rung, 25 arms each at 400k steps,
 450 + 100 arms in total. `axis-ladder-prelim.txt` is an earlier nine-rung pass
-kept only because it is what the reliability bug was found in; nothing should be
-read off it.
+kept only because it is what the reliability bug was found in; it is superseded
+and nothing should be read off it. `axis-ladder-weights.txt` is empty.
 
 **The axis appears between 40M and 60M, and nowhere earlier.** By the permutation
 null on `|axis|` and by split-half reliability, on both objectives at once:
@@ -478,7 +508,7 @@ plan edit survives its red team; the distance write moves nothing
 their outcomes are in `git show b353c0e:Preregistration-scaling.md` and
 `THREADS.md` SC.1-SC.3: depth *improved* the write, against the prediction.
 `scaling-shape-probe-h100.txt` and `scaling-smoke-029.*` are the pre-launch
-checks. `maze-diversity.txt` counts the distinct mazes in the 7.78M-level pool
+checks (smoke: not results). `maze-diversity.txt` counts the distinct mazes in the 7.78M-level pool
 generated for the scaling pilot; `goalmisgen/envs/splits.py` cites it at its
 pre-2026-10-10 path, `results/maze-diversity.txt`.
 
@@ -514,6 +544,12 @@ Every table behind the four-architecture value-axis figures, on the γ=1 bases
   (no axis, reliability 0.05-0.13);
 - `g1-probe-plan-novalue11g1.s1234.txt`: the plan probe on a g1 DRC.
 
+**The "task says" column of every `g1-*-o0*.txt` is wrong.** `014` prints
+(1 − v)/0.05, the colour-1 sweep's optimum, for both sweeps; for o0 the
+task's optimum is (v − 0.5)/0.05. No parser reads the column, and the figures
+draw the optimum from `step_penalty`. Thresholds above ~14 steps (far writes,
+extreme arms) read high: `THREADS.md` IN.8.
+
 The route model's o sweeps are `offline-bc/offline-bc-value-axis-bcnv11.*`. Tables
 from bases that never learned the trade-off were deleted. The figures read these
 through `figures/src/value-axis/parse_g1.py` and `parse_far.py`.
@@ -529,7 +565,10 @@ no axis.
 `one-axis-null.txt` (0dea7e0) tests "one knob, not two" on every base against a
 permutation null and the noise ceiling √(r₀r₁). Every base with an axis sits at
 its ceiling (cos/ceiling −0.85 to −1.02, p at its floor). Quote this, not raw
-cosines against a 1/√d null, and not disattenuated cosines.
+cosines against a 1/√d null, and not disattenuated cosines. The split-half
+ceiling is biased low by ~3-10% on the 8-arm grid, so the ratios overstate the
+fit (roughly −0.94…−0.97 DRC, ~−0.87 ResNet once corrected); the p-values stand
+(`THREADS.md` G.2).
 
 ## `where-axis/`: where in the weights (`restrict-*`, `dose-*`)
 
@@ -597,7 +636,27 @@ axis in function space but not in weights. `docs/Experiment3.md` §4.
 
 Sixteen experiments, E1-E16, each with its own report `gain-vs-factorised/E<N>.md`
 holding the question, tables, code and cost, plus `colour-signature-arms.md`
-and `colour-swap-blend.md`. Commits 55958e0 to 0851c01 and a9c546e. E2's
+and `colour-swap-blend.md`. Commits 55958e0 to 0851c01 and a9c546e. Tables by
+prefix (most reports cite their tables by pattern, not by name):
+
+| prefix | report |
+|---|---|
+| `E1-tables`, `gain-alignment*` | E1 |
+| `plan-invariance-*` | E2 |
+| `separability-drc-g1` | E3 |
+| `e4-*` | E4 (`e4-summary` tabulates the rest) |
+| `legend11g1.*`, `restrict-legend11g1.*`, `input-gain-legend11g1.*` | E5 |
+| `axis-far-dose*` | E6 |
+| `e7-*` | E7 |
+| `leftover-*`, `censored-tau-*` | E8 |
+| `e9-*` | E9 |
+| `e10-*` (control writes, gain alignment, leftover on non-gain knobs) | E10 |
+| `e11-*`, `token-budget-*`, `input-gain-sc11.*`, `direction-sc11.*` | E11 (`e11-summary` tabulates them) |
+| `e12-*` | E12 |
+| `e13-*` (`e13-smoke`: smoke run, not a result) | E13 |
+| `e14-*` | E14 |
+| `e15-*` | E15 |
+| `e16-*` | E16 | E2's
 `plan-invariance-*` and E3's `separability-drc-g1.txt` sat at the top of `results/`
 until 2026-10-10 and are filed here with the rest. E11's verdict is overturned by E15, as its
 report now says. Summary: `docs/Experiment3.md` §5; status: `THREADS.md` H.1-H.21.
@@ -647,10 +706,14 @@ learning-rate choice, made on τ = 4.5, which no arm uses.
 goal vectors and their midpoints, to confirm it has its dial (RC.6).
 `oracle_dial.*` is that agent's best dial setting for each arm, the reference
 its costs are read against (RC.9). The report is
-https://claude.ai/artifact/WZkGyjxZG4V2FtHyq6CY3Q, built by
-`figures/src/retarget-pilot/build_fig.py`. The pool is
-`test.rho100` minus the arm pool's training split, so it is held out from both
-`bcnv11` and the memoriser (IN.2). Levels tied at τ = 10 are dropped for every
+`figures/src/retarget-pilot/report.html`, built by
+`figures/src/retarget-pilot/build_fig.py` and published at
+https://claude.ai/artifact/WZkGyjxZG4V2FtHyq6CY3Q. Its per-token fraction-paid
+bars are mis-scaled, and cost differences under ~70 bits are within the
+early-stopping leak (`THREADS.md` RC.1). The pool is
+`test.rho100` minus the arm pool's training split, so its levels are held out
+from both `bcnv11` and the memoriser (IN.2); its layouts are mostly in bcnv11's
+training split (IN.6). Levels tied at τ = 10 are dropped for every
 arm, so the expert is deterministic and SDL = MDL.
 `*.bcgvr11.s1.*` are the same checks on `bcgvr11.s1`, the positive control
 retrained on bcnv11's 900k mazes with one random goal each, so that its base is
@@ -664,7 +727,9 @@ every weight taught from its moving average), written by `retarget_report.py`
 over the records in `offline/results/retarget-requential/` on the volume
 (`scripts/pods/requential_control.sh`). Its SDL column is the whole code, KL
 plus overhead, over 262k coded samples, so it is not comparable with the
-prequential rows of `pilot.txt`; the warning lights at its end are why.
+prequential rows of `pilot.txt`; the warning lights at its end are why. Its
+ceiling, EDL and fraction-paid summaries used calls × batch as n and are not
+to be read until that is fixed (`THREADS.md` RC.14).
 
 ## `craftax/`: Craftax (`value_axis.cx*`, `value_or_gap.cx*`, `price.*`, `diagnose.*`)
 
