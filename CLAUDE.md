@@ -129,11 +129,17 @@ Roughly 20-40 minutes on eight cores, a couple on 48, ~36 MB. Set
 - **New feature schemes go outside `CONTENT_MODULES`** when they cannot change
   what a dataset contains. `ColourKeyedFeatures` lives in
   `envs/colour_keyed.py`, not `envs/features.py`, for exactly this reason.
-- **Training and evaluation never share mazes.** Splits are by maze layout
-  (`envs/splits.py`); `maze_drc33` trains on `train` and evaluates on `valid`.
-  `split_by_layout` thresholds are fractions of the pool, so splits are only
-  global at a fixed pool size: comparing across pools of different sizes needs a
-  set held out from both (the overfit study hit this).
+- **Pools generated since 2026-08-22 never share mazes between splits.** Their
+  splits are by maze layout (`envs/splits.py`); `maze_drc33` trains on `train`
+  and evaluates on `valid`. **Older pools do not**: their stored split is
+  index-wise. In `levels/values/1.00-0.50@1M`, 43,247 of the 50,000 test levels
+  share a layout with train, so the route models trained on
+  `offline/demos/train.rho100` (bcnv11, bcgvr11, ...) are evaluated on new levels
+  but mostly familiar layouts; most `@150k` arm pools also use index-wise splits
+  (`THREADS.md` IN.6, IN.2). `split_by_layout` thresholds are fractions of the
+  pool, so even layout splits are only global at a fixed pool size: comparing
+  across pools of different sizes needs a set held out from both (the overfit
+  study hit this).
 
 Datasets are directories of plain `.npy` files, not compressed archives, so
 they can be memory-mapped and shared across actor processes; `LevelDataset`
@@ -318,8 +324,9 @@ has the design and status.
 **The repo holds code, write-ups, results tables and rendered figures.** Bulk
 data lives on the RunPod network volume under `/workspace/data`: datasets,
 runs, arms, and figure source data (npz and JSON) under
-`/workspace/data/figures-data`. `/figures/data/` is gitignored for new files;
-what was tracked before that policy stays tracked.
+`/workspace/data/figures-data/` (`paths.figures_data_dir()`; written
+`figures-data/` for short in the docs). The repo's `figures/data/` is gitignored
+for new files; what was tracked before that policy stays tracked.
 
 - `results/` holds the verbatim text (and some JSON) output of measurement
   runs, filed in one folder per study (`results/g1/`, `results/arm-length/`,

@@ -282,7 +282,12 @@ wider grid.
 
 [[entry]]
 match = "levels/values/1.00-0.50@1M"
-note = "The 1M-level dataset every 11x11 fixed-value agent trained on. Fingerprint d0e70f346ac4a46a."
+note = """
+The 1M-level dataset every 11x11 fixed-value agent trained on. Fingerprint
+d0e70f346ac4a46a. Its stored split predates `split_by_layout` (2026-08-22) and
+is index-wise, not by layout: 43,247 of its 50,000 test levels share a maze
+layout with its train split (THREADS.md IN.6).
+"""
 
 [[entry]]
 match = "levels/randomised/levels11rv"
@@ -616,7 +621,9 @@ but against thresholds that are fractions of the pool, so the 150k arm pool's
 splits are not nested inside the 1M pool's: 2,732 of the arms' 50k training
 levels sit in the 1M pool's test split, and 1,824 of the 2,048 levels the arms
 are scored on sit in bcnv11's training set. test.rho100 alone is therefore
-clean for bcnv11 and contaminated for the rungs; the arms' own test set is the
+level-disjoint from bcnv11's training set (not layout-disjoint: the 1M pool's
+split is index-wise, so most of its test layouts appear in train.rho100;
+THREADS.md IN.6) and contaminated for the rungs; the arms' own test set is the
 reverse. This set is clean for both, and being a subset of test.rho100 it is
 still comparable with the published numbers. `scripts/data/make_demo_subset.py --exclude`.
 """
@@ -707,6 +714,8 @@ same split at several correlations is paired level for level -- only the
 colours differ. `train.*` feed the route models; `valid.*` are decoded at every
 checkpoint; `test.*` are held for the final tables. Built by
 `scripts/data/generate_demos.py`; `meta.json` records the source fingerprint.
+The source's split is index-wise, so `test.*` levels are new but mostly sit on
+layouts that `train.*` also holds (THREADS.md IN.6).
 """
 
 [[entry]]
